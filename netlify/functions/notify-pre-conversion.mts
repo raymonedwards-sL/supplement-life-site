@@ -50,7 +50,9 @@ export default async () => {
     .select("user_id")
     .eq("type", "pre_conversion_14_day");
 
-  const notifiedUserIds = new Set((alreadyNotified ?? []).map((r) => r.user_id));
+  const notifiedUserIds = new Set(
+    ((alreadyNotified ?? []) as { user_id: string }[]).map((r) => r.user_id)
+  );
 
   let sent = 0;
   for (const sub of pendingSubs ?? []) {

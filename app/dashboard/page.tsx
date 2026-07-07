@@ -45,9 +45,10 @@ export default async function Dashboard() {
         .maybeSingle(),
     ]);
 
-  const tracks = (trackAssignment?.tracks ?? [])
+  const trackIds = (trackAssignment?.tracks ?? []) as string[];
+  const tracks = trackIds
     .map((id: string) => findTrack(id))
-    .filter((t): t is NonNullable<typeof t> => Boolean(t));
+    .filter((t: ReturnType<typeof findTrack>): t is NonNullable<typeof t> => Boolean(t));
 
   const conversionDate = subscription?.conversion_date
     ? new Date(subscription.conversion_date).toLocaleDateString("en-US", {
