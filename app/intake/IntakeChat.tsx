@@ -90,11 +90,7 @@ export default function IntakeChat() {
             {m.content}
           </div>
         ))}
-        {loading && (
-          <div className="mr-auto rounded-2xl bg-navy/5 px-4 py-3 text-sm text-navy/50">
-            …
-          </div>
-        )}
+        {loading && <ThinkingIndicator />}
         <div ref={bottomRef} />
       </div>
 
@@ -156,6 +152,30 @@ function SummaryCard({ summary }: { summary: Completion }) {
         diagnosis, or treatment. Your profile has been saved — you can revisit
         it any time.
       </p>
+    </div>
+  );
+}
+
+const THINKING_MESSAGES = ["Thinking…", "Still with you…", "Almost there…"];
+
+function ThinkingIndicator() {
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIndex((i) => Math.min(i + 1, THINKING_MESSAGES.length - 1));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="mr-auto flex items-center gap-2 rounded-2xl bg-navy/5 px-4 py-3 text-sm text-navy/50">
+      <span className="flex gap-1">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:-0.3s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:-0.15s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40" />
+      </span>
+      {THINKING_MESSAGES[messageIndex]}
     </div>
   );
 }

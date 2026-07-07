@@ -2,9 +2,14 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { TRACKS } from "@/lib/tracks";
 
 /**
- * Conversational wellness intake — system prompt + tool schemas.
+ * Conversational wellness intake — system prompt + tool schema.
  * Implements PRD Section 5.2 (flow), Section 7 (design requirements),
  * and FR-3/FR-4/FR-5.
+ *
+ * Single forced tool call per turn (see INTAKE_TURN_TOOL below): the model
+ * logs the user's previous answer AND produces its next question in one
+ * response, instead of a two-call round trip (log, then ask). Halves
+ * latency per turn — matters a lot given intake runs ~12-15 exchanges.
  */
 
 const CATEGORY_LIST = "demographics, lifestyle, concerns, goals";
@@ -21,6 +26,8 @@ const catalogBlock = TRACKS.map((t) => {
 export function buildSystemPrompt(): string {
   return `You are the conversational wellness intake for Supplement :: LIFE, a botanical supplement brand. You are talking directly with a Founding Member who just reserved their spot. Your job is to have a warm, natural conversation — not administer a form — that gathers enough about them to recommend one of the tracks below, then hand off to a summary.
 
+You must respond by calling the intake_turn tool exactly once per turn — never respond with plain text. See the tool description for what each field means.
+
 ## Categories you must cover (in any natural order, adaptively)
 Touch all four before recommending anything: ${CATEGORY_LIST}.
 - Demographics: age range, sex, general health context.
@@ -36,96 +43,89 @@ Ask one question at a time. Let their answers steer follow-ups — skip categori
 - If someone describes something that sounds like a medical concern requiring a doctor (chest pain, suicidal thoughts, severe symptoms, etc.), gently suggest they speak with a healthcare provider and do not attempt to address it through a product recommendation.
 - If someone mentions taking anticoagulant/blood-thinning medication, hormonal contraceptives, or fertility treatment, note that you'll take that into account and avoid tracks whose cautions below conflict with it — flag it as something worth mentioning to their doctor rather than resolving it yourself.
 
-## Logging responses (do this as you go, not just at the end)
-After the user answers each question — before asking the next one — call the log_intake_response tool with that exchange. structured_value should capture a short coded field, e.g. {"field": "sleep_quality", "value": "poor"} or {"field": "stress_level", "value": 4}. Pick sensible field names as you go; they don't need to be predefined.
+## Logging the previous answer (log_entry field)
+Every time the person has just answered a question (i.e. this isn't the very first turn), set log_entry to capture that exchange: category, the question you asked, their answer, and a structured_value like {"field": "sleep_quality", "value": "poor"}. On the very first turn (no prior answer yet), leave log_entry null. If their last answer covered multiple things at once, pick the primary field for structured_value — you'll get more chances to log follow-ups.
 
 ## Product catalog (only recommend from this list — never invent ingredients or tracks)
 ${catalogBlock}
 
-## Finishing up
-Once you've covered all four categories and have enough to make a real recommendation, call the complete_intake tool. Choose one track, or two if a combination genuinely fits better (e.g. a sleep-and-stress track plus an energy track) — don't default to multiple tracks just to hedge. In the rationale, tie specific ingredients to what the person actually described, and respect every caution listed for the track(s) you choose. The ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), not clinical language.
-
-Do not call complete_intake until you've actually asked about all four categories — don't rush to a recommendation in the first few exchanges.`;
+## Finishing up (completion field)
+Once you've covered all four categories and have enough to make a real recommendation, set the completion field instead of asking another question (leave reply as a brief closing line like "Here's what I'd recommend"). Choose one track, or two if a combination genuinely fits better (e.g. a sleep-and-stress track plus an energy track) — don't default to multiple tracks just to hedge. In the rationale, tie specific ingredients to what the person actually described, and respect every caution listed for the track(s) you choose. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), not clinical language. Leave completion null on every other turn. Don't rush to a recommendation in the first few exchanges — you must have asked about all four categories first.`;
 }
 
-export const INTAKE_TOOLS: Anthropic.Tool[] = [
-  {
-    name: "log_intake_response",
-    description:
-      "Records one intake Q&A exchange as structured, versioned data. Call this after the user answers a question, before asking the next one.",
-    input_schema: {
-      type: "object",
-      properties: {
-        category: {
-          type: "string",
-          enum: ["demographics", "lifestyle", "concerns", "goals"],
-          description: "Which of the four intake categories this exchange belongs to.",
-        },
-        question: {
-          type: "string",
-          description: "The question you asked, in plain language.",
-        },
-        answer: {
-          type: "string",
-          description: "The user's answer, verbatim or lightly cleaned up.",
-        },
-        structured_value: {
-          type: "object",
-          description:
-            'A short coded representation of the answer, e.g. {"field": "sleep_quality", "value": "poor"}.',
-          properties: {
-            field: { type: "string" },
-            value: {
-              description: "The coded value — string, number, or boolean as appropriate.",
-            },
+export const INTAKE_TURN_TOOL: Anthropic.Tool = {
+  name: "intake_turn",
+  description:
+    "Call this exactly once per turn. Logs the person's previous answer (if any) and provides your next message, all in one call.",
+  input_schema: {
+    type: "object",
+    properties: {
+      log_entry: {
+        description:
+          "Structured record of the exchange that just happened. Null on the very first turn, when there's no prior answer yet.",
+        type: ["object", "null"],
+        properties: {
+          category: {
+            type: "string",
+            enum: ["demographics", "lifestyle", "concerns", "goals"],
           },
-          required: ["field", "value"],
-        },
-      },
-      required: ["category", "question", "answer", "structured_value"],
-    },
-  },
-  {
-    name: "complete_intake",
-    description:
-      "Call once all four categories are covered and you're ready to give the person their Wellness Profile Summary and track recommendation. Ends the intake.",
-    input_schema: {
-      type: "object",
-      properties: {
-        summary: {
-          type: "string",
-          description:
-            "A short, plain-language recap of what the person shared — the Wellness Profile Summary.",
-        },
-        recommended_track_ids: {
-          type: "array",
-          items: { type: "string" },
-          description:
-            "One or two track ids from the catalog (use the id field, e.g. 'pm-calm'), not the display name.",
-        },
-        rationale: {
-          type: "string",
-          description:
-            "A short paragraph tying specific ingredients to what the person described. Respect every caution for the chosen track(s).",
-        },
-        ingredient_highlights: {
-          type: "array",
-          items: {
+          question: { type: "string", description: "The question you had just asked." },
+          answer: { type: "string", description: "The user's answer." },
+          structured_value: {
             type: "object",
+            description:
+              'A short coded representation, e.g. {"field": "sleep_quality", "value": "poor"}.',
             properties: {
-              ingredient: { type: "string" },
-              role: {
-                type: "string",
-                description:
-                  "Plain-language role, packaging-copy style, e.g. 'Hormonal-Rhythm Support'.",
+              field: { type: "string" },
+              value: {
+                description: "The coded value — string, number, or boolean as appropriate.",
               },
             },
-            required: ["ingredient", "role"],
+            required: ["field", "value"],
           },
-          description: "3-5 ingredients from the recommended track(s), each with a labeled role.",
         },
+        required: ["category", "question", "answer", "structured_value"],
       },
-      required: ["summary", "recommended_track_ids", "rationale", "ingredient_highlights"],
+      reply: {
+        type: "string",
+        description:
+          "The next message to show the user — your next question, or (if completion is set) a brief closing line.",
+      },
+      completion: {
+        description:
+          "Set only when the intake is finished. Null on every other turn.",
+        type: ["object", "null"],
+        properties: {
+          summary: {
+            type: "string",
+            description: "A short, plain-language Wellness Profile Summary.",
+          },
+          recommended_track_ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "One or two track ids from the catalog, e.g. 'pm-calm'.",
+          },
+          rationale: {
+            type: "string",
+            description:
+              "A short paragraph tying specific ingredients to what the person described. Respect every caution for the chosen track(s).",
+          },
+          ingredient_highlights: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                ingredient: { type: "string" },
+                role: { type: "string" },
+              },
+              required: ["ingredient", "role"],
+            },
+            description: "3-5 ingredients from the recommended track(s), each with a labeled role.",
+          },
+        },
+        required: ["summary", "recommended_track_ids", "rationale", "ingredient_highlights"],
+      },
     },
+    required: ["reply"],
   },
-];
+};

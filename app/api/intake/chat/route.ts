@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
-import { buildSystemPrompt, INTAKE_TOOLS } from "@/lib/claude/intake";
+import { buildSystemPrompt, INTAKE_TURN_TOOL } from "@/lib/claude/intake";
 
 const MODEL = "claude-sonnet-5";
-const MAX_TOOL_ITERATIONS = 5;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+type TurnInput = {
+  log_entry: {
+    category: string;
+    question: string;
+    answer: string;
+    structured_value: { field: string; value: unknown };
+  } | null;
+  reply: string;
+  completion: {
+    summary: string;
+    recommended_track_ids: string[];
+    rationale: string;
+    ingredient_highlights: { ingredient: string; role: string }[];
+  } | null;
+};
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.warn("ANTHROPIC_API_KEY is not set — /api/intake/chat will fail.");
@@ -38,102 +53,60 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
-      const response = await anthropic.messages.create({
-        model: MODEL,
-        max_tokens: 1024,
-        system: buildSystemPrompt(),
-        tools: INTAKE_TOOLS,
-        messages: anthropicMessages,
-      });
+    const response = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 1536,
+      system: buildSystemPrompt(),
+      tools: [INTAKE_TURN_TOOL],
+      tool_choice: { type: "tool", name: "intake_turn" },
+      messages: anthropicMessages,
+    });
 
-      if (response.stop_reason !== "tool_use") {
-        const text = response.content
-          .filter((b): b is Anthropic.TextBlock => b.type === "text")
-          .map((b) => b.text)
-          .join("\n");
-        return NextResponse.json({ reply: text, done: false });
-      }
+    const toolUse = response.content.find(
+      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+    );
 
-      // Model wants to call one or more tools before continuing.
-      anthropicMessages.push({ role: "assistant", content: response.content });
-
-      const toolResults: Anthropic.ToolResultBlockParam[] = [];
-      let completion: {
-        summary: string;
-        recommended_track_ids: string[];
-        rationale: string;
-        ingredient_highlights: { ingredient: string; role: string }[];
-      } | null = null;
-
-      for (const block of response.content) {
-        if (block.type !== "tool_use") continue;
-
-        if (block.name === "log_intake_response") {
-          const input = block.input as {
-            category: string;
-            question: string;
-            answer: string;
-            structured_value: { field: string; value: unknown };
-          };
-
-          const { error } = await supabase.from("intake_responses").insert({
-            user_id: user.id,
-            category: input.category,
-            question: input.question,
-            answer: input.answer,
-            structured_value: input.structured_value,
-          });
-
-          toolResults.push({
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: error ? `Failed to save: ${error.message}` : "Saved.",
-            is_error: Boolean(error),
-          });
-        } else if (block.name === "complete_intake") {
-          completion = block.input as {
-            summary: string;
-            recommended_track_ids: string[];
-            rationale: string;
-            ingredient_highlights: { ingredient: string; role: string }[];
-          };
-
-          const { error: profileError } = await supabase.from("profiles").upsert(
-            {
-              user_id: user.id,
-              current_summary: completion.summary,
-            },
-            { onConflict: "user_id" }
-          );
-
-          const { error: trackError } = await supabase.from("track_assignments").insert({
-            user_id: user.id,
-            tracks: completion.recommended_track_ids,
-            rationale: completion.rationale,
-          });
-
-          const error = profileError ?? trackError;
-          toolResults.push({
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: error ? `Failed to save: ${error.message}` : "Saved.",
-            is_error: Boolean(error),
-          });
-        }
-      }
-
-      if (completion) {
-        return NextResponse.json({ done: true, summary: completion });
-      }
-
-      anthropicMessages.push({ role: "user", content: toolResults });
+    if (!toolUse) {
+      console.error("Intake chat: no tool_use block in response", response);
+      return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
     }
 
-    return NextResponse.json(
-      { error: "Intake got stuck in a loop — please try again." },
-      { status: 500 }
-    );
+    const input = toolUse.input as TurnInput;
+
+    if (input.log_entry) {
+      const { error } = await supabase.from("intake_responses").insert({
+        user_id: user.id,
+        category: input.log_entry.category,
+        question: input.log_entry.question,
+        answer: input.log_entry.answer,
+        structured_value: input.log_entry.structured_value,
+      });
+      if (error) console.error("Failed to log intake response:", error);
+    }
+
+    if (input.completion) {
+      const completion = input.completion;
+
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          user_id: user.id,
+          current_summary: completion.summary,
+        },
+        { onConflict: "user_id" }
+      );
+      if (profileError) console.error("Failed to save profile:", profileError);
+
+      const { error: trackError } = await supabase.from("track_assignments").insert({
+        user_id: user.id,
+        tracks: completion.recommended_track_ids,
+        rationale: completion.rationale,
+      });
+      if (trackError) console.error("Failed to save track assignment:", trackError);
+
+      return NextResponse.json({ done: true, summary: completion });
+    }
+
+    return NextResponse.json({ done: false, reply: input.reply });
   } catch (error) {
     console.error("Intake chat failed:", error);
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
