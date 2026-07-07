@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import IntakeChat from "./IntakeChat";
-import LoginPrompt from "./LoginPrompt";
+import LoginPrompt from "@/components/LoginPrompt";
 
 export default async function Intake() {
   const supabase = await createClient();
@@ -26,7 +26,7 @@ export default async function Intake() {
       </p>
 
       <div className="mt-8">
-        {user ? <IntakeChat /> : <LoginPrompt />}
+        {user ? <IntakeChat /> : <LoginPrompt redirectPath="/intake" />}
       </div>
     </section>
   );
