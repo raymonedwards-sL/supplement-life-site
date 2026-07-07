@@ -31,6 +31,12 @@ export async function POST(request: NextRequest) {
     content: m.content,
   }));
 
+  // First load sends an empty history to get Claude's opening question —
+  // the API requires at least one message, so seed a hidden starter turn.
+  if (anthropicMessages.length === 0) {
+    anthropicMessages.push({ role: "user", content: "Hi, I'm ready to begin." });
+  }
+
   try {
     for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
       const response = await anthropic.messages.create({
