@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
  * the secret key must stay on the server.
  */
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-12-18.acacia",
+  apiVersion: "2025-02-24.acacia",
 });
 
 /** The one-time Founding Reservation deposit amount, in cents. */
