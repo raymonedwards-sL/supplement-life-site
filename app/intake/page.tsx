@@ -1,54 +1,33 @@
-export default function Intake() {
+import { createClient } from "@/lib/supabase/server";
+import IntakeChat from "./IntakeChat";
+import LoginPrompt from "./LoginPrompt";
+
+export default async function Intake() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
-    <section className="mx-auto max-w-xl px-6 py-20">
+    <section className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-        Intake
+        Your Wellness Intake
       </h1>
-      <p className="mt-4 text-navy/70">
-        Placeholder text introducing the intake questionnaire used to build a
-        personalized protocol.
+      <p className="mt-3 text-navy/70">
+        A short conversation to get you a personalized track recommendation.
       </p>
-      <form className="mt-10 flex flex-col gap-4">
-        <div>
-          <label className="text-sm font-medium text-navy" htmlFor="goal">
-            Placeholder question: primary goal
-          </label>
-          <input
-            id="goal"
-            type="text"
-            placeholder="e.g. more energy"
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium text-navy" htmlFor="age">
-            Placeholder question: age
-          </label>
-          <input
-            id="age"
-            type="number"
-            placeholder="35"
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium text-navy" htmlFor="notes">
-            Placeholder question: anything else?
-          </label>
-          <textarea
-            id="notes"
-            rows={4}
-            placeholder="Placeholder text"
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-          />
-        </div>
-        <button
-          type="submit"
-          className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
-        >
-          Submit
-        </button>
-      </form>
+
+      {/* FR-5: persistent, non-dismissible disclaimer on every intake/results screen. */}
+      <p className="mt-6 rounded-lg border border-navy/10 bg-navy/5 px-4 py-3 text-xs leading-relaxed text-navy/60">
+        This intake shares personalized wellness information based on what
+        you tell us — it is not medical advice, a diagnosis, or a treatment
+        recommendation. For any medical concern, please consult a healthcare
+        provider.
+      </p>
+
+      <div className="mt-8">
+        {user ? <IntakeChat /> : <LoginPrompt />}
+      </div>
     </section>
   );
 }
