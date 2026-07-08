@@ -1,35 +1,111 @@
+import { Container, Eyebrow } from "@/components/ui/Container";
+import { LinkButton } from "@/components/ui/Button";
+
 const steps = [
   {
-    title: "Step 1: Tell us about you",
-    body: "Placeholder text describing the intake process and what information we collect.",
+    title: "Reserve your spot",
+    body: "A $249 Founding Reservation deposit holds your place and creates your account. It's fully credited to your first month at launch, and fully refundable per the Founding Reservation terms.",
   },
   {
-    title: "Step 2: Get your protocol",
-    body: "Placeholder text describing how we turn intake answers into a personalized protocol.",
+    title: "Complete your wellness intake",
+    body: "Log in and have a short, guided conversation about your energy, sleep, stress, and goals — about eight minutes, at your own pace. It's a conversation, not a quiz, and it's never a substitute for medical advice.",
   },
   {
-    title: "Step 3: Track your progress",
-    body: "Placeholder text describing the dashboard and ongoing adjustments.",
+    title: "Get matched to a Track",
+    body: "Your answers are weighed against our Track library — formulations built around real needs like recovery, sleep onset, seasonal defense, or cycle comfort — using traditional herbal and mineral ingredients. You'll get a plain-language rationale for the match, not a black box.",
+  },
+  {
+    title: "Your protocol ships",
+    body: "Once we go live, Founding Members are the first to receive their personalized protocol. You'll get an email as soon as your shipment is on its way.",
+  },
+  {
+    title: "Track, revisit, adjust",
+    body: "Your dashboard keeps a running wellness profile. As your life changes, you can revisit your intake and adjust your Track — this isn't a one-and-done quiz result.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="mx-auto max-w-3xl px-6 py-20">
-      <h1 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-        How It Works
-      </h1>
-      <p className="mt-4 text-navy/70">
-        Placeholder intro copy explaining the overall process.
-      </p>
-      <div className="mt-10 flex flex-col gap-8">
-        {steps.map((step) => (
-          <div key={step.title} className="rounded-2xl border border-navy/10 bg-white/40 p-6">
-            <h2 className="text-xl font-semibold text-copper">{step.title}</h2>
-            <p className="mt-2 text-navy/70">{step.body}</p>
+    <>
+      <section className="border-b border-navy/10 py-20">
+        <Container className="max-w-3xl">
+          <Eyebrow>How It Works</Eyebrow>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
+            From conversation to protocol.
+          </h1>
+          <p className="mt-4 text-lg text-navy/70">
+            No lab panels, no 40-question quiz. Just a short conversation
+            that gets you matched to a Track built around real ingredients
+            and a real need.
+          </p>
+        </Container>
+      </section>
+
+      <section className="py-20">
+        <Container className="max-w-3xl">
+          <div className="flex flex-col gap-6">
+            {steps.map((step, i) => (
+              <div
+                key={step.title}
+                className="flex gap-6 rounded-2xl border border-navy/10 bg-white/40 p-6 sm:p-8"
+              >
+                <div className="shrink-0 font-serif text-2xl text-copper/50">
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-navy">
+                    {step.title}
+                  </h2>
+                  <p className="mt-2 leading-relaxed text-navy/70">
+                    {step.body}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </section>
+        </Container>
+      </section>
+
+      <section className="border-y border-navy/10 bg-white/40 py-20">
+        <Container className="max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-navy">
+            Formulated, not guessed
+          </h2>
+          <p className="mt-4 leading-relaxed text-navy/70">
+            Every Track draws on time-tested herbal and mineral ingredients —
+            things like sea moss, ashwagandha, elderberry, and bacopa — each
+            included for a specific, plain-language role rather than a
+            proprietary blend you can&apos;t read. Some ingredients carry
+            individual cautions (for example, callaloo is high in Vitamin K
+            and isn&apos;t recommended alongside blood-thinning medication),
+            and your intake is built to flag those before a Track is
+            recommended.
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-navy/50">
+            Supplement :: LIFE provides personalized wellness information,
+            not medical advice, a diagnosis, or a treatment plan. If you have
+            a medical condition, take prescription medication, or are
+            pregnant or nursing, talk to your healthcare provider before
+            starting any new supplement.
+          </p>
+        </Container>
+      </section>
+
+      <section className="py-20">
+        <Container className="flex flex-col items-center gap-6 text-center">
+          <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            Ready to get started?
+          </h2>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <LinkButton href="/reserve" size="lg">
+              Reserve Yours — $249
+            </LinkButton>
+            <LinkButton href="/faq" variant="secondary" size="lg">
+              Read the FAQ
+            </LinkButton>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }

@@ -54,7 +54,12 @@ function AuthConfirmInner() {
   }
 
   return (
-    <section className="mx-auto max-w-xl px-6 py-20 text-center">
+    <section className="mx-auto flex max-w-xl flex-col items-center gap-4 px-6 py-24 text-center">
+      <span className="flex gap-1.5">
+        <span className="h-2 w-2 animate-bounce rounded-full bg-copper/60 [animation-delay:-0.3s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-copper/60 [animation-delay:-0.15s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-copper/60" />
+      </span>
       <p className="text-navy/70">Logging you in…</p>
     </section>
   );

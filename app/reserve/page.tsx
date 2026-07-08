@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Container, Eyebrow } from "@/components/ui/Container";
 
 export default function Reserve() {
   return (
@@ -47,79 +48,111 @@ function ReserveForm() {
 
   if (checkoutStatus === "success") {
     return (
-      <section className="mx-auto max-w-xl px-6 py-20">
-        <h1 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-          You&apos;re in.
-        </h1>
-        <p className="mt-4 text-navy/70">
-          Your $249 Founding Reservation deposit is confirmed. Check your
-          email for a link to set up your account and start your wellness
-          intake.
-        </p>
+      <section className="py-24">
+        <Container className="max-w-xl text-center">
+          <Eyebrow>Confirmed</Eyebrow>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            You&apos;re in.
+          </h1>
+          <p className="mt-4 text-navy/70">
+            Your $249 Founding Reservation deposit is confirmed. Check your
+            email for a link to set up your account and start your wellness
+            intake whenever you&apos;re ready.
+          </p>
+        </Container>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-xl px-6 py-20">
-      <h1 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-        Reserve Yours
-      </h1>
-      <p className="mt-4 text-navy/70">
-        Placeholder text about pre-ordering &mdash; pricing, launch timing, and
-        what reserving now includes will go here.
-      </p>
-
-      {checkoutStatus === "cancelled" && (
-        <p className="mt-6 rounded-lg bg-copper/10 px-4 py-3 text-sm text-navy">
-          Checkout was cancelled &mdash; no charge was made. You can try again
-          below whenever you&apos;re ready.
-        </p>
-      )}
-
-      <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-4">
+    <section className="py-16 sm:py-20">
+      <Container className="grid grid-cols-1 gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-start">
         <div>
-          <label className="text-sm font-medium text-navy" htmlFor="name">
-            Name
-          </label>
-          <input
-            id="name"
-            type="text"
-            placeholder="Jane Doe"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-          />
+          <Eyebrow>Founding Reservation</Eyebrow>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
+            Reserve Yours
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-navy/70">
+            A $249 deposit holds your spot as a Founding Member — before
+            we&apos;re open to the public. It&apos;s fully credited to your
+            first month&apos;s subscription at launch, and fully refundable
+            per the Founding Reservation terms.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-4">
+            {[
+              "Founding pricing locked in before public launch",
+              "Deposit fully credited to your first month — never an extra charge",
+              "Fully refundable per the Founding Reservation terms",
+              "Complete your wellness intake and get matched as soon as you're ready",
+            ].map((item) => (
+              <div key={item} className="flex items-start gap-3">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-copper" />
+                <p className="text-sm text-navy/70">{item}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div>
-          <label className="text-sm font-medium text-navy" htmlFor="email">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="jane@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-          />
+
+        <div className="rounded-2xl border border-navy/10 bg-white/60 p-6 sm:p-8">
+          <p className="text-sm font-semibold uppercase tracking-wide text-navy/50">
+            Founding Reservation Deposit
+          </p>
+          <p className="mt-1 font-serif text-3xl text-navy">$249</p>
+
+          {checkoutStatus === "cancelled" && (
+            <p className="mt-4 rounded-lg bg-copper/10 px-4 py-3 text-sm text-navy">
+              Checkout was cancelled &mdash; no charge was made. You can try
+              again below whenever you&apos;re ready.
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+            <div>
+              <label className="text-sm font-medium text-navy" htmlFor="name">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                placeholder="Jane Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-navy" htmlFor="email">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                placeholder="jane@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+              />
+            </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+            >
+              {loading ? "Redirecting to checkout…" : "Reserve Now — $249"}
+            </button>
+            <p className="text-xs text-navy/40">
+              Your $249 deposit is applied as your first month&apos;s
+              subscription payment when Supplement :: LIFE goes live. Fully
+              refundable per the Founding Reservation terms. Secure checkout
+              via Stripe.
+            </p>
+          </form>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
-        >
-          {loading ? "Redirecting to checkout…" : "Reserve Now — $249"}
-        </button>
-        <p className="text-xs text-navy/40">
-          Your $249 deposit is applied as your first month&apos;s subscription
-          payment when Supplement :: LIFE goes live. Fully refundable per the
-          Founding Reservation terms.
-        </p>
-      </form>
+      </Container>
     </section>
   );
 }

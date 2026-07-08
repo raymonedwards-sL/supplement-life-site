@@ -58,15 +58,20 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
 
   if (sent) {
     return (
-      <p className="mt-4 text-navy/70">
-        Check your email for a login link — it&apos;ll bring you right back
-        here.
-      </p>
+      <div className="mt-6 rounded-2xl border border-navy/10 bg-white/40 p-6">
+        <p className="text-navy/70">
+          Check your email for a login link — it&apos;ll bring you right back
+          here.
+        </p>
+      </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
+    <form
+      onSubmit={handleSubmit}
+      className="mt-6 flex flex-col gap-3 rounded-2xl border border-navy/10 bg-white/40 p-6"
+    >
       <label className="text-sm font-medium text-navy" htmlFor="login-email">
         Enter the email you reserved with, and we&apos;ll send you a login
         link.
@@ -84,7 +89,7 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
         <p className="text-sm text-navy/70">
           We couldn&apos;t find an account for that email. You&apos;ll need to
           complete your Founding Reservation first —{" "}
-          <Link href="/reserve" className="text-copper underline">
+          <Link href="/reserve" className="font-semibold text-copper underline underline-offset-2">
             reserve your spot here
           </Link>
           .

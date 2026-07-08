@@ -76,15 +76,21 @@ export default function IntakeChat() {
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto rounded-2xl border border-navy/10 bg-white/50 p-6">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white/50">
+      <div className="border-b border-navy/10 bg-navy/5 px-6 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">
+          Wellness Intake
+        </p>
+      </div>
+
+      <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto p-6">
         {messages.map((m, i) => (
           <div
             key={i}
             className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
               m.role === "user"
-                ? "ml-auto bg-copper text-cream"
-                : "mr-auto bg-navy/5 text-navy"
+                ? "ml-auto rounded-br-sm bg-copper text-cream"
+                : "mr-auto rounded-bl-sm bg-navy/5 text-navy"
             }`}
           >
             {m.content}
@@ -94,9 +100,9 @@ export default function IntakeChat() {
         <div ref={bottomRef} />
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="px-6 text-sm text-red-600">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="mt-4 flex gap-3">
+      <form onSubmit={handleSubmit} className="flex gap-3 border-t border-navy/10 p-4">
         <input
           type="text"
           value={input}
@@ -123,18 +129,20 @@ function SummaryCard({ summary }: { summary: Completion }) {
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
   return (
-    <div className="rounded-2xl border border-copper/30 bg-white/70 p-8">
+    <div className="rounded-2xl border border-copper/30 bg-white/70 p-6 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-wide text-copper">
         Your Wellness Profile Summary
       </p>
-      <p className="mt-3 text-navy/80">{summary.summary}</p>
+      <p className="mt-3 leading-relaxed text-navy/80">{summary.summary}</p>
 
       {tracks.length > 0 && (
-        <div className="mt-6">
+        <div className="mt-6 rounded-xl bg-navy/5 p-4">
           <p className="text-sm font-semibold text-navy">
             Recommended: {tracks.map((t) => t.name).join(" + ")}
           </p>
-          <p className="mt-2 text-sm text-navy/70">{summary.rationale}</p>
+          <p className="mt-2 text-sm leading-relaxed text-navy/70">
+            {summary.rationale}
+          </p>
         </div>
       )}
 
@@ -147,10 +155,14 @@ function SummaryCard({ summary }: { summary: Completion }) {
         ))}
       </div>
 
-      <p className="mt-8 text-xs text-navy/40">
+      <p className="mt-8 text-xs leading-relaxed text-navy/40">
         This is personalized wellness information, not medical advice,
         diagnosis, or treatment. Your profile has been saved — you can revisit
-        it any time.
+        it any time from your{" "}
+        <a href="/dashboard" className="underline">
+          dashboard
+        </a>
+        .
       </p>
     </div>
   );
