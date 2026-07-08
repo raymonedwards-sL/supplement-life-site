@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -8,22 +9,30 @@ import { createClient } from "@/lib/supabase/client";
  * returning visitor whose session expired. Sends a magic link rather than
  * requiring a password (PRD 5.1 allows either; magic link is the simpler
  * build). `redirectPath` sends them back to whichever page asked for login.
+ *
+ * shouldCreateUser: false is deliberate — accounts are only ever created by
+ * the Stripe webhook after a real $249 Founding Reservation deposit. This
+ * form must never be able to self-register a new account; it can only
+ * re-send a login link to an email that already has one.
  */
 export default function LoginPrompt({ redirectPath }: { redirectPath: string }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [noAccount, setNoAccount] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setNoAccount(false);
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
+        shouldCreateUser: false,
         emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
           redirectPath
         )}`,
@@ -32,7 +41,16 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
 
     setLoading(false);
     if (error) {
-      setError(error.message);
+      // Supabase's wording for "no account with this email" varies by
+      // version — match loosely rather than on one exact string.
+      const noExistingAccount = /not allowed|signup|not found|does not exist/i.test(
+        error.message
+      );
+      if (noExistingAccount) {
+        setNoAccount(true);
+      } else {
+        setError(error.message);
+      }
     } else {
       setSent(true);
     }
@@ -62,6 +80,16 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
         onChange={(e) => setEmail(e.target.value)}
         className="w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
       />
+      {noAccount && (
+        <p className="text-sm text-navy/70">
+          We couldn&apos;t find an account for that email. You&apos;ll need to
+          complete your Founding Reservation first —{" "}
+          <Link href="/reserve" className="text-copper underline">
+            reserve your spot here
+          </Link>
+          .
+        </p>
+      )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
