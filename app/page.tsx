@@ -275,7 +275,7 @@ export default function Home() {
           }}
         >
           <Image
-            src="/lifestyle/product-line2.jpeg"
+            src="/lifestyle/product-line.jpg"
             alt=""
             fill
             className="object-cover opacity-60"
