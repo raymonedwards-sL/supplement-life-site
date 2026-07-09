@@ -1,13 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 import IntakeChat from "./IntakeChat";
 import LoginPrompt from "@/components/LoginPrompt";
+import AccessRevoked from "@/components/AccessRevoked";
 import { Container, Eyebrow } from "@/components/ui/Container";
+
+const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 
 export default async function Intake() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let isBlocked = false;
+  if (user) {
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("status")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    isBlocked = Boolean(subscription?.status && BLOCKED_STATUSES.has(subscription.status));
+  }
 
   return (
     <section className="py-16">
@@ -30,7 +43,13 @@ export default async function Intake() {
         </p>
 
         <div className="mt-8">
-          {user ? <IntakeChat /> : <LoginPrompt redirectPath="/intake" />}
+          {!user ? (
+            <LoginPrompt redirectPath="/intake" />
+          ) : isBlocked ? (
+            <AccessRevoked />
+          ) : (
+            <IntakeChat />
+          )}
         </div>
       </Container>
     </section>

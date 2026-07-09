@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LoginPrompt from "@/components/LoginPrompt";
+import AccessRevoked from "@/components/AccessRevoked";
 import BillingPortalButton from "./BillingPortalButton";
 import { findTrack } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
+
+const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 
 export default async function Dashboard() {
   const supabase = await createClient();
@@ -48,6 +51,21 @@ export default async function Dashboard() {
         .eq("user_id", user.id)
         .maybeSingle(),
     ]);
+
+  if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
+    return (
+      <section className="py-20">
+        <Container className="max-w-xl">
+          <Eyebrow>Protocol Dashboard</Eyebrow>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-navy/70">{user.email}</p>
+          <AccessRevoked />
+        </Container>
+      </section>
+    );
+  }
 
   const trackIds = (trackAssignment?.tracks ?? []) as string[];
   const tracks = trackIds

@@ -4,9 +4,9 @@ import { stripe, FOUNDING_RESERVATION_DEPOSIT_CENTS } from "@/lib/stripe/server"
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Handles Stripe webhook events. Currently listens for
- * checkout.session.completed on the $249 Founding Reservation Deposit:
+ * Handles Stripe webhook events.
  *
+ * checkout.session.completed — on the $249 Founding Reservation Deposit:
  *   1. Creates (or reuses) the user's Supabase account and emails them an
  *      invite link to set a password / log in (PRD 5.1).
  *   2. Applies the $249 as a Stripe Customer Balance credit, so it can be
@@ -14,10 +14,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
  *   3. Records a `subscriptions` row with status "pending" and
  *      conversion_date = GO_LIVE_DATE, which the 14-day notice job reads.
  *
+ * charge.refunded — when a deposit is fully refunded, flips the matching
+ * `subscriptions` row to status "refunded". Portal access is then blocked
+ * at the application layer (see app/intake/page.tsx, app/dashboard/page.tsx,
+ * app/api/intake/chat/route.ts) — their prior intake/profile/track data is
+ * intentionally left in place, not deleted.
+ *
  * Add this route's URL (https://yourdomain.com/api/webhooks/stripe) as an
  * endpoint in Stripe: Developers > Webhooks, subscribed to
- * checkout.session.completed. Stripe will give you a signing secret —
- * put that in STRIPE_WEBHOOK_SECRET.
+ * checkout.session.completed AND charge.refunded. Stripe will give you a
+ * signing secret — put that in STRIPE_WEBHOOK_SECRET.
  */
 export async function POST(request: NextRequest) {
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
@@ -38,6 +44,10 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("Stripe webhook signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
+  }
+
+  if (event.type === "charge.refunded") {
+    return handleChargeRefunded(event.data.object as Stripe.Charge);
   }
 
   if (event.type !== "checkout.session.completed") {
@@ -131,4 +141,39 @@ export async function POST(request: NextRequest) {
     // Non-2xx so Stripe retries this event.
     return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
   }
+}
+
+/**
+ * Flags the matching subscription as "refunded" when a charge is fully
+ * refunded, which blocks portal access at the application layer (see
+ * app/intake/page.tsx, app/dashboard/page.tsx, app/api/intake/chat/route.ts).
+ * Ignores partial refunds (charge.refunded is only true once the full
+ * amount has been returned) so a partial goodwill refund doesn't lock
+ * someone out.
+ */
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  if (!charge.refunded) {
+    return NextResponse.json({ received: true });
+  }
+
+  const customerId =
+    typeof charge.customer === "string" ? charge.customer : charge.customer?.id;
+
+  if (!customerId) {
+    console.error("charge.refunded event had no customer id:", charge.id);
+    return NextResponse.json({ received: true });
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const { error } = await supabaseAdmin
+    .from("subscriptions")
+    .update({ status: "refunded" })
+    .eq("stripe_customer_id", customerId);
+
+  if (error) {
+    console.error("Failed to mark subscription refunded:", error);
+    return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+  }
+
+  return NextResponse.json({ received: true });
 }

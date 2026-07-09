@@ -29,6 +29,8 @@ if (!process.env.ANTHROPIC_API_KEY) {
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
@@ -37,6 +39,21 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  }
+
+  // Refunded/canceled reservations lose intake access even though the
+  // account still exists — checked server-side too, not just in the UI.
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
+    return NextResponse.json(
+      { error: "This account's reservation is no longer active." },
+      { status: 403 }
+    );
   }
 
   const { messages }: { messages: ChatMessage[] } = await request.json();
