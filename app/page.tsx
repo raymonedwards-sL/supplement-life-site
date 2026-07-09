@@ -104,13 +104,13 @@ export default function Home() {
 
         <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
           <Eyebrow>Founding Reservations — Now Open</Eyebrow>
-          <div className="relative">
+          <div className="relative px-6 py-4 sm:px-16 sm:py-8">
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-x-12 -inset-y-6 sm:-inset-x-24 sm:-inset-y-10"
+              className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(ellipse 65% 70% at 50% 50%, #F5EFE6 60%, transparent 85%)",
+                  "radial-gradient(ellipse 70% 75% at 50% 50%, #F5EFE6 55%, transparent 90%)",
               }}
             />
             <h1 className="relative max-w-3xl text-4xl font-semibold tracking-tight text-navy sm:text-6xl">
