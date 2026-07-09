@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession, exchangeStrayCode } from "@/lib/supabase/middleware";
 import {
   getClientIp,
   lookupCountryForIp,
@@ -18,6 +18,13 @@ import {
  */
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // Runs first, on every route: catches a stray Supabase ?code= that
+  // landed somewhere other than /auth/callback and exchanges it for a
+  // session before anything else executes. See exchangeStrayCode's doc
+  // comment in lib/supabase/middleware.ts for why this can happen.
+  const codeExchange = await exchangeStrayCode(request);
+  if (codeExchange) return codeExchange;
 
   if (pathname === "/api/checkout") {
     const ip = getClientIp(request);
