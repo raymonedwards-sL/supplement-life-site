@@ -51,9 +51,9 @@ export default function Home() {
           className="pointer-events-none absolute -right-24 -top-24 hidden h-[620px] w-[900px] sm:block lg:h-[720px] lg:w-[1040px]"
           style={{
             maskImage:
-              "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
+              "radial-gradient(ellipse 50% 50% at 50% 50%, black 10%, transparent 60%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
+              "radial-gradient(ellipse 50% 50% at 50% 50%, black 10%, transparent 60%)",
           }}
         >
           <Image
@@ -61,7 +61,7 @@ export default function Home() {
             alt=""
             fill
             priority
-            className="object-cover opacity-70"
+            className="object-cover opacity-20"
             sizes="(min-width: 1024px) 720px, 620px"
           />
         </div>
