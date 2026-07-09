@@ -13,22 +13,58 @@ const PREVIEW_TRACK_IDS = [
   "mens-rhythm",
 ];
 
+const failureFactors = [
+  "age",
+  "stress",
+  "recovery",
+  "sleep",
+  "hormones",
+  "lifestyle",
+  "nutrition",
+  "environmental exposure",
+  "changing goals",
+];
+
+const positioningPoints = [
+  "Powered by conversation.",
+  "Guided by deterministic wellness modeling.",
+  "Grounded in traditional botanical knowledge.",
+  "Continuously personalized.",
+];
+
 const steps = [
   {
     number: "01",
-    title: "Tell us about you",
-    body: "A short guided conversation — energy, sleep, stress, goals — takes about eight minutes, on your own time.",
+    title: "Understand Your Biology",
+    body: "A guided conversation exploring how you actually live — sleep, stress, movement, recovery, focus, nutrition, energy, priorities. No lab work required.",
   },
   {
     number: "02",
-    title: "Get matched to a Botanical Track",
-    body: "Your answers are matched against our Botanical Track library of time-tested herbal formulations, with a plain-language rationale for why.",
+    title: "Build Your Protocol",
+    body: "Your responses are weighed against our Botanical Track library to identify what's most aligned with your lifestyle — with a plain-language rationale for every recommendation.",
   },
   {
     number: "03",
-    title: "Your protocol ships and adapts",
-    body: "Your first shipment goes out, and your dashboard keeps a running profile you can revisit and refine as things change.",
+    title: "Improve Over Time",
+    body: "Great wellness isn't static. As your life changes, your protocol evolves with it — revisit your profile any time from your dashboard.",
   },
+];
+
+const signals = [
+  "Low energy",
+  "Poor sleep",
+  "Slower recovery",
+  "Brain fog",
+  "Mood changes",
+  "Digestive discomfort",
+];
+
+const membershipBenefits = [
+  "Preferred lifetime pricing",
+  "Early access to every Botanical Track",
+  "Priority onboarding",
+  "Ongoing protocol refinement",
+  "Exclusive future releases",
 ];
 
 const trust = [
@@ -69,18 +105,18 @@ export default function Home() {
         <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
           <Eyebrow>Founding Reservations — Now Open</Eyebrow>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-navy sm:text-6xl">
-            Your biology isn&apos;t generic. Your supplements shouldn&apos;t be
-            either.
+            The second half of your life deserves a better protocol.
           </h1>
           <p className="max-w-2xl text-lg leading-relaxed text-navy/70">
-            Supplement :: LIFE pairs a short guided intake with time-tested
-            herbal formulations — sea moss, ashwagandha, elderberry, and more
-            — matched to what you tell us about your body. Not a
-            shelf-standard multivitamin. Not a guess.
+            You changed. Your body changed. But most wellness products still
+            treat everyone exactly the same. Supplement :: LIFE builds a
+            personalized botanical wellness protocol around your biology,
+            lifestyle, and goals — helping you feel stronger, think clearer,
+            and recover better as life evolves.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Yours — $249
+              Reserve Your Founding Membership
             </LinkButton>
             <LinkButton href="/how-it-works" variant="secondary" size="lg">
               See How It Works
@@ -97,15 +133,71 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* How it works preview */}
+      {/* Why most supplements fail */}
+      <section className="py-24">
+        <Container className="max-w-3xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            Why most supplements fail.
+          </h2>
+          <p className="mt-4 text-lg leading-relaxed text-navy/70">
+            Most supplements were designed for everyone. So they end up being
+            perfect for almost no one. Generic multivitamins assume every
+            body has the same needs. They don&apos;t account for:
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {failureFactors.map((factor) => (
+              <span
+                key={factor}
+                className="rounded-full bg-navy/5 px-4 py-1.5 text-sm capitalize text-navy/70"
+              >
+                {factor}
+              </span>
+            ))}
+          </div>
+          <p className="mt-6 font-serif text-2xl text-navy">
+            Your protocol should.
+          </p>
+        </Container>
+      </section>
+
+      {/* Meet Your LIFE Guide */}
+      <section className="border-y border-navy/10 bg-white/40 py-24">
+        <Container className="max-w-3xl">
+          <Eyebrow>Your LIFE Guide</Eyebrow>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            Meet Your LIFE Guide.
+          </h2>
+          <p className="mt-4 text-lg leading-relaxed text-navy/70">
+            Not another chatbot. Not another quiz. Your LIFE Guide is an
+            intelligent wellness conversation that learns how you live — not
+            just how old you are. In about eight minutes, it develops your
+            personal wellness profile and recommends the Botanical Tracks
+            that best align with your lifestyle today. As your life
+            changes, your protocol changes too.
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {positioningPoints.map((point) => (
+              <div
+                key={point}
+                className="rounded-xl border border-navy/10 bg-cream p-4 text-sm font-medium text-navy/70"
+              >
+                {point}
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Three-Step Journey */}
       <section className="py-24">
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-              Three steps. No shelf-guessing.
+              Understand. Build. Improve.
             </h2>
             <p className="mt-4 text-navy/70">
-              From first conversation to a protocol built around you.
+              From first conversation to a protocol built around you — and
+              rebuilt as you change.
             </p>
           </div>
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -137,12 +229,14 @@ export default function Home() {
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-              Nine Botanical Tracks. Matched, not marketed.
+              Nine Botanical Tracks. Thousands of combinations.
             </h2>
             <p className="mt-4 text-navy/70">
-              Every Botanical Track is built around a real need, using traditional
-              herbal and mineral ingredients. Your intake determines which
-              one — or combination — fits you.
+              Most people don&apos;t need everything. They need the right
+              things. Each Botanical Track was designed around a specific
+              wellness objective using thoughtfully selected botanical
+              ingredients traditionally used to support everyday wellbeing.
+              Your protocol may include one — or several — working together.
             </p>
           </div>
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -173,31 +267,97 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* Founding Reservation */}
+      {/* Your body speaks */}
       <section className="py-24">
+        <Container className="max-w-3xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            Your body speaks.
+          </h2>
+          <p className="mt-2 text-lg text-navy/70">
+            Most people simply aren&apos;t listening.
+          </p>
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {signals.map((signal) => (
+              <div
+                key={signal}
+                className="rounded-xl border border-navy/10 bg-white/50 px-4 py-3 text-center text-sm font-medium text-navy/70"
+              >
+                {signal}
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 leading-relaxed text-navy/70">
+            These aren&apos;t random. They&apos;re signals. Our intake helps
+            organize those signals into a personalized wellness profile so
+            your botanical recommendations are based on your life — not
+            marketing trends.
+          </p>
+        </Container>
+      </section>
+
+      {/* Why 35 teaser */}
+      <section className="border-y border-navy/10 bg-white/40 py-20">
+        <Container className="max-w-3xl">
+          <Eyebrow>Why 35?</Eyebrow>
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
+            Why wellness changes after 35.
+          </h2>
+          <p className="mt-4 leading-relaxed text-navy/70">
+            Beginning in our mid-thirties, many people notice subtle shifts —
+            recovery slows, stress lasts longer, sleep becomes lighter. None
+            of this means you&apos;re &ldquo;old.&rdquo; It means your
+            biology has entered a different chapter.
+          </p>
+          <Link
+            href="/wellness-after-35"
+            className="mt-4 inline-block text-sm font-semibold text-copper hover:text-copper/80"
+          >
+            Read why &rarr;
+          </Link>
+        </Container>
+      </section>
+
+      {/* Founder philosophy teaser */}
+      <section className="py-20">
+        <Container className="max-w-3xl">
+          <Eyebrow>Our Story</Eyebrow>
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
+            Why we built Supplement :: LIFE.
+          </h2>
+          <p className="mt-4 font-serif text-xl leading-relaxed text-navy/80">
+            The wellness industry became louder. More products. More
+            influencers. More promises. Yet people were still left asking
+            the same question: &ldquo;What should I actually take?&rdquo;
+          </p>
+          <Link
+            href="/our-story"
+            className="mt-4 inline-block text-sm font-semibold text-copper hover:text-copper/80"
+          >
+            Read our story &rarr;
+          </Link>
+        </Container>
+      </section>
+
+      {/* Founding Membership */}
+      <section className="border-t border-navy/10 py-24">
         <Container className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
           <div>
             <Eyebrow>Founding Membership</Eyebrow>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-              Reserve now, decide nothing yet.
+              Become a Founding Member.
             </h2>
             <p className="mt-4 text-navy/70">
-              A $249 deposit holds your spot as a Founding Member. It&apos;s
-              fully credited toward your first month when we go live — and
-              fully refundable per the Founding Reservation terms if it&apos;s
-              not for you.
+              Help define the future of personalized botanical wellness. Your
+              $249 reservation is fully credited toward your membership at
+              launch, and fully refundable per the Founding Reservation
+              terms.
             </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
-              Reserve Yours — $249
+              Reserve Your Founding Membership
             </LinkButton>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {[
-              "Founding pricing locked in before public launch",
-              "Deposit fully credited to your first month's subscription",
-              "Fully refundable per the Founding Reservation terms",
-              "First in line to complete intake and receive your protocol",
-            ].map((item) => (
+            {membershipBenefits.map((item) => (
               <div
                 key={item}
                 className="flex items-start gap-3 rounded-xl border border-navy/10 bg-white/50 p-4"
@@ -213,19 +373,23 @@ export default function Home() {
       {/* Final CTA */}
       <section className="border-t border-navy/10 bg-navy py-20 text-cream">
         <Container className="flex flex-col items-center gap-6 text-center">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Ready to find your protocol?
+          <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
+            Your next decade starts with the decisions you make today.
           </h2>
           <p className="max-w-xl text-cream/70">
-            Reserve your Founding spot, then take an eight-minute intake
-            whenever you&apos;re ready. No pressure, no shelf-standard
-            multivitamin.
+            Don&apos;t settle for another generic supplement. Build a
+            protocol designed around the person you&apos;re becoming.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Yours — $249
+              Reserve Your Founding Membership
             </LinkButton>
-            <LinkButton href="/faq" variant="secondary" size="lg" className="!border-cream/20 !text-cream hover:!bg-cream/5">
+            <LinkButton
+              href="/faq"
+              variant="secondary"
+              size="lg"
+              className="!border-cream/20 !text-cream hover:!bg-cream/5"
+            >
               Read the FAQ
             </LinkButton>
           </div>

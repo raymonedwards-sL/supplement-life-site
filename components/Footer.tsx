@@ -10,6 +10,13 @@ const columns = [
     ],
   },
   {
+    heading: "Company",
+    links: [
+      { href: "/our-story", label: "Our Story" },
+      { href: "/wellness-after-35", label: "Why Wellness Changes After 35" },
+    ],
+  },
+  {
     heading: "Account",
     links: [
       { href: "/intake", label: "Wellness Intake" },
@@ -22,7 +29,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-navy/10 bg-cream">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-[1.5fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
             <p className="font-serif text-lg font-semibold text-navy">
               Your Life Protocol
