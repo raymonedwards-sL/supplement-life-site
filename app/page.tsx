@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { TRACKS } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
@@ -44,8 +45,28 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="border-b border-navy/10">
-        <Container className="flex flex-col items-center gap-6 py-24 text-center sm:py-32">
+      <section className="relative overflow-hidden border-b border-navy/10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-24 -top-24 hidden h-[620px] w-[620px] sm:block lg:h-[720px] lg:w-[720px]"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
+          }}
+        >
+          <Image
+            src="/products/morning-clarity-box.jpg"
+            alt=""
+            fill
+            priority
+            className="object-cover opacity-70"
+            sizes="(min-width: 1024px) 720px, 620px"
+          />
+        </div>
+
+        <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
           <Eyebrow>Founding Reservation — Now Open</Eyebrow>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-navy sm:text-6xl">
             Your biology isn&apos;t generic. Your supplements shouldn&apos;t be
