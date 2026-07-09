@@ -40,8 +40,8 @@ export async function sendPreConversionNotice(params: {
   await resend.emails.send({
     from: "Supplement :: LIFE <hello@yourlifeprotocol.com>",
     to: params.email,
-    subject: "Your Founding Reservation converts to a subscription in 14 days",
-    text: `Your $249 Founding Reservation deposit will convert to your first monthly subscription charge on ${formattedDate}, per the terms you agreed to when reserving.
+    subject: "Your Founding Subscription converts in 14 days",
+    text: `Your $249 Founding Subscription deposit will convert to your first Protocol Subscription charge on ${formattedDate}, per the Founding Subscriber Program terms you agreed to when reserving.
 
 If you'd like to cancel and receive a refund instead, you can do so any time before that date here: ${siteUrl}/dashboard
 

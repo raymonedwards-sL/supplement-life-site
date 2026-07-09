@@ -4,7 +4,7 @@ import { LinkButton } from "@/components/ui/Button";
 const steps = [
   {
     title: "Reserve your spot",
-    body: "A $249 Founding Reservation deposit holds your place and creates your account. It's fully credited to your first month at launch, and fully refundable per the Founding Reservation terms.",
+    body: "A $249 Founding Subscription deposit holds your place and creates your account. It's fully credited to your first Protocol Subscription payment at launch, and fully refundable per the Founding Subscriber Program terms.",
   },
   {
     title: "Meet Your LIFE Guide",
@@ -115,7 +115,7 @@ export default function HowItWorks() {
           </h2>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Protocol
+              Reserve Your Founding Subscription
             </LinkButton>
             <LinkButton href="/faq" variant="secondary" size="lg">
               Read the FAQ

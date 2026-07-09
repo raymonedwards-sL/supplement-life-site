@@ -68,8 +68,8 @@ const reservationBenefits = [
 ];
 
 const trust = [
-  "$249 deposit, fully credited to your first month",
-  "Refundable per Founding Reservation terms",
+  "$249 deposit, fully credited to your first Protocol Subscription payment",
+  "Refundable per Founding Subscriber Program terms",
   "Matched in one guided conversation",
 ];
 
@@ -103,7 +103,7 @@ export default function Home() {
         </div>
 
         <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
-          <Eyebrow>Founding Reservations — Now Open</Eyebrow>
+          <Eyebrow>Founding Subscriber Program — Now Open</Eyebrow>
           <div className="relative px-2 py-2 sm:px-4 sm:py-3">
             <div
               aria-hidden
@@ -119,14 +119,14 @@ export default function Home() {
             <p className="relative mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-navy/70">
               You changed. Your body changed. But most wellness products
               still treat everyone exactly the same. Supplement :: LIFE
-              builds a personalized botanical wellness protocol around your
-              biology, lifestyle, and goals — helping you feel stronger,
-              think clearer, and recover better as life evolves.
+              builds your Personalized LIFE Protocol around your biology,
+              lifestyle, and goals — helping you feel stronger, think
+              clearer, and recover better as life evolves.
             </p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Protocol
+              Reserve Your Founding Subscription
             </LinkButton>
             <LinkButton href="/how-it-works" variant="secondary" size="lg">
               See How It Works
@@ -230,7 +230,8 @@ export default function Home() {
       <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container>
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            <Eyebrow>Your LIFE Journey</Eyebrow>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
               Understand. Build. Improve.
             </h2>
             <p className="mt-4 text-navy/70">
@@ -348,22 +349,22 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* Founding Reservation benefits */}
+      {/* Founding Subscriber Program benefits */}
       <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
           <div>
-            <Eyebrow>Founding Reservation</Eyebrow>
+            <Eyebrow>Founding Subscriber Program</Eyebrow>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-              Reserve first access to your protocol.
+              Reserve first access to your Personalized LIFE Protocol.
             </h2>
             <p className="mt-4 text-navy/70">
               Your $249 deposit reserves your spot for first access to
               Supplement :: LIFE. It&apos;s fully credited toward your first
-              month&apos;s protocol at launch, and fully refundable per the
-              Founding Reservation terms.
+              Protocol Subscription payment at launch, and fully refundable
+              per the Founding Subscriber Program terms.
             </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
-              Reserve Your Protocol
+              Reserve Your Founding Subscription
             </LinkButton>
           </div>
           <div className="grid grid-cols-1 gap-4">
@@ -392,7 +393,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Protocol
+              Reserve Your Founding Subscription
             </LinkButton>
             <LinkButton
               href="/faq"

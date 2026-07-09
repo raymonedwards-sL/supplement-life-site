@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       amount: -FOUNDING_RESERVATION_DEPOSIT_CENTS,
       currency: "usd",
       description:
-        "Founding Reservation deposit — credited toward first subscription charge at go-live.",
+        "Founding Subscription deposit — credited toward first Protocol Subscription charge at go-live.",
     });
 
     // 3. Record the subscription as pending until go-live conversion.

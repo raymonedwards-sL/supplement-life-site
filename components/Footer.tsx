@@ -5,7 +5,7 @@ const columns = [
     heading: "Product",
     links: [
       { href: "/how-it-works", label: "How It Works" },
-      { href: "/reserve", label: "Founding Reservation" },
+      { href: "/reserve", label: "Founding Subscriber Program" },
       { href: "/faq", label: "FAQ" },
     ],
   },
@@ -20,7 +20,7 @@ const columns = [
     heading: "Account",
     links: [
       { href: "/intake", label: "Wellness Intake" },
-      { href: "/dashboard", label: "Dashboard" },
+      { href: "/dashboard", label: "Protocol Dashboard" },
     ],
   },
 ];
@@ -35,8 +35,9 @@ export default function Footer() {
               Your Life Protocol
             </p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-navy/60">
-              Supplement :: LIFE pairs a short guided intake with time-tested
-              herbal formulations, matched to your biology — not the shelf.
+              Supplement :: LIFE builds your Personalized LIFE Protocol
+              through a short guided intake, matched to your biology — not
+              the shelf.
             </p>
           </div>
 

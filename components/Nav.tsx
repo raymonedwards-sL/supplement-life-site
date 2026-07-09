@@ -9,7 +9,7 @@ import { LinkButton } from "@/components/ui/Button";
 const links = [
   { href: "/how-it-works", label: "How It Works" },
   { href: "/faq", label: "FAQ" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Protocol Dashboard" },
 ];
 
 export default function Nav() {

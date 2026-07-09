@@ -55,7 +55,7 @@ function ReserveForm() {
             You&apos;re in.
           </h1>
           <p className="mt-4 text-navy/70">
-            Your $249 Founding Reservation deposit is confirmed. Check your
+            Your $249 Founding Subscription deposit is confirmed. Check your
             email for a link to set up your account and start your wellness
             intake whenever you&apos;re ready.
           </p>
@@ -68,22 +68,22 @@ function ReserveForm() {
     <section className="py-16 sm:py-20">
       <Container className="grid grid-cols-1 gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-start">
         <div>
-          <Eyebrow>Founding Reservation</Eyebrow>
+          <Eyebrow>Founding Subscriber Program</Eyebrow>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-            Reserve Yours
+            Reserve Your Founding Subscription
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-navy/70">
             A $249 deposit reserves your spot for first access — before
             we&apos;re open to the public. It&apos;s fully credited to your
-            first month&apos;s subscription at launch, and fully refundable
-            per the Founding Reservation terms.
+            first Protocol Subscription payment at launch, and fully
+            refundable per the Founding Subscriber Program terms.
           </p>
 
           <div className="mt-8 flex flex-col gap-4">
             {[
               "Founding pricing locked in before public launch",
-              "Deposit fully credited to your first month — never an extra charge",
-              "Fully refundable per the Founding Reservation terms",
+              "Deposit fully credited to your first Protocol Subscription payment — never an extra charge",
+              "Fully refundable per the Founding Subscriber Program terms",
               "Complete your wellness intake and get matched as soon as you're ready",
             ].map((item) => (
               <div key={item} className="flex items-start gap-3">
@@ -96,7 +96,7 @@ function ReserveForm() {
 
         <div className="rounded-2xl border border-navy/10 bg-white/60 p-6 sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-navy/50">
-            Founding Reservation Deposit
+            Founding Subscription Deposit
           </p>
           <p className="mt-1 font-serif text-3xl text-navy">$249</p>
 
@@ -142,13 +142,15 @@ function ReserveForm() {
               disabled={loading}
               className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
             >
-              {loading ? "Redirecting to checkout…" : "Reserve Now — $249"}
+              {loading
+                ? "Redirecting to checkout…"
+                : "Reserve Your Founding Subscription — $249"}
             </button>
             <p className="text-xs text-navy/40">
-              Your $249 deposit is applied as your first month&apos;s
-              subscription payment when Supplement :: LIFE goes live. Fully
-              refundable per the Founding Reservation terms. Secure checkout
-              via Stripe.
+              Your $249 deposit is applied as your first Protocol
+              Subscription payment when Supplement :: LIFE goes live. Fully
+              refundable per the Founding Subscriber Program terms. Secure
+              checkout via Stripe.
             </p>
           </form>
         </div>

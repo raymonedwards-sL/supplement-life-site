@@ -15,7 +15,7 @@ export default async function Dashboard() {
     return (
       <section className="py-20">
         <Container className="max-w-xl">
-          <Eyebrow>Dashboard</Eyebrow>
+          <Eyebrow>Protocol Dashboard</Eyebrow>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
             Welcome back
           </h1>

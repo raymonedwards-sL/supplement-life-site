@@ -88,7 +88,7 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
       {noAccount && (
         <p className="text-sm text-navy/70">
           We couldn&apos;t find an account for that email. You&apos;ll need to
-          complete your Founding Reservation first —{" "}
+          reserve your Founding Subscription first —{" "}
           <Link href="/reserve" className="font-semibold text-copper underline underline-offset-2">
             reserve your spot here
           </Link>
