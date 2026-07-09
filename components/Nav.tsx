@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { LinkButton } from "@/components/ui/Button";
@@ -18,12 +19,15 @@ export default function Nav() {
   return (
     <header className="sticky top-0 z-50 bg-navy text-cream">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link
-          href="/"
-          className="font-serif text-lg font-semibold tracking-tight"
-          onClick={() => setOpen(false)}
-        >
-          Your Life Protocol
+        <Link href="/" onClick={() => setOpen(false)}>
+          <Image
+            src="/branding/logo-dark-transparent.png"
+            alt="Your Life Protocol"
+            width={1291}
+            height={341}
+            priority
+            className="h-8 w-auto sm:h-10"
+          />
         </Link>
 
         <nav className="hidden items-center gap-x-8 text-sm sm:flex">

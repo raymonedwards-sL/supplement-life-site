@@ -48,7 +48,7 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-navy/10">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 hidden h-[620px] w-[620px] sm:block lg:h-[720px] lg:w-[720px]"
+          className="pointer-events-none absolute right-0 top-0 hidden h-[620px] w-[620px] sm:block lg:h-[720px] lg:w-[720px]"
           style={{
             maskImage:
               "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
