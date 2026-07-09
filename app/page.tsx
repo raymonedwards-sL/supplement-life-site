@@ -170,6 +170,34 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* Your body speaks */}
+      <section className="py-24">
+        <Container className="max-w-3xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            Your body speaks.
+          </h2>
+          <p className="mt-2 text-lg text-navy/70">
+            Most people simply aren&apos;t listening.
+          </p>
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {signals.map((signal) => (
+              <div
+                key={signal}
+                className="rounded-xl border border-navy/10 bg-white/50 px-4 py-3 text-center text-sm font-medium text-navy/70"
+              >
+                {signal}
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 leading-relaxed text-navy/70">
+            These aren&apos;t random. They&apos;re signals. Our intake helps
+            organize those signals into a personalized wellness profile so
+            your botanical recommendations are based on your life — not
+            marketing trends.
+          </p>
+        </Container>
+      </section>
+
       {/* Meet Your LIFE Guide */}
       <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container className="max-w-3xl">
@@ -277,36 +305,8 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* Your body speaks */}
-      <section className="py-24">
-        <Container className="max-w-3xl">
-          <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-            Your body speaks.
-          </h2>
-          <p className="mt-2 text-lg text-navy/70">
-            Most people simply aren&apos;t listening.
-          </p>
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {signals.map((signal) => (
-              <div
-                key={signal}
-                className="rounded-xl border border-navy/10 bg-white/50 px-4 py-3 text-center text-sm font-medium text-navy/70"
-              >
-                {signal}
-              </div>
-            ))}
-          </div>
-          <p className="mt-8 leading-relaxed text-navy/70">
-            These aren&apos;t random. They&apos;re signals. Our intake helps
-            organize those signals into a personalized wellness profile so
-            your botanical recommendations are based on your life — not
-            marketing trends.
-          </p>
-        </Container>
-      </section>
-
       {/* Why 35 teaser */}
-      <section className="border-y border-navy/10 bg-white/40 py-20">
+      <section className="py-20">
         <Container className="max-w-3xl">
           <Eyebrow>Why 35?</Eyebrow>
           <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
