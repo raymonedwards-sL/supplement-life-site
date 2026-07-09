@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s — Your Life Protocol",
   },
   description:
-    "Supplement :: LIFE pairs a short guided intake with time-tested herbal formulations, matched to your biology. Reserve your Founding Membership today.",
+    "Supplement :: LIFE pairs a short guided intake with time-tested herbal formulations, matched to your biology. Reserve your spot for first access today.",
 };
 
 export default function RootLayout({
