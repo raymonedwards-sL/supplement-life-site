@@ -23,13 +23,21 @@ const columns = [
       { href: "/dashboard", label: "Protocol Dashboard" },
     ],
   },
+  {
+    heading: "Legal",
+    links: [
+      { href: "/terms", label: "Terms of Service" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/refund-policy", label: "Refund & Shipping Policy" },
+    ],
+  },
 ];
 
 export default function Footer() {
   return (
     <footer className="border-t border-navy/10 bg-cream">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1fr_1fr]">
           <div>
             <p className="font-serif text-lg font-semibold text-navy">
               Your Life Protocol
@@ -71,6 +79,7 @@ export default function Footer() {
           </p>
           <div className="mt-6 flex flex-col gap-2 text-xs text-navy/40 sm:flex-row sm:items-center sm:justify-between">
             <p>&copy; 2026 LIFE Wellness Brands LLC. All rights reserved.</p>
+            <p>11700 W. Charleston Blvd #170, Las Vegas, NV 89135</p>
             <a href="mailto:hello@yourlifeprotocol.com" className="hover:text-copper">
               hello@yourlifeprotocol.com
             </a>
