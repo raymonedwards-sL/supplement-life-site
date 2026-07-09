@@ -171,7 +171,7 @@ export default function Home() {
       </section>
 
       {/* Your body speaks */}
-      <section className="py-24">
+      <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container className="max-w-3xl">
           <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
             Your body speaks.
@@ -183,7 +183,7 @@ export default function Home() {
             {signals.map((signal) => (
               <div
                 key={signal}
-                className="rounded-xl border border-navy/10 bg-white/50 px-4 py-3 text-center text-sm font-medium text-navy/70"
+                className="rounded-xl border border-navy/10 bg-cream px-4 py-3 text-center text-sm font-medium text-navy/70"
               >
                 {signal}
               </div>
@@ -199,7 +199,7 @@ export default function Home() {
       </section>
 
       {/* Meet Your LIFE Guide */}
-      <section className="border-y border-navy/10 bg-white/40 py-24">
+      <section className="py-24">
         <Container className="max-w-3xl">
           <Eyebrow>Your LIFE Guide</Eyebrow>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
@@ -217,7 +217,7 @@ export default function Home() {
             {positioningPoints.map((point) => (
               <div
                 key={point}
-                className="rounded-xl border border-navy/10 bg-cream p-4 text-sm font-medium text-navy/70"
+                className="rounded-xl border border-navy/10 bg-white/50 p-4 text-sm font-medium text-navy/70"
               >
                 {point}
               </div>
@@ -227,7 +227,7 @@ export default function Home() {
       </section>
 
       {/* Three-Step Journey */}
-      <section className="py-24">
+      <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
@@ -263,7 +263,7 @@ export default function Home() {
       </section>
 
       {/* Tracks grid */}
-      <section className="border-y border-navy/10 bg-white/40 py-24">
+      <section className="py-24">
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
@@ -281,7 +281,7 @@ export default function Home() {
             {previewTracks.map((track) => (
               <div
                 key={track.id}
-                className="rounded-2xl border border-navy/10 bg-cream p-6"
+                className="rounded-2xl border border-navy/10 bg-white/50 p-6"
               >
                 <h3 className="text-lg font-semibold text-copper">
                   {track.name}
@@ -306,7 +306,7 @@ export default function Home() {
       </section>
 
       {/* Why 35 teaser */}
-      <section className="py-20">
+      <section className="border-y border-navy/10 bg-white/40 py-20">
         <Container className="max-w-3xl">
           <Eyebrow>Why 35?</Eyebrow>
           <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
@@ -349,7 +349,7 @@ export default function Home() {
       </section>
 
       {/* Founding Membership */}
-      <section className="border-t border-navy/10 py-24">
+      <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
           <div>
             <Eyebrow>Founding Membership</Eyebrow>
@@ -370,7 +370,7 @@ export default function Home() {
             {membershipBenefits.map((item) => (
               <div
                 key={item}
-                className="flex items-start gap-3 rounded-xl border border-navy/10 bg-white/50 p-4"
+                className="flex items-start gap-3 rounded-xl border border-navy/10 bg-cream p-4"
               >
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-copper" />
                 <p className="text-sm text-navy/70">{item}</p>
@@ -381,7 +381,7 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="border-t border-navy/10 bg-navy py-20 text-cream">
+      <section className="bg-navy py-20 text-cream">
         <Container className="flex flex-col items-center gap-6 text-center">
           <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
             Your next decade starts with the decisions you make today.
