@@ -267,20 +267,19 @@ export default function Home() {
       <section className="relative overflow-hidden py-24">
         <div
           aria-hidden
-          className="pointer-events-none absolute right-0 top-0 hidden h-[300px] w-[460px] sm:block lg:h-[360px] lg:w-[600px]"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[460px] sm:block lg:w-[640px]"
           style={{
-            maskImage:
-              "radial-gradient(ellipse 65% 65% at 60% 40%, black 35%, transparent 75%)",
+            maskImage: "linear-gradient(to left, black 45%, transparent 92%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 65% 65% at 60% 40%, black 35%, transparent 75%)",
+              "linear-gradient(to left, black 45%, transparent 92%)",
           }}
         >
           <Image
-            src="/lifestyle/product-line.jpg"
+            src="/lifestyle/product-line2.jpeg"
             alt=""
             fill
-            className="object-cover opacity-70"
-            sizes="(min-width: 1024px) 600px, 460px"
+            className="object-cover opacity-60"
+            sizes="(min-width: 1024px) 640px, 460px"
           />
         </div>
 
