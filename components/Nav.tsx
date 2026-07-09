@@ -3,18 +3,42 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LinkButton } from "@/components/ui/Button";
+import { createClient } from "@/lib/supabase/client";
 
-const links = [
+const baseLinks = [
   { href: "/how-it-works", label: "How It Works" },
   { href: "/faq", label: "FAQ" },
-  { href: "/dashboard", label: "Protocol Dashboard" },
 ];
 
 export default function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSignedIn(Boolean(session));
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(Boolean(session));
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Returning subscribers get a clearly-labeled entry point, distinct from
+  // the "Reserve Yours" CTA aimed at new visitors. /dashboard already
+  // handles both states (shows a login form if signed out, the real
+  // dashboard if signed in) — this just labels it accurately either way.
+  const links = [
+    ...baseLinks,
+    { href: "/dashboard", label: signedIn ? "Dashboard" : "Log In" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 bg-navy text-cream">

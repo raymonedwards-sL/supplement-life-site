@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LoginPrompt from "@/components/LoginPrompt";
 import AccessRevoked from "@/components/AccessRevoked";
+import AccountSettings from "./AccountSettings";
 import BillingPortalButton from "./BillingPortalButton";
 import { findTrack } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
@@ -31,26 +32,31 @@ export default async function Dashboard() {
     );
   }
 
-  const [{ data: profile }, { data: trackAssignment }, { data: subscription }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("current_summary, updated_at")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-      supabase
-        .from("track_assignments")
-        .select("tracks, rationale, assigned_at")
-        .eq("user_id", user.id)
-        .order("assigned_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from("subscriptions")
-        .select("status, conversion_date")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: profile },
+    { data: trackAssignment },
+    { data: subscription },
+    { data: accountRow },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("current_summary, updated_at")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("track_assignments")
+      .select("tracks, rationale, assigned_at")
+      .eq("user_id", user.id)
+      .order("assigned_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("subscriptions")
+      .select("status, conversion_date")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase.from("users").select("full_name").eq("id", user.id).maybeSingle(),
+  ]);
 
   if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
     return (
@@ -102,9 +108,17 @@ export default async function Dashboard() {
               Your Wellness Profile
             </p>
             {profile?.current_summary ? (
-              <p className="mt-3 leading-relaxed text-navy/80">
-                {profile.current_summary}
-              </p>
+              <>
+                <p className="mt-3 leading-relaxed text-navy/80">
+                  {profile.current_summary}
+                </p>
+                <Link
+                  href="/intake"
+                  className="mt-3 inline-block text-sm font-semibold text-copper underline underline-offset-2"
+                >
+                  Retake your intake
+                </Link>
+              </>
             ) : (
               <p className="mt-3 text-navy/60">
                 You haven&apos;t completed your wellness intake yet.{" "}
@@ -157,6 +171,16 @@ export default async function Dashboard() {
         </div>
 
         <div className="mt-10 rounded-2xl border border-navy/10 bg-white/40 p-6">
+          <p className="text-sm font-medium text-navy/50">Account Settings</p>
+          <div className="mt-4">
+            <AccountSettings
+              initialFullName={accountRow?.full_name ?? ""}
+              initialEmail={user.email ?? ""}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-navy/10 bg-white/40 p-6">
           <p className="mb-3 text-sm text-navy/60">
             Update your payment method, view invoices, or cancel your
             subscription any time.
