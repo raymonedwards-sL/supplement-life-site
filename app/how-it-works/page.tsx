@@ -16,7 +16,7 @@ const steps = [
   },
   {
     title: "Your protocol ships",
-    body: "Once we go live, Founding Members are the first to receive their personalized protocol. You'll get an email as soon as your shipment is on its way.",
+    body: "Once we go live, everyone who's reserved is first in line to receive their personalized protocol. You'll get an email as soon as your shipment is on its way.",
   },
   {
     title: "Improve over time",
@@ -115,7 +115,7 @@ export default function HowItWorks() {
           </h2>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Founding Membership
+              Reserve Your Protocol
             </LinkButton>
             <LinkButton href="/faq" variant="secondary" size="lg">
               Read the FAQ

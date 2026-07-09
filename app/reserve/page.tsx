@@ -73,7 +73,7 @@ function ReserveForm() {
             Reserve Yours
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-navy/70">
-            A $249 deposit holds your spot as a Founding Member — before
+            A $249 deposit reserves your spot for first access — before
             we&apos;re open to the public. It&apos;s fully credited to your
             first month&apos;s subscription at launch, and fully refundable
             per the Founding Reservation terms.

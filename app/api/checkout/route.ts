@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             product_data: {
               name: "Founding Reservation Deposit",
               description:
-                "Supplement :: LIFE Founding Member reservation — $249 deposit, applied as your first month's subscription payment at go-live.",
+                "Supplement :: LIFE Founding Reservation — a $249 deposit that reserves first access, applied as your first month's subscription payment at go-live.",
             },
           },
           quantity: 1,

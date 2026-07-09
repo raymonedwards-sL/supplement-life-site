@@ -59,8 +59,8 @@ const signals = [
   "Digestive discomfort",
 ];
 
-const membershipBenefits = [
-  "Preferred lifetime pricing",
+const reservationBenefits = [
+  "Preferred founding pricing",
   "Early access to every Botanical Track",
   "Priority onboarding",
   "Ongoing protocol refinement",
@@ -126,7 +126,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Founding Membership
+              Reserve Your Protocol
             </LinkButton>
             <LinkButton href="/how-it-works" variant="secondary" size="lg">
               See How It Works
@@ -348,26 +348,26 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* Founding Membership */}
+      {/* Founding Reservation benefits */}
       <section className="border-y border-navy/10 bg-white/40 py-24">
         <Container className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
           <div>
-            <Eyebrow>Founding Membership</Eyebrow>
+            <Eyebrow>Founding Reservation</Eyebrow>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-              Become a Founding Member.
+              Reserve first access to your protocol.
             </h2>
             <p className="mt-4 text-navy/70">
-              Help define the future of personalized botanical wellness. Your
-              $249 reservation is fully credited toward your membership at
-              launch, and fully refundable per the Founding Reservation
-              terms.
+              Your $249 deposit reserves your spot for first access to
+              Supplement :: LIFE. It&apos;s fully credited toward your first
+              month&apos;s protocol at launch, and fully refundable per the
+              Founding Reservation terms.
             </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
-              Reserve Your Founding Membership
+              Reserve Your Protocol
             </LinkButton>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {membershipBenefits.map((item) => (
+            {reservationBenefits.map((item) => (
               <div
                 key={item}
                 className="flex items-start gap-3 rounded-xl border border-navy/10 bg-cream p-4"
@@ -392,7 +392,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Founding Membership
+              Reserve Your Protocol
             </LinkButton>
             <LinkButton
               href="/faq"

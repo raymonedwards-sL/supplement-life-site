@@ -74,7 +74,7 @@ export default function OurStory() {
           </h2>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
-              Reserve Your Founding Membership
+              Reserve Your Protocol
             </LinkButton>
             <LinkButton href="/how-it-works" variant="secondary" size="lg">
               See How It Works

@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     q: "What does the $249 Founding Reservation cover?",
-    a: "The $249 deposit holds your spot as a Founding Member and creates your account. It's fully credited toward your first month's subscription once Supplement :: LIFE goes live — it isn't an extra charge on top of your subscription.",
+    a: "The $249 deposit reserves your spot for first access and creates your account. It's fully credited toward your first month's subscription once Supplement :: LIFE goes live — it isn't an extra charge on top of your subscription.",
   },
   {
     q: "Can I get a refund?",
@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: "When will I get my first shipment?",
-    a: "We're finalizing production timelines. Founding Members get priority — you'll get an email as soon as your personalized protocol is ready to ship, and you can complete your intake any time before then.",
+    a: "We're finalizing production timelines. Everyone who's reserved gets priority — you'll get an email as soon as your personalized protocol is ready to ship, and you can complete your intake any time before then.",
   },
   {
     q: "Can I change my Botanical Track later?",
