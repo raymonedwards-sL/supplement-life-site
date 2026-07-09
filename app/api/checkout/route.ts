@@ -10,10 +10,23 @@ import { stripe, FOUNDING_RESERVATION_DEPOSIT_CENTS } from "@/lib/stripe/server"
  * apply the $249 credit to Customer Balance.
  */
 export async function POST(request: NextRequest) {
-  const { name, email } = await request.json();
+  const { name, email, residencyConfirmed } = await request.json();
 
   if (!email || typeof email !== "string") {
     return NextResponse.json({ error: "Email is required." }, { status: 400 });
+  }
+
+  // Layer 2 of the US/CA/MX eligibility check (layer 1 is the IP geo-check
+  // in middleware.ts, layer 3 is Stripe's shipping_address_collection
+  // allowed_countries below). See lib/geo/allowed-countries.ts for details.
+  if (residencyConfirmed !== true) {
+    return NextResponse.json(
+      {
+        error:
+          "You must confirm you are located in the United States, Canada, or Mexico to reserve.",
+      },
+      { status: 400 }
+    );
   }
 
   const origin = request.headers.get("origin") ?? new URL(request.url).origin;
@@ -23,6 +36,9 @@ export async function POST(request: NextRequest) {
       mode: "payment",
       customer_creation: "always",
       customer_email: email,
+      shipping_address_collection: {
+        allowed_countries: ["US", "CA", "MX"],
+      },
       line_items: [
         {
           price_data: {

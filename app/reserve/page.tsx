@@ -16,9 +16,11 @@ export default function Reserve() {
 function ReserveForm() {
   const searchParams = useSearchParams();
   const checkoutStatus = searchParams.get("checkout");
+  const regionBlocked = searchParams.get("region") === "unsupported";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [residencyConfirmed, setResidencyConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +33,7 @@ function ReserveForm() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, residencyConfirmed }),
       });
 
       const data = await res.json();
@@ -45,6 +47,32 @@ function ReserveForm() {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
     }
+  }
+
+  if (regionBlocked) {
+    return (
+      <section className="py-24">
+        <Container className="max-w-xl text-center">
+          <Eyebrow>Not Yet Available In Your Region</Eyebrow>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            We&apos;re not able to accept reservations from your location.
+          </h1>
+          <p className="mt-4 text-navy/70">
+            The Founding Subscriber Program is currently only available to
+            residents of the United States, Canada, and Mexico. If you
+            believe you&apos;re seeing this message in error and you are
+            located in one of those countries, please reach out to{" "}
+            <a
+              href="mailto:hello@yourlifeprotocol.com"
+              className="font-semibold text-copper underline underline-offset-2"
+            >
+              hello@yourlifeprotocol.com
+            </a>
+            .
+          </p>
+        </Container>
+      </section>
+    );
   }
 
   if (checkoutStatus === "success") {
@@ -147,10 +175,24 @@ function ReserveForm() {
                 className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
               />
             </div>
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={residencyConfirmed}
+                onChange={(e) => setResidencyConfirmed(e.target.checked)}
+                required
+                className="mt-1 h-4 w-4 shrink-0 rounded border-navy/30 text-copper focus:ring-copper"
+              />
+              <span className="text-sm leading-relaxed text-navy/70">
+                I confirm that I am located in the United States, Canada, or
+                Mexico. The Founding Subscriber Program is currently only
+                available to residents of these countries.
+              </span>
+            </label>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !residencyConfirmed}
               className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
             >
               {loading

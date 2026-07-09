@@ -1,7 +1,48 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import {
+  getClientIp,
+  lookupCountryForIp,
+  isAllowedCountry,
+} from "@/lib/geo/allowed-countries";
 
+/**
+ * Geo-restriction, layer 1 of 3 (see lib/geo/allowed-countries.ts for the
+ * full picture). Supplement :: LIFE is only offered to US/CA/MX residents:
+ *   - /reserve renders a hard "not available in your region" state instead
+ *     of the reservation form.
+ *   - /api/checkout is rejected outright, in case /reserve is bypassed.
+ * Both checks fail OPEN on an unresolvable IP or a lookup error/timeout —
+ * layers 2 (attestation checkbox) and 3 (Stripe allowed_countries) remain
+ * as backstops either way.
+ */
 export async function middleware(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+
+  if (pathname === "/api/checkout") {
+    const ip = getClientIp(request);
+    const country = ip ? await lookupCountryForIp(ip) : null;
+    if (!isAllowedCountry(country)) {
+      return NextResponse.json(
+        {
+          error:
+            "The Founding Subscriber Program is currently only available to residents of the United States, Canada, and Mexico.",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
+  if (pathname === "/reserve" && searchParams.get("region") !== "unsupported") {
+    const ip = getClientIp(request);
+    const country = ip ? await lookupCountryForIp(ip) : null;
+    if (!isAllowedCountry(country)) {
+      const url = request.nextUrl.clone();
+      url.searchParams.set("region", "unsupported");
+      return NextResponse.redirect(url);
+    }
+  }
+
   return await updateSession(request);
 }
 
