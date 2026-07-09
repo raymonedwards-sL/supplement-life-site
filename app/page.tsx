@@ -264,8 +264,27 @@ export default function Home() {
       </section>
 
       {/* Tracks grid */}
-      <section className="py-24">
-        <Container>
+      <section className="relative overflow-hidden py-24">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-0 hidden h-[300px] w-[460px] sm:block lg:h-[360px] lg:w-[600px]"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 65% 65% at 60% 40%, black 35%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 65% 65% at 60% 40%, black 35%, transparent 75%)",
+          }}
+        >
+          <Image
+            src="/lifestyle/product-line.jpg"
+            alt=""
+            fill
+            className="object-cover opacity-70"
+            sizes="(min-width: 1024px) 600px, 460px"
+          />
+        </div>
+
+        <Container className="relative">
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
               Nine Botanical Tracks. Thousands of combinations.
@@ -278,7 +297,7 @@ export default function Home() {
               Your protocol may include one — or several — working together.
             </p>
           </div>
-          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="relative mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {previewTracks.map((track) => (
               <div
                 key={track.id}
