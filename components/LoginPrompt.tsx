@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "link" | "password";
-
 /**
  * Shown on any auth-gated page when there's no logged-in session — e.g. a
- * returning visitor whose session expired. Two ways in: a magic link (no
- * password needed) or email + password for anyone who's set a password
- * from their dashboard (Account Settings). `redirectPath` sends them back
- * to whichever page asked for login.
+ * returning visitor whose session expired. One combined form: email is
+ * always required, password is optional. Leave password blank and submit
+ * to get a magic link (no password needed); fill it in for anyone who's
+ * set a password from their dashboard (Account Settings) to log in
+ * directly. `redirectPath` sends them back to whichever page asked for
+ * login.
  *
  * Both paths can only log in to an EXISTING account — shouldCreateUser:
  * false and signInWithPassword() both refuse to create new accounts.
@@ -21,7 +21,6 @@ type Mode = "link" | "password";
  */
 export default function LoginPrompt({ redirectPath }: { redirectPath: string }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("link");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,13 +30,32 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
   const [noAccount, setNoAccount] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  async function handleMagicLink(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setNoAccount(false);
 
     const supabase = createClient();
+
+    if (password) {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setLoading(false);
+      if (error) {
+        setError(
+          /invalid login credentials/i.test(error.message)
+            ? "Incorrect email or password."
+            : error.message
+        );
+        return;
+      }
+      // Client-side sign-in doesn't re-render this server-rendered page by
+      // itself — navigate + refresh so it picks up the new session cookie.
+      router.push(redirectPath);
+      router.refresh();
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -65,34 +83,9 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
     }
   }
 
-  async function handlePasswordLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setNoAccount(false);
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    setLoading(false);
-    if (error) {
-      setError(
-        /invalid login credentials/i.test(error.message)
-          ? "Incorrect email or password."
-          : error.message
-      );
-      return;
-    }
-
-    // Client-side sign-in doesn't re-render this server-rendered page by
-    // itself — navigate + refresh so it picks up the new session cookie.
-    router.push(redirectPath);
-    router.refresh();
-  }
-
   async function handleForgotPassword() {
     if (!email) {
-      setError('Enter your email above first, then click "Forgot password."');
+      setError('Enter your email above first, then click "Forgot / set your password."');
       return;
     }
     setLoading(true);
@@ -133,41 +126,9 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
 
   return (
     <div className="mt-6 rounded-2xl border border-navy/10 bg-white/40 p-6">
-      <div className="mb-4 flex gap-5 text-sm">
-        <button
-          type="button"
-          onClick={() => {
-            setMode("link");
-            setError(null);
-          }}
-          className={`font-semibold transition-colors ${
-            mode === "link" ? "text-copper" : "text-navy/40 hover:text-navy/60"
-          }`}
-        >
-          Email link
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode("password");
-            setError(null);
-          }}
-          className={`font-semibold transition-colors ${
-            mode === "password" ? "text-copper" : "text-navy/40 hover:text-navy/60"
-          }`}
-        >
-          Email &amp; password
-        </button>
-      </div>
-
-      <form
-        onSubmit={mode === "link" ? handleMagicLink : handlePasswordLogin}
-        className="flex flex-col gap-3"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <label className="text-sm font-medium text-navy" htmlFor="login-email">
-          {mode === "link"
-            ? "Enter the email you reserved with, and we'll send you a login link."
-            : "Enter your email and password."}
+          Enter the email you reserved with.
         </label>
         <input
           id="login-email"
@@ -179,25 +140,27 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
           className="w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
         />
 
-        {mode === "password" && (
-          <>
-            <input
-              type="password"
-              required
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className="self-start text-xs font-medium text-navy/50 underline underline-offset-2 hover:text-copper"
-            >
-              Forgot / set your password
-            </button>
-          </>
-        )}
+        <label className="text-sm font-medium text-navy" htmlFor="login-password">
+          Password{" "}
+          <span className="font-normal text-navy/50">
+            (optional — leave blank for an emailed login link)
+          </span>
+        </label>
+        <input
+          id="login-password"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          className="self-start text-xs font-medium text-navy/50 underline underline-offset-2 hover:text-copper"
+        >
+          Forgot / set your password
+        </button>
 
         {noAccount && (
           <p className="text-sm text-navy/70">
@@ -216,12 +179,12 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
           className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
         >
           {loading
-            ? mode === "link"
-              ? "Sending…"
-              : "Logging in…"
-            : mode === "link"
-            ? "Send login link"
-            : "Log in"}
+            ? password
+              ? "Logging in…"
+              : "Sending…"
+            : password
+            ? "Log in"
+            : "Send login link"}
         </button>
       </form>
     </div>

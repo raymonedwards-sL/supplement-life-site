@@ -5,14 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "link" | "password";
-
 /**
- * Top-right account dropdown. Signed out: an inline login form, magic link
- * or email+password (mirrors components/LoginPrompt.tsx — shouldCreateUser:
- * false / signInWithPassword() both refuse to create new accounts, since
+ * Top-right account dropdown. Signed out: one combined login form (mirrors
+ * components/LoginPrompt.tsx) — email is always required, password is
+ * optional. Leave password blank and submit for a magic link; fill it in
+ * to log in directly if a password has been set. shouldCreateUser: false
+ * and signInWithPassword() both refuse to create new accounts, since
  * accounts are only ever created via a successful Stripe checkout, never
- * self-registration here). Signed in: quick links + log out. Deliberately
+ * self-registration here. Signed in: quick links + log out. Deliberately
  * a dropdown rather than a page navigation, so it's reachable from
  * anywhere on the site without leaving the page.
  */
@@ -21,7 +21,6 @@ export default function AccountMenu() {
   const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<Mode>("link");
 
   const [inputEmail, setInputEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,16 +65,39 @@ export default function AccountMenu() {
     setResetSent(false);
     setNoAccount(false);
     setError(null);
-    setMode("link");
+    setPassword("");
   }
 
-  async function handleMagicLink(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSending(true);
     setError(null);
     setNoAccount(false);
 
     const supabase = createClient();
+
+    if (password) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: inputEmail,
+        password,
+      });
+      setSending(false);
+      if (error) {
+        setError(
+          /invalid login credentials/i.test(error.message)
+            ? "Incorrect email or password."
+            : error.message
+        );
+        return;
+      }
+      // onAuthStateChange updates this dropdown's own state automatically,
+      // but the underlying page (e.g. a server-rendered dashboard) won't
+      // re-fetch on its own — refresh so it picks up the new session cookie.
+      setOpen(false);
+      router.refresh();
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email: inputEmail,
       options: {
@@ -96,38 +118,9 @@ export default function AccountMenu() {
     }
   }
 
-  async function handlePasswordLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setSending(true);
-    setError(null);
-    setNoAccount(false);
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: inputEmail,
-      password,
-    });
-
-    setSending(false);
-    if (error) {
-      setError(
-        /invalid login credentials/i.test(error.message)
-          ? "Incorrect email or password."
-          : error.message
-      );
-      return;
-    }
-
-    // onAuthStateChange updates this dropdown's own state automatically,
-    // but the underlying page (e.g. a server-rendered dashboard) won't
-    // re-fetch on its own — refresh so it picks up the new session cookie.
-    setOpen(false);
-    router.refresh();
-  }
-
   async function handleForgotPassword() {
     if (!inputEmail) {
-      setError('Enter your email above first, then click "Forgot password."');
+      setError('Enter your email above first, then click "Forgot / set your password."');
       return;
     }
     setSending(true);
@@ -214,107 +207,73 @@ export default function AccountMenu() {
               Check your email for a link to set your password.
             </p>
           ) : (
-            <>
-              <div className="mb-3 flex gap-4 px-1 text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("link");
-                    setError(null);
-                  }}
-                  className={`font-semibold transition-colors ${
-                    mode === "link" ? "text-copper" : "text-navy/40 hover:text-navy/60"
-                  }`}
-                >
-                  Email link
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("password");
-                    setError(null);
-                  }}
-                  className={`font-semibold transition-colors ${
-                    mode === "password"
-                      ? "text-copper"
-                      : "text-navy/40 hover:text-navy/60"
-                  }`}
-                >
-                  Email &amp; password
-                </button>
-              </div>
-
-              <form
-                onSubmit={mode === "link" ? handleMagicLink : handlePasswordLogin}
-                className="flex flex-col gap-3"
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <label
+                htmlFor="account-menu-email"
+                className="px-1 text-sm font-medium text-navy"
               >
-                <label
-                  htmlFor="account-menu-email"
-                  className="px-1 text-sm font-medium text-navy"
-                >
-                  {mode === "link"
-                    ? "Log in to your Protocol Dashboard"
-                    : "Email and password"}
-                </label>
-                <input
-                  id="account-menu-email"
-                  type="email"
-                  required
-                  placeholder="jane@example.com"
-                  value={inputEmail}
-                  onChange={(e) => setInputEmail(e.target.value)}
-                  className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-                />
+                Log in to your Protocol Dashboard
+              </label>
+              <input
+                id="account-menu-email"
+                type="email"
+                required
+                placeholder="jane@example.com"
+                value={inputEmail}
+                onChange={(e) => setInputEmail(e.target.value)}
+                className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+              />
 
-                {mode === "password" && (
-                  <>
-                    <input
-                      type="password"
-                      required
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      className="self-start text-xs font-medium text-navy/50 underline underline-offset-2 hover:text-copper"
-                    >
-                      Forgot / set your password
-                    </button>
-                  </>
-                )}
+              <label
+                htmlFor="account-menu-password"
+                className="px-1 text-xs font-medium text-navy/60"
+              >
+                Password (optional — leave blank for an emailed login link)
+              </label>
+              <input
+                id="account-menu-password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="self-start px-1 text-xs font-medium text-navy/50 underline underline-offset-2 hover:text-copper"
+              >
+                Forgot / set your password
+              </button>
 
-                {noAccount && (
-                  <p className="px-1 text-xs leading-relaxed text-navy/60">
-                    No account found for that email.{" "}
-                    <Link
-                      href="/reserve"
-                      onClick={close}
-                      className="font-semibold text-copper underline"
-                    >
-                      Reserve your spot
-                    </Link>
-                    .
-                  </p>
-                )}
-                {error && <p className="px-1 text-xs text-red-600">{error}</p>}
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="rounded-full bg-copper px-4 py-2 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
-                >
-                  {sending
-                    ? mode === "link"
-                      ? "Sending…"
-                      : "Logging in…"
-                    : mode === "link"
-                    ? "Send login link"
-                    : "Log in"}
-                </button>
-              </form>
-            </>
+              {noAccount && (
+                <p className="px-1 text-xs leading-relaxed text-navy/60">
+                  No account found for that email.{" "}
+                  <Link
+                    href="/reserve"
+                    onClick={close}
+                    className="font-semibold text-copper underline"
+                  >
+                    Reserve your spot
+                  </Link>
+                  .
+                </p>
+              )}
+              {error && <p className="px-1 text-xs text-red-600">{error}</p>}
+              <button
+                type="submit"
+                disabled={sending}
+                className="rounded-full bg-copper px-4 py-2 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+              >
+                {sending
+                  ? password
+                    ? "Logging in…"
+                    : "Sending…"
+                  : password
+                  ? "Log in"
+                  : "Send login link"}
+              </button>
+            </form>
           )}
         </div>
       )}
