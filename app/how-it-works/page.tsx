@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 
@@ -84,27 +85,38 @@ export default function HowItWorks() {
       </section>
 
       <section className="border-y border-navy/10 bg-white/40 py-20">
-        <Container className="max-w-3xl">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy">
-            Formulated, not guessed
-          </h2>
-          <p className="mt-4 leading-relaxed text-navy/70">
-            Every Botanical Track draws on time-tested herbal and mineral
-            ingredients — things like sea moss, ashwagandha, elderberry, and
-            bacopa — each included for a specific, plain-language role
-            rather than a proprietary blend you can&apos;t read. Some
-            ingredients carry individual cautions (for example, callaloo is
-            high in Vitamin K and isn&apos;t recommended alongside
-            blood-thinning medication), and your intake is built to flag
-            those before a Botanical Track is recommended.
-          </p>
-          <p className="mt-4 text-sm leading-relaxed text-navy/50">
-            Supplement :: LIFE provides personalized wellness information,
-            not medical advice, a diagnosis, or a treatment plan. If you have
-            a medical condition, take prescription medication, or are
-            pregnant or nursing, talk to your healthcare provider before
-            starting any new supplement.
-          </p>
+        <Container className="grid max-w-5xl grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <div className="overflow-hidden rounded-2xl border border-navy/10">
+            <Image
+              src="/lifestyle/botanical-infusion.jpg"
+              alt="A botanical infusion bottle beside dried marigold, lavender, rose hips, and chamomile"
+              width={1376}
+              height={768}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-navy">
+              Formulated, not guessed
+            </h2>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              Every Botanical Track draws on time-tested herbal and mineral
+              ingredients — things like sea moss, ashwagandha, elderberry,
+              and bacopa — each included for a specific, plain-language role
+              rather than a proprietary blend you can&apos;t read. Some
+              ingredients carry individual cautions (for example, callaloo
+              is high in Vitamin K and isn&apos;t recommended alongside
+              blood-thinning medication), and your intake is built to flag
+              those before a Botanical Track is recommended.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-navy/50">
+              Supplement :: LIFE provides personalized wellness information,
+              not medical advice, a diagnosis, or a treatment plan. If you
+              have a medical condition, take prescription medication, or
+              are pregnant or nursing, talk to your healthcare provider
+              before starting any new supplement.
+            </p>
+          </div>
         </Container>
       </section>
 

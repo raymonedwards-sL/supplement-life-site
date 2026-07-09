@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Container, Eyebrow } from "@/components/ui/Container";
 
 export default function Reserve() {
@@ -78,6 +79,16 @@ function ReserveForm() {
             first Protocol Subscription payment at launch, and fully
             refundable per the Founding Subscriber Program terms.
           </p>
+
+          <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10">
+            <Image
+              src="/lifestyle/reset-kit.jpg"
+              alt="The Reset Botanical Track kit, unboxed on a marble counter"
+              width={1376}
+              height={768}
+              className="h-full w-full object-cover"
+            />
+          </div>
 
           <div className="mt-8 flex flex-col gap-4">
             {[

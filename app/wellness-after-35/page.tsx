@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 
@@ -51,6 +52,16 @@ export default function WellnessAfter35() {
             approach should evolve with it.
           </p>
         </Container>
+      </section>
+
+      <section className="relative h-[360px] w-full overflow-hidden sm:h-[480px] lg:h-[560px]">
+        <Image
+          src="/lifestyle/sunrise-practice.jpg"
+          alt="A man in his 40s in a quiet morning stretch, overlooking a misty mountain valley at sunrise"
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
       </section>
 
       <section className="py-20">
