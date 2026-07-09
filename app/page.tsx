@@ -104,16 +104,26 @@ export default function Home() {
 
         <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
           <Eyebrow>Founding Reservations — Now Open</Eyebrow>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-navy sm:text-6xl">
-            The second half of your life deserves a better protocol.
-          </h1>
-          <p className="max-w-2xl text-lg leading-relaxed text-navy/70">
-            You changed. Your body changed. But most wellness products still
-            treat everyone exactly the same. Supplement :: LIFE builds a
-            personalized botanical wellness protocol around your biology,
-            lifestyle, and goals — helping you feel stronger, think clearer,
-            and recover better as life evolves.
-          </p>
+          <div className="relative">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-x-12 -inset-y-6 sm:-inset-x-24 sm:-inset-y-10"
+              style={{
+                background:
+                  "radial-gradient(ellipse 65% 70% at 50% 50%, #F5EFE6 60%, transparent 85%)",
+              }}
+            />
+            <h1 className="relative max-w-3xl text-4xl font-semibold tracking-tight text-navy sm:text-6xl">
+              The second half of your life deserves a better protocol.
+            </h1>
+            <p className="relative mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-navy/70">
+              You changed. Your body changed. But most wellness products
+              still treat everyone exactly the same. Supplement :: LIFE
+              builds a personalized botanical wellness protocol around your
+              biology, lifestyle, and goals — helping you feel stronger,
+              think clearer, and recover better as life evolves.
+            </p>
+          </div>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
               Reserve Your Founding Membership
