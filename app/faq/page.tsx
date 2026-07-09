@@ -4,7 +4,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 const faqs = [
   {
     q: "What is Supplement :: LIFE?",
-    a: "Supplement :: LIFE is a personalized supplement program from Your Life Protocol. Instead of picking products off a shelf, you complete a short guided intake and get matched to a Track — a formulation built around a specific wellness need, using time-tested herbal and mineral ingredients.",
+    a: "Supplement :: LIFE is a personalized supplement program from Your Life Protocol. Instead of picking products off a shelf, you complete a short guided intake and get matched to a Botanical Track — a formulation built around a specific wellness need, using time-tested herbal and mineral ingredients.",
   },
   {
     q: "Is the intake conversation medical advice?",
@@ -23,15 +23,15 @@ const faqs = [
     a: "We're finalizing production timelines. Founding Members get priority — you'll get an email as soon as your personalized protocol is ready to ship, and you can complete your intake any time before then.",
   },
   {
-    q: "Can I change my Track later?",
-    a: "Yes. Your dashboard keeps a running wellness profile, and you can revisit your intake as your needs change. A Track match isn't a one-time quiz result — it's meant to move with you.",
+    q: "Can I change my Botanical Track later?",
+    a: "Yes. Your dashboard keeps a running wellness profile, and you can revisit your intake as your needs change. A Botanical Track match isn't a one-time quiz result — it's meant to move with you.",
   },
   {
     q: "Is it safe to take with my current medication?",
-    a: "It depends on the ingredient and the medication. Some Track ingredients carry specific cautions — for example, callaloo is high in Vitamin K and isn't recommended alongside blood-thinning medication — and the intake is built to flag combinations like that. Even so, always check with your healthcare provider before starting a new supplement, especially if you're on prescription medication, pregnant, or nursing.",
+    a: "It depends on the ingredient and the medication. Some Botanical Track ingredients carry specific cautions — for example, callaloo is high in Vitamin K and isn't recommended alongside blood-thinning medication — and the intake is built to flag combinations like that. Even so, always check with your healthcare provider before starting a new supplement, especially if you're on prescription medication, pregnant, or nursing.",
   },
   {
-    q: "What's actually in a Track?",
+    q: "What's actually in a Botanical Track?",
     a: "Traditional herbal and mineral ingredients, chosen for a specific role — things like sea moss, ashwagandha, elderberry, chamomile, or bacopa monnieri. Every ingredient in your protocol is listed in plain language, with the reason it's there, not hidden behind a proprietary blend.",
   },
   {

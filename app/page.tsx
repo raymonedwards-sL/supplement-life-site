@@ -21,8 +21,8 @@ const steps = [
   },
   {
     number: "02",
-    title: "Get matched to a Track",
-    body: "Your answers are matched against our Track library of time-tested herbal formulations, with a plain-language rationale for why.",
+    title: "Get matched to a Botanical Track",
+    body: "Your answers are matched against our Botanical Track library of time-tested herbal formulations, with a plain-language rationale for why.",
   },
   {
     number: "03",
@@ -48,12 +48,12 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-navy/10">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 hidden h-[620px] w-[900px] sm:block lg:h-[720px] lg:w-[1040px]"
+          className="pointer-events-none absolute -right-24 -top-24 hidden h-[620px] w-[620px] sm:block lg:h-[720px] lg:w-[720px]"
           style={{
             maskImage:
-              "radial-gradient(ellipse 50% 50% at 50% 50%, black 10%, transparent 60%)",
+              "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 50% 50% at 50% 50%, black 10%, transparent 60%)",
+              "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
           }}
         >
           <Image
@@ -61,13 +61,13 @@ export default function Home() {
             alt=""
             fill
             priority
-            className="object-cover opacity-20"
+            className="object-cover opacity-70"
             sizes="(min-width: 1024px) 720px, 620px"
           />
         </div>
 
         <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
-          <Eyebrow>Founding Reservation — Now Open</Eyebrow>
+          <Eyebrow>Founding Reservations — Now Open</Eyebrow>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-navy sm:text-6xl">
             Your biology isn&apos;t generic. Your supplements shouldn&apos;t be
             either.
@@ -137,10 +137,10 @@ export default function Home() {
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-              Nine Tracks. Matched, not marketed.
+              Nine Botanical Tracks. Matched, not marketed.
             </h2>
             <p className="mt-4 text-navy/70">
-              Every Track is built around a real need, using traditional
+              Every Botanical Track is built around a real need, using traditional
               herbal and mineral ingredients. Your intake determines which
               one — or combination — fits you.
             </p>

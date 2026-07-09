@@ -20,7 +20,7 @@ export default async function Dashboard() {
             Welcome back
           </h1>
           <p className="mt-4 text-navy/70">
-            Log in to see your wellness profile, Track, and billing.
+            Log in to see your wellness profile, Botanical Track, and billing.
           </p>
           <LoginPrompt redirectPath="/dashboard" />
         </Container>
@@ -102,7 +102,7 @@ export default async function Dashboard() {
           </div>
 
           <div className="rounded-2xl border border-navy/10 bg-white/40 p-6">
-            <p className="text-sm font-medium text-navy/50">Current Track</p>
+            <p className="text-sm font-medium text-navy/50">Current Botanical Track</p>
             {tracks.length > 0 ? (
               <>
                 <p className="mt-2 text-xl font-semibold text-copper">

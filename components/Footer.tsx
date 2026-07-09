@@ -62,10 +62,7 @@ export default function Footer() {
             especially if pregnant, nursing, or taking medication.
           </p>
           <div className="mt-6 flex flex-col gap-2 text-xs text-navy/40 sm:flex-row sm:items-center sm:justify-between">
-            <p>
-              &copy; {new Date().getFullYear()} Your Life Protocol. All rights
-              reserved.
-            </p>
+            <p>&copy; 2026 LIFE Wellness Brands LLC. All rights reserved.</p>
             <a href="mailto:hello@yourlifeprotocol.com" className="hover:text-copper">
               hello@yourlifeprotocol.com
             </a>

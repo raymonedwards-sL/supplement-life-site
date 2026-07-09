@@ -14,10 +14,10 @@ export default async function Intake() {
       <Container className="max-w-2xl">
         <Eyebrow>Wellness Intake</Eyebrow>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-          Let&apos;s find your Track.
+          Let&apos;s find your Botanical Track.
         </h1>
         <p className="mt-3 text-navy/70">
-          A short conversation to get you a personalized Track
+          A short conversation to get you a personalized Botanical Track
           recommendation — about eight minutes, at your own pace.
         </p>
 
