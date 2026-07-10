@@ -30,8 +30,9 @@ export default async function Intake() {
           Let&apos;s find your Botanical Track.
         </h1>
         <p className="mt-3 text-navy/70">
-          A guided conversation to build your personalized Botanical Track
-          recommendation — at your own pace, with no time limit.
+          A guided conversation with Sage, Your LIFE Guide, to build your
+          personalized Botanical Track recommendation — at your own pace,
+          with no time limit.
         </p>
 
         {/* FR-5: persistent, non-dismissible disclaimer on every intake/results screen. */}

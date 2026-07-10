@@ -72,7 +72,7 @@ const reservationBenefits = [
 const trust = [
   "$249/month for 6 months — half the $499/month public price starting October 2026",
   "Refundable per Founding Subscriber Program terms",
-  "An ongoing relationship with Your LIFE Guide, not a one-time match",
+  "An ongoing relationship with Sage, Your LIFE Guide, not a one-time match",
 ];
 
 export default function Home() {
@@ -215,12 +215,12 @@ export default function Home() {
         <Container className="max-w-3xl">
           <Eyebrow>Your LIFE Guide</Eyebrow>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-            Meet Your LIFE Guide.
+            Meet Sage, Your LIFE Guide.
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-navy/70">
-            Not another chatbot. Not another quiz. Your LIFE Guide is an
-            intelligent wellness agent that learns how you live — not just
-            how old you are. It builds a comprehensive personal wellness
+            Not another chatbot. Not another quiz. Sage is an intelligent
+            wellness agent that learns how you live — not just how old you
+            are. It builds a comprehensive personal wellness
             profile and recommends the Botanical Tracks that best align
             with your lifestyle today. This isn&apos;t a one-time quiz
             result: as you share more about how your protocol is working

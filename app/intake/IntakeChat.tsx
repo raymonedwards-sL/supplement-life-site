@@ -77,23 +77,31 @@ export default function IntakeChat() {
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white/50">
-      <div className="border-b border-navy/10 bg-navy/5 px-6 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">
-          Wellness Intake
-        </p>
+      <div className="flex items-center gap-3 border-b border-navy/10 bg-navy/5 px-6 py-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-copper/15 text-sm font-semibold text-copper">
+          S
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-navy">Sage</p>
+          <p className="text-xs text-navy/50">Your LIFE Guide</p>
+        </div>
       </div>
 
       <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto p-6">
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-              m.role === "user"
-                ? "ml-auto rounded-br-sm bg-copper text-cream"
-                : "mr-auto rounded-bl-sm bg-navy/5 text-navy"
-            }`}
-          >
-            {m.content}
+          <div key={i} className={m.role === "user" ? "ml-auto max-w-[85%]" : "mr-auto max-w-[85%]"}>
+            {m.role === "assistant" && (
+              <p className="mb-1 px-1 text-xs font-semibold text-navy/40">Sage</p>
+            )}
+            <div
+              className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                m.role === "user"
+                  ? "rounded-br-sm bg-copper text-cream"
+                  : "rounded-bl-sm bg-navy/5 text-navy"
+              }`}
+            >
+              {m.content}
+            </div>
           </div>
         ))}
         {loading && <ThinkingIndicator />}
@@ -168,7 +176,7 @@ function SummaryCard({ summary }: { summary: Completion }) {
   );
 }
 
-const THINKING_MESSAGES = ["Thinking…", "Still with you…", "Almost there…"];
+const THINKING_MESSAGES = ["Sage is thinking…", "Still with you…", "Almost there…"];
 
 function ThinkingIndicator() {
   const [messageIndex, setMessageIndex] = useState(0);

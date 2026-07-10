@@ -55,7 +55,7 @@ export default function Privacy() {
               </li>
               <li className="list-disc">
                 <strong>Wellness intake information</strong> — what you share
-                during your conversation with Your LIFE Guide (e.g. sleep,
+                during your conversation with Sage, Your LIFE Guide (e.g. sleep,
                 stress, energy, goals), and the resulting wellness profile
                 and Botanical Track recommendations.
               </li>
@@ -111,7 +111,7 @@ export default function Privacy() {
               </li>
               <li className="list-disc">
                 <strong>Anthropic</strong> — powers the conversational
-                wellness intake (Your LIFE Guide); your intake responses are
+                wellness intake (Sage, Your LIFE Guide); your intake responses are
                 processed to generate your wellness profile and Botanical
                 Track recommendation.
               </li>
