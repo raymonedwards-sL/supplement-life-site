@@ -36,8 +36,10 @@ export default function RefundPolicy() {
             <p className="mt-3 leading-relaxed">
               Your $249 Founding Subscription deposit is fully refundable at
               any time before it converts to your Protocol Subscription at
-              go-live (billed at $249/month for your first six months, then
-              $499/month thereafter). To request a refund, email{" "}
+              go-live (billed at $249/month for your first six months —
+              half the $499/month price we&apos;ll offer the public
+              starting October 2026 — then $499/month thereafter). To
+              request a refund, email{" "}
               <a
                 href="mailto:hello@yourlifeprotocol.com"
                 className="text-copper underline"

@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: "What does the Protocol Subscription cost after I reserve?",
-    a: "Supplement :: LIFE is a $499/month program. Founding Subscribers who reserve during this program lock in $249/month for their first six months once billing begins, then continue at the standard $499/month rate. All of your Botanical Track supplement kits are included in that price — there's no separate per-track charge.",
+    a: "Supplement :: LIFE will be offered to the public at $499/month starting October 2026. Founding Subscribers who reserve today lock in $249/month for their first six months once billing begins — half the public price — then continue at the standard $499/month rate. All of your Botanical Track supplement kits are included in that price — there's no separate per-track charge.",
   },
   {
     q: "Can I get a refund?",

@@ -5,7 +5,7 @@ import { LinkButton } from "@/components/ui/Button";
 const steps = [
   {
     title: "Reserve your spot",
-    body: "A $249 Founding Subscription deposit holds your place and creates your account. It's fully credited toward your first six months of your Protocol Subscription at the Founding rate of $249/month — which then continues at $499/month, our standard price — and fully refundable per the Founding Subscriber Program terms.",
+    body: "A $249 Founding Subscription deposit holds your place and creates your account. It's fully credited toward your first six months of your Protocol Subscription at the Founding rate of $249/month — half the $499/month regular subscription price we'll offer the public starting October 2026 — and fully refundable per the Founding Subscriber Program terms.",
   },
   {
     title: "Meet Your LIFE Guide",

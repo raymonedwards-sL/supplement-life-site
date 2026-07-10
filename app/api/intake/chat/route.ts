@@ -70,6 +70,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // NOTE: buildSystemPrompt() now includes the full Hero Ingredient
+    // Reference (lib/claude/ingredient-reference.ts) and is identical on
+    // every turn of a given intake conversation — a good candidate for
+    // Anthropic prompt caching (cache_control on the system block) to cut
+    // repeat-turn cost/latency. Not wired up yet: the installed
+    // @anthropic-ai/sdk (0.32.1) only exposes cache_control via the beta
+    // client (anthropic.beta.messages.create), which has slightly
+    // different response/type shapes than the stable client used below —
+    // switching call sites deserves its own tested pass rather than being
+    // bundled into this ingredient-reference change.
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1536,

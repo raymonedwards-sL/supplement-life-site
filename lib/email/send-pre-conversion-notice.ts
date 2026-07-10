@@ -41,7 +41,7 @@ export async function sendPreConversionNotice(params: {
     from: "Supplement :: LIFE <hello@yourlifeprotocol.com>",
     to: params.email,
     subject: "Your Founding Subscription converts in 14 days",
-    text: `Your $249 Founding Subscription deposit will convert to your Protocol Subscription on ${formattedDate}, per the Founding Subscriber Program terms you agreed to when reserving. As a Founding Subscriber, you're billed $249/month for your first six months, then $499/month (our standard rate) after that.
+    text: `Your $249 Founding Subscription deposit will convert to your Protocol Subscription on ${formattedDate}, per the Founding Subscriber Program terms you agreed to when reserving. As a Founding Subscriber, you're billed $249/month for your first six months — half the $499/month price we're offering the public starting October 2026 — then $499/month (our standard rate) after that.
 
 If you'd like to cancel and receive a refund instead, you can do so any time before that date here: ${siteUrl}/dashboard
 

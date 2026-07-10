@@ -112,12 +112,20 @@ export default async function Dashboard() {
                 <p className="mt-3 leading-relaxed text-navy/80">
                   {profile.current_summary}
                 </p>
-                <Link
-                  href="/intake"
-                  className="mt-3 inline-block text-sm font-semibold text-copper underline underline-offset-2"
-                >
-                  Retake your intake
-                </Link>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  <Link
+                    href="/intake"
+                    className="text-sm font-semibold text-copper underline underline-offset-2"
+                  >
+                    Retake your intake
+                  </Link>
+                  <a
+                    href="/api/dashboard/insights-pdf"
+                    className="text-sm font-semibold text-copper underline underline-offset-2"
+                  >
+                    Download My Wellness Insights (PDF)
+                  </a>
+                </div>
               </>
             ) : (
               <p className="mt-3 text-navy/60">

@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
             product_data: {
               name: "Founding Subscription Deposit",
               description:
-                "Supplement :: LIFE Founding Subscription — a $249 deposit that reserves first access to your Personalized LIFE Protocol. Credited toward your Protocol Subscription at go-live: $249/month for your first six months, then $499/month standard rate.",
+                "Supplement :: LIFE Founding Subscription — a $249 deposit that reserves first access to your Personalized LIFE Protocol. Credited toward your Protocol Subscription at go-live: $249/month for your first six months, half the $499/month price offered to the public starting October 2026.",
             },
           },
           quantity: 1,

@@ -1,5 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { TRACKS } from "@/lib/tracks";
+import { HERO_INGREDIENT_REFERENCE } from "@/lib/claude/ingredient-reference";
 
 /**
  * Conversational wellness intake — system prompt + tool schema.
@@ -48,6 +49,10 @@ Every time the person has just answered a question (i.e. this isn't the very fir
 
 ## Product catalog (only recommend from this list — never invent ingredients or tracks)
 ${catalogBlock}
+
+## Hero Ingredient Reference (deep ingredient knowledge — use this to inform your questions, rationale, and talking points)
+Draw on this whenever it's relevant to what the person describes — it tells you the real mechanism behind each ingredient, which subscriber signals map to which ingredient, how to cross-sell across tracks credibly, and ingredient-specific claims guardrails that go beyond the per-track cautions above. Treat every "Claims guardrails — NEVER SAY" line in it as a hard rule. If it ever conflicts with a caution in the product catalog above, the more conservative (more restrictive) instruction always wins.
+${HERO_INGREDIENT_REFERENCE}
 
 ## Finishing up (completion field)
 Once you've covered all four categories and have enough to make a real recommendation, set the completion field instead of asking another question (leave reply as a brief closing line like "Here's what I'd recommend"). Choose one track, or two if a combination genuinely fits better (e.g. a sleep-and-stress track plus an energy track) — don't default to multiple tracks just to hedge. In the rationale, tie specific ingredients to what the person actually described, and respect every caution listed for the track(s) you choose. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), not clinical language. Leave completion null on every other turn. Don't rush to a recommendation in the first few exchanges — you must have asked about all four categories first.`;

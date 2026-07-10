@@ -83,11 +83,13 @@ export default function Terms() {
               The Founding Subscriber Program lets you reserve first access
               to Supplement :: LIFE with a $249 deposit (the &ldquo;Founding
               Subscription deposit&rdquo;), processed securely through
-              Stripe. Supplement :: LIFE&apos;s standard Protocol
-              Subscription price is $499/month; Founding Subscribers instead
-              lock in $249/month for their first six months once billing
-              begins, then continue at the standard $499/month rate
-              thereafter. The deposit is fully credited toward this
+              Stripe. Supplement :: LIFE&apos;s regular Protocol
+              Subscription price, offered to the public starting October
+              2026, is $499/month; Founding Subscribers instead lock in
+              $249/month — half that price — for their first six months
+              once billing begins, then continue at the standard
+              $499/month rate thereafter. The deposit is fully credited
+              toward this
               subscription when Supplement :: LIFE goes live, and is fully
               refundable any time before that conversion date — see our{" "}
               <a href="/refund-policy" className="text-copper underline">
@@ -108,7 +110,8 @@ export default function Terms() {
               charge that continues until you cancel. For Founding
               Subscribers, the first six monthly charges are billed at
               $249/month, after which the charge automatically increases to
-              the standard $499/month rate — no action is required from you
+              the standard $499/month rate (the same price offered to the
+              public starting October 2026) — no action is required from you
               for this increase to take effect, and it is disclosed here and
               at the time of purchase. You can cancel at any time from your
               Protocol Dashboard&apos;s billing portal;

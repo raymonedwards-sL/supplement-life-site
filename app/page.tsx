@@ -62,7 +62,7 @@ const signals = [
 ];
 
 const reservationBenefits = [
-  "$249/month locked in for your first 6 months (then $499/month)",
+  "$249/month for your first 6 months — half the $499/month public price starting October 2026",
   "Early access to every Botanical Track",
   "Priority onboarding",
   "Ongoing protocol refinement",
@@ -70,9 +70,9 @@ const reservationBenefits = [
 ];
 
 const trust = [
-  "$249 deposit, credited toward 6 months at $249/mo — then $499/mo",
+  "$249/month for 6 months — half the $499/month public price starting October 2026",
   "Refundable per Founding Subscriber Program terms",
-  "Matched in one guided conversation",
+  "An ongoing relationship with Your LIFE Guide, not a one-time match",
 ];
 
 export default function Home() {
@@ -394,9 +394,9 @@ export default function Home() {
               Your $249 deposit reserves your spot for first access to
               Supplement :: LIFE. It&apos;s fully credited toward your first
               six months of your Protocol Subscription at the Founding rate
-              of $249/month — which then continues at $499/month, our
-              standard price — and fully refundable per the Founding
-              Subscriber Program terms.
+              of $249/month — half the $499/month regular subscription
+              price we&apos;ll offer the public starting October 2026 — and
+              fully refundable per the Founding Subscriber Program terms.
             </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
               Reserve Your Founding Subscription
