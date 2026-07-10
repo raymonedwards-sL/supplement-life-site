@@ -24,6 +24,19 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * endpoint in Stripe: Developers > Webhooks, subscribed to
  * checkout.session.completed AND charge.refunded. Stripe will give you a
  * signing secret — put that in STRIPE_WEBHOOK_SECRET.
+ *
+ * TODO (not yet built): the actual "go-live conversion" job — the thing
+ * that takes every "pending" subscriptions row and creates a REAL Stripe
+ * Subscription, drawing down the balance credit created below — doesn't
+ * exist yet. Today, only `lib/email/send-pre-conversion-notice.ts` /
+ * `netlify/functions/notify-pre-conversion.mts` exist, and they only send
+ * the 14-day warning email; nothing currently converts "pending" to
+ * "active" or starts real recurring billing. As of 2026-07-10 the intended
+ * pricing for that not-yet-built job is: create the subscription at Stripe's
+ * standard $499/month price, with a repeating coupon (duration: "repeating",
+ * duration_in_months: 6, amount_off: 25000) applied so Founding Subscribers
+ * are actually charged $249/month for the first 6 cycles before it steps up
+ * to $499/month automatically. See project memory for full context.
  */
 export async function POST(request: NextRequest) {
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
@@ -115,7 +128,7 @@ export async function POST(request: NextRequest) {
       amount: -FOUNDING_RESERVATION_DEPOSIT_CENTS,
       currency: "usd",
       description:
-        "Founding Subscription deposit — credited toward first Protocol Subscription charge at go-live.",
+        "Founding Subscription deposit — credited toward your Protocol Subscription at go-live ($249/mo for 6 months, then $499/mo).",
     });
 
     // 3. Record the subscription as pending until go-live conversion.

@@ -52,15 +52,17 @@ const steps = [
 
 const signals = [
   "Low energy",
-  "Poor sleep",
-  "Slower recovery",
+  "Poor sleep & recovery",
   "Brain fog",
-  "Mood changes",
+  "Hormonal shifts",
+  "Inflammation",
+  "Slower immune response",
   "Digestive discomfort",
+  "Reduced resilience",
 ];
 
 const reservationBenefits = [
-  "Preferred founding pricing",
+  "$249/month locked in for your first 6 months (then $499/month)",
   "Early access to every Botanical Track",
   "Priority onboarding",
   "Ongoing protocol refinement",
@@ -68,7 +70,7 @@ const reservationBenefits = [
 ];
 
 const trust = [
-  "$249 deposit, fully credited to your first Protocol Subscription payment",
+  "$249 deposit, credited toward 6 months at $249/mo — then $499/mo",
   "Refundable per Founding Subscriber Program terms",
   "Matched in one guided conversation",
 ];
@@ -117,11 +119,13 @@ export default function Home() {
               The second half of your life deserves a better protocol.
             </h1>
             <p className="relative mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-navy/70">
-              You changed. Your body changed. But most wellness products
-              still treat everyone exactly the same. Supplement :: LIFE
-              builds your Personalized LIFE Protocol around your biology,
-              lifestyle, and goals — helping you feel stronger, think
-              clearer, and recover better as life evolves.
+              The fatigue that lingers no matter how much you sleep. The
+              recovery that used to take a day and now takes a week. The
+              mental fog that shows up right when you need to be sharpest.
+              These aren&apos;t things to just accept — they&apos;re signals.
+              Supplement :: LIFE builds a bespoke botanical protocol around
+              your actual biology and lifestyle, engineered for the demands
+              of a full, high-performing life after 35.
             </p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
@@ -167,6 +171,14 @@ export default function Home() {
           <p className="mt-6 font-serif text-2xl text-navy">
             Your protocol should.
           </p>
+          <p className="mt-6 leading-relaxed text-navy/70">
+            This isn&apos;t another discount multivitamin subscription
+            competing for shelf space, and taking more of them rarely means
+            better results. Supplement :: LIFE is a single, precisely built
+            protocol for people who&apos;ve decided their long-term vitality
+            deserves the same level of investment as everything else they
+            take seriously.
+          </p>
         </Container>
       </section>
 
@@ -207,11 +219,14 @@ export default function Home() {
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-navy/70">
             Not another chatbot. Not another quiz. Your LIFE Guide is an
-            intelligent wellness conversation that learns how you live — not
-            just how old you are. In about eight minutes, it develops your
-            personal wellness profile and recommends the Botanical Tracks
-            that best align with your lifestyle today. As your life
-            changes, your protocol changes too.
+            intelligent wellness agent that learns how you live — not just
+            how old you are. It builds a comprehensive personal wellness
+            profile and recommends the Botanical Tracks that best align
+            with your lifestyle today. This isn&apos;t a one-time quiz
+            result: as you share more about how your protocol is working
+            for you, your profile deepens and your recommendations evolve
+            — a bespoke system built to keep pace with your actual life,
+            not a static formula you&apos;re locked into.
           </p>
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {positioningPoints.map((point) => (
@@ -378,8 +393,10 @@ export default function Home() {
             <p className="mt-4 text-navy/70">
               Your $249 deposit reserves your spot for first access to
               Supplement :: LIFE. It&apos;s fully credited toward your first
-              Protocol Subscription payment at launch, and fully refundable
-              per the Founding Subscriber Program terms.
+              six months of your Protocol Subscription at the Founding rate
+              of $249/month — which then continues at $499/month, our
+              standard price — and fully refundable per the Founding
+              Subscriber Program terms.
             </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
               Reserve Your Founding Subscription

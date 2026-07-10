@@ -5,11 +5,11 @@ import { LinkButton } from "@/components/ui/Button";
 const steps = [
   {
     title: "Reserve your spot",
-    body: "A $249 Founding Subscription deposit holds your place and creates your account. It's fully credited to your first Protocol Subscription payment at launch, and fully refundable per the Founding Subscriber Program terms.",
+    body: "A $249 Founding Subscription deposit holds your place and creates your account. It's fully credited toward your first six months of your Protocol Subscription at the Founding rate of $249/month — which then continues at $499/month, our standard price — and fully refundable per the Founding Subscriber Program terms.",
   },
   {
     title: "Meet Your LIFE Guide",
-    body: "Log in and have a short, guided conversation about how you actually live — sleep, stress, movement, recovery, focus, nutrition, energy, priorities. About eight minutes, at your own pace. It's a conversation, not a quiz, and it's never a substitute for medical advice.",
+    body: "Log in and have a guided, in-depth conversation about how you actually live — sleep, stress, movement, recovery, focus, nutrition, energy, priorities. Take your time; there's no clock. It's a real conversation, not a quiz, and it's never a substitute for medical advice.",
   },
   {
     title: "Get matched to a Botanical Track",

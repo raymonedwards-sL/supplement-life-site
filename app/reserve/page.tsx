@@ -84,8 +84,10 @@ function ReserveForm() {
             You&apos;re in.
           </h1>
           <p className="mt-4 text-navy/70">
-            Your $249 Founding Subscription deposit is confirmed. Check your
-            email for a link to set up your account and start your wellness
+            Your $249 Founding Subscription deposit is confirmed — it locks
+            in $249/month for your first six months once your subscription
+            begins (then $499/month, our standard price). Check your email
+            for a link to set up your account and start your wellness
             intake whenever you&apos;re ready.
           </p>
         </Container>
@@ -103,9 +105,11 @@ function ReserveForm() {
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-navy/70">
             A $249 deposit reserves your spot for first access — before
-            we&apos;re open to the public. It&apos;s fully credited to your
-            first Protocol Subscription payment at launch, and fully
-            refundable per the Founding Subscriber Program terms.
+            we&apos;re open to the public. It&apos;s fully credited toward
+            your first six months of your Protocol Subscription at the
+            Founding rate of $249/month — which then continues at
+            $499/month, our standard price — and fully refundable per the
+            Founding Subscriber Program terms.
           </p>
 
           <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10">
@@ -120,8 +124,8 @@ function ReserveForm() {
 
           <div className="mt-8 flex flex-col gap-4">
             {[
-              "Founding pricing locked in before public launch",
-              "Deposit fully credited to your first Protocol Subscription payment — never an extra charge",
+              "$249/month locked in for your first 6 months (then $499/month)",
+              "Deposit fully credited toward your subscription — never an extra charge",
               "Fully refundable per the Founding Subscriber Program terms",
               "Complete your wellness intake and get matched as soon as you're ready",
             ].map((item) => (
@@ -138,6 +142,9 @@ function ReserveForm() {
             Founding Subscription Deposit
           </p>
           <p className="mt-1 font-serif text-3xl text-navy">$249</p>
+          <p className="mt-1 text-sm text-navy/50">
+            Then $249/mo for 6 months, $499/mo standard rate after
+          </p>
 
           {checkoutStatus === "cancelled" && (
             <p className="mt-4 rounded-lg bg-copper/10 px-4 py-3 text-sm text-navy">
@@ -200,10 +207,11 @@ function ReserveForm() {
                 : "Reserve Your Founding Subscription — $249"}
             </button>
             <p className="text-xs text-navy/40">
-              Your $249 deposit is applied as your first Protocol
-              Subscription payment when Supplement :: LIFE goes live. Fully
-              refundable per the Founding Subscriber Program terms. Secure
-              checkout via Stripe.
+              Your $249 deposit is credited toward your Protocol
+              Subscription when Supplement :: LIFE goes live — $249/month
+              for your first six months, then $499/month. Fully refundable
+              per the Founding Subscriber Program terms. Secure checkout
+              via Stripe.
             </p>
           </form>
         </div>
