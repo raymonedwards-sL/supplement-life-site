@@ -17,6 +17,7 @@ import { findTrack } from "@/lib/tracks";
  */
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
+const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
 
 const NAVY = rgb(0x1b / 255, 0x2a / 255, 0x4a / 255);
 const COPPER = rgb(0xb5 / 255, 0x73 / 255, 0x2b / 255);
@@ -116,8 +117,9 @@ export async function GET() {
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
   if (tracks.length > 0) {
-    for (const track of tracks) {
-      drawText(pdfDoc, cursor, track.name, bold, 13, COPPER);
+    tracks.forEach((track, i) => {
+      const label = TRACK_ROLE_LABELS[i] ?? "Additional";
+      drawText(pdfDoc, cursor, `${label.toUpperCase()} — ${track.name}`, bold, 13, COPPER);
       cursor.y -= 16;
       drawParagraph(pdfDoc, cursor, track.consumerNeed, italic, 10, MUTED);
       cursor.y -= 4;
@@ -131,7 +133,7 @@ export async function GET() {
       );
       drawParagraph(pdfDoc, cursor, `Format: ${track.format}`, font, 10, INK);
       cursor.y -= 10;
-    }
+    });
 
     if (trackAssignment?.rationale) {
       drawText(pdfDoc, cursor, "Why this fits you", bold, 11, NAVY);

@@ -65,7 +65,16 @@ Draw on this whenever it's relevant to what the person describes — it tells yo
 ${HERO_INGREDIENT_REFERENCE}
 
 ## Finishing up (completion field)
-Once you've covered all four categories and have enough to make a real recommendation, set the completion field instead of asking another question (leave reply as a brief closing line like "Here's what I'd recommend"). Choose one track, or two if a combination genuinely fits better (e.g. a sleep-and-stress track plus an energy track) — don't default to multiple tracks just to hedge. In the rationale, tie specific ingredients to what the person actually described, and respect every caution listed for the track(s) you choose. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), not clinical language. Leave completion null on every other turn. Don't rush to a recommendation in the first few exchanges — you must have asked about all four categories first.`;
+Once you've covered all four categories and have enough to make a real recommendation, set the completion field instead of asking another question (leave reply as a brief closing line like "Here's what I'd recommend"). Leave completion null on every other turn. Don't rush to a recommendation in the first few exchanges — you must have asked about all four categories first.
+
+Always recommend 2-3 Botanical Tracks together, never just one — this is their initial protocol for the first 30-60-90 days, not a single-SKU match. List recommended_track_ids in priority order:
+1. **Primary** (required, first in the array) — the track that most directly addresses the specific concerns and goals this person described. This is the one your rationale should center on.
+2. **Secondary** (required, second in the array) — a track that rounds out their protocol.
+3. **Tertiary** (optional, third in the array) — include only if a third track genuinely earns its place; don't add one just to hit three.
+
+As a standard weighting, Daily Restore, Reset, and Vitality are foundational, broadly-applicable tracks that fit nearly all new subscribers well as secondary/tertiary picks (general energy, resilience, and gentle regularity support) — lean on them as your default secondary/tertiary choices. But make a real judgment call, not a mechanical default: if what the person described points more specifically to a different track as the better secondary or tertiary fit (e.g. they described both sleep trouble and seasonal illness concerns, so PM Calm plus Immunity is a better secondary/tertiary pairing than the default), recommend that instead. Never include a track that conflicts with a caution they've triggered, and never pad the list with a track that has no real connection to what they shared.
+
+In the rationale, explain why the primary track fits first and most specifically, then briefly cover why the secondary (and tertiary, if present) round out the protocol — tie specific ingredients to what the person actually described, and respect every caution listed for every track you choose. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), and should draw from across all recommended tracks (roughly 4-6 highlights total), not clinical language.`;
 }
 
 export const INTAKE_TURN_TOOL: Anthropic.Tool = {
@@ -118,12 +127,15 @@ export const INTAKE_TURN_TOOL: Anthropic.Tool = {
           recommended_track_ids: {
             type: "array",
             items: { type: "string" },
-            description: "One or two track ids from the catalog, e.g. 'pm-calm'.",
+            minItems: 2,
+            maxItems: 3,
+            description:
+              "2 to 3 track ids from the catalog, e.g. ['mens-rhythm', 'vitality', 'reset'] — always in priority order: primary first (the track most specific to what they described), then secondary, then optional tertiary. Never a single track.",
           },
           rationale: {
             type: "string",
             description:
-              "A short paragraph tying specific ingredients to what the person described. Respect every caution for the chosen track(s).",
+              "A paragraph explaining the primary track first (why it's the specific match), then the secondary and any tertiary track (why they round out the protocol). Respect every caution for every chosen track.",
           },
           ingredient_highlights: {
             type: "array",
@@ -135,7 +147,8 @@ export const INTAKE_TURN_TOOL: Anthropic.Tool = {
               },
               required: ["ingredient", "role"],
             },
-            description: "3-5 ingredients from the recommended track(s), each with a labeled role.",
+            description:
+              "4-6 ingredients drawn from across all recommended tracks (not just the primary), each with a labeled role.",
           },
         },
         required: ["summary", "recommended_track_ids", "rationale", "ingredient_highlights"],

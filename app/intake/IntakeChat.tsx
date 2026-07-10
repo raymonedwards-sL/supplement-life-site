@@ -159,6 +159,8 @@ export default function IntakeChat() {
   );
 }
 
+const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
+
 function SummaryCard({ summary }: { summary: Completion }) {
   const tracks = summary.recommended_track_ids
     .map((id) => findTrack(id))
@@ -174,9 +176,19 @@ function SummaryCard({ summary }: { summary: Completion }) {
       {tracks.length > 0 && (
         <div className="mt-6 rounded-xl bg-navy/5 p-4">
           <p className="text-sm font-semibold text-navy">
-            Recommended: {tracks.map((t) => t.name).join(" + ")}
+            Your Initial Protocol
           </p>
-          <p className="mt-2 text-sm leading-relaxed text-navy/70">
+          <div className="mt-3 flex flex-col gap-2">
+            {tracks.map((t, i) => (
+              <div key={t.id} className="flex items-baseline gap-2">
+                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-copper/70">
+                  {TRACK_ROLE_LABELS[i] ?? "Additional"}
+                </span>
+                <span className="text-sm font-semibold text-navy">{t.name}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-navy/70">
             {summary.rationale}
           </p>
         </div>
