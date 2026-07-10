@@ -86,7 +86,7 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-navy/10">
         <div
           aria-hidden
-          className="pointer-events-none absolute right-0 top-0 hidden h-[620px] w-[620px] sm:block lg:h-[720px] lg:w-[720px]"
+          className="pointer-events-none absolute right-0 top-0 h-[280px] w-[280px] sm:h-[620px] sm:w-[620px] lg:h-[720px] lg:w-[720px]"
           style={{
             maskImage:
               "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
@@ -100,7 +100,7 @@ export default function Home() {
             fill
             priority
             className="object-cover opacity-70"
-            sizes="(min-width: 1024px) 720px, 620px"
+            sizes="(min-width: 1024px) 720px, (min-width: 640px) 620px, 280px"
           />
         </div>
 
@@ -282,7 +282,7 @@ export default function Home() {
       <section className="relative overflow-hidden py-24">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[460px] sm:block lg:w-[640px]"
+          className="pointer-events-none absolute inset-y-0 right-0 w-[200px] sm:w-[460px] lg:w-[640px]"
           style={{
             maskImage: "linear-gradient(to left, black 45%, transparent 92%)",
             WebkitMaskImage:
@@ -294,7 +294,7 @@ export default function Home() {
             alt=""
             fill
             className="object-cover opacity-60"
-            sizes="(min-width: 1024px) 640px, 460px"
+            sizes="(min-width: 1024px) 640px, (min-width: 640px) 460px, 200px"
           />
         </div>
 
