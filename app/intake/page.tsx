@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import IntakeChat from "./IntakeChat";
 import LoginPrompt from "@/components/LoginPrompt";
@@ -42,6 +43,34 @@ export default async function Intake() {
           recommendation. For any medical concern, please consult a
           healthcare provider.
         </p>
+
+        <div className="mt-3 flex items-start gap-3 rounded-lg border border-navy/10 bg-white/50 px-4 py-3 text-xs leading-relaxed text-navy/60">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 h-4 w-4 shrink-0 text-copper"
+            aria-hidden
+          >
+            <rect x="4" y="10" width="16" height="10" rx="2" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+          </svg>
+          <p>
+            Your answers stay confidential. We never sell your information
+            or share it for advertising — what you tell Sage is used only
+            to build your personal wellness profile and Botanical Track
+            recommendation, and is protected with the same security
+            safeguards as your account and payment information. See our{" "}
+            <Link href="/privacy" className="font-semibold text-copper underline underline-offset-2">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
 
         <div className="mt-8">
           {!user ? (

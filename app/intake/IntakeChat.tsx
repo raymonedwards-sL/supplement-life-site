@@ -18,7 +18,7 @@ export default function IntakeChat() {
   const [loading, setLoading] = useState(true); // true on mount to fetch the opener
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<Completion | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
   useEffect(() => {
@@ -28,8 +28,15 @@ export default function IntakeChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Scroll only the chat's own message list, not the page — a plain
+  // scrollIntoView() on a sentinel element also drags the outer window
+  // scroll position along with it, which is what was pushing the whole
+  // page down to the footer on every reply. Setting scrollTop directly on
+  // the scrollable container itself never touches the page's own scroll.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
 
   async function send(nextMessages: ChatMessage[]) {
@@ -77,17 +84,39 @@ export default function IntakeChat() {
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white/50">
-      <div className="flex items-center gap-3 border-b border-navy/10 bg-navy/5 px-6 py-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-copper/15 text-sm font-semibold text-copper">
-          S
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-navy">Sage</p>
-          <p className="text-xs text-navy/50">Your LIFE Guide</p>
+      <div className="flex items-center justify-between gap-3 border-b border-navy/10 bg-navy/5 px-6 py-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-copper/15 text-sm font-semibold text-copper">
+            S
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-navy">Sage</p>
+            <p className="text-xs text-navy/50">Your LIFE Guide</p>
+          </div>
+        </div>
+        <div className="hidden items-center gap-1.5 text-xs text-navy/40 sm:flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-3.5 w-3.5"
+            aria-hidden
+          >
+            <rect x="4" y="10" width="16" height="10" rx="2" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+          </svg>
+          Confidential &amp; secure
         </div>
       </div>
 
-      <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto p-6">
+      <div
+        ref={scrollContainerRef}
+        className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto p-6"
+      >
         {messages.map((m, i) => (
           <div key={i} className={m.role === "user" ? "ml-auto max-w-[85%]" : "mr-auto max-w-[85%]"}>
             {m.role === "assistant" && (
@@ -105,7 +134,6 @@ export default function IntakeChat() {
           </div>
         ))}
         {loading && <ThinkingIndicator />}
-        <div ref={bottomRef} />
       </div>
 
       {error && <p className="px-6 text-sm text-red-600">{error}</p>}
