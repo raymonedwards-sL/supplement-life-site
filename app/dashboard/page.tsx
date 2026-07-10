@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import LoginPrompt from "@/components/LoginPrompt";
 import AccessRevoked from "@/components/AccessRevoked";
@@ -95,16 +96,23 @@ export default async function Dashboard() {
   };
 
   return (
-    <section className="py-16">
+    <section className="bg-gradient-to-b from-copper/[0.06] via-transparent to-transparent py-16">
       <Container className="max-w-3xl">
-        <Eyebrow>Dashboard</Eyebrow>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-          Welcome back
-        </h1>
-        <p className="mt-2 text-navy/70">{user.email}</p>
+        <div className="flex items-center justify-between gap-4 border-b border-copper/20 pb-6">
+          <div>
+            <Eyebrow>Protocol Dashboard</Eyebrow>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-navy/70">{user.email}</p>
+          </div>
+          <span className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-full border border-copper/30 bg-copper/10 text-lg font-semibold text-copper sm:flex">
+            S∷L
+          </span>
+        </div>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="rounded-2xl border border-navy/10 bg-white/40 p-6 sm:col-span-2">
+          <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
             <p className="text-sm font-medium text-navy/50">
               Your Wellness Profile
             </p>
@@ -142,22 +150,36 @@ export default async function Dashboard() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-navy/10 bg-white/40 p-6">
+          <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
             <p className="text-sm font-medium text-navy/50">Your Botanical Tracks</p>
             {tracks.length > 0 ? (
               <>
-                <div className="mt-2 flex flex-col gap-1">
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {tracks.map((t, i) => (
-                    <p key={t.id} className="text-lg font-semibold text-copper">
-                      <span className="mr-2 text-[11px] font-semibold uppercase tracking-wide text-copper/60">
+                    <div
+                      key={t.id}
+                      className="flex flex-col items-center rounded-xl border border-navy/10 bg-white/70 p-3 text-center"
+                    >
+                      <div className="relative h-36 w-20 overflow-hidden rounded-sm shadow-sm">
+                        <Image
+                          src={t.image}
+                          alt={`${t.name} packaging`}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-copper/70">
                         {TRACK_ROLE_LABELS[i] ?? "Additional"}
                       </span>
-                      {t.name}
-                    </p>
+                      <span className="mt-0.5 text-sm font-semibold text-navy">
+                        {t.name}
+                      </span>
+                    </div>
                   ))}
                 </div>
                 {trackAssignment?.rationale && (
-                  <p className="mt-2 text-sm leading-relaxed text-navy/60">
+                  <p className="mt-5 text-sm leading-relaxed text-navy/60">
                     {trackAssignment.rationale}
                   </p>
                 )}
@@ -167,7 +189,7 @@ export default async function Dashboard() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-navy/10 bg-white/40 p-6">
+          <div className="rounded-2xl border border-navy/10 bg-white/40 p-6 sm:col-span-2">
             <p className="text-sm font-medium text-navy/50">
               {subscription?.status === "active"
                 ? "Next Billing Date"

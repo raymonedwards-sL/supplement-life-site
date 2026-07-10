@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { findTrack } from "@/lib/tracks";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -178,17 +179,29 @@ function SummaryCard({ summary }: { summary: Completion }) {
           <p className="text-sm font-semibold text-navy">
             Your Initial Protocol
           </p>
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {tracks.map((t, i) => (
-              <div key={t.id} className="flex items-baseline gap-2">
-                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-copper/70">
+              <div
+                key={t.id}
+                className="flex flex-col items-center rounded-lg border border-navy/10 bg-white/60 p-3 text-center"
+              >
+                <div className="relative h-32 w-16 overflow-hidden rounded-sm">
+                  <Image
+                    src={t.image}
+                    alt={`${t.name} packaging`}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
+                <span className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-copper/70">
                   {TRACK_ROLE_LABELS[i] ?? "Additional"}
                 </span>
-                <span className="text-sm font-semibold text-navy">{t.name}</span>
+                <span className="mt-0.5 text-sm font-semibold text-navy">{t.name}</span>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-navy/70">
+          <p className="mt-4 text-sm leading-relaxed text-navy/70">
             {summary.rationale}
           </p>
         </div>

@@ -17,6 +17,8 @@ export type Track = {
   positioning: string;
   /** Compliance-sensitive framing notes — the model must respect these. */
   cautions: string[];
+  /** Product packaging photo, cropped from public/products/full-collection.jpg. Path relative to /public. */
+  image: string;
 };
 
 export const TRACKS: Track[] = [
@@ -30,6 +32,7 @@ export const TRACKS: Track[] = [
     cautions: [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
     ],
+    image: "/products/tracks/daily-restore.jpg",
   },
   {
     id: "pm-calm",
@@ -49,6 +52,7 @@ export const TRACKS: Track[] = [
     cautions: [
       "Ashwagandha: frame as stress/hormone-support only — never claim testosterone effects.",
     ],
+    image: "/products/tracks/pm-calm.jpg",
   },
   {
     id: "reset",
@@ -61,6 +65,7 @@ export const TRACKS: Track[] = [
       "Occasional-use only — never frame as a daily-use product.",
       "Keep laxative-effect language conservative; caution for sensitive users.",
     ],
+    image: "/products/tracks/reset.jpg",
   },
   {
     id: "vitality",
@@ -73,6 +78,7 @@ export const TRACKS: Track[] = [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
       "Damiana: avoid fertility guarantees or performance claims.",
     ],
+    image: "/products/tracks/vitality.jpg",
   },
   {
     id: "immunity",
@@ -93,6 +99,7 @@ export const TRACKS: Track[] = [
     cautions: [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
     ],
+    image: "/products/tracks/immunity.jpg",
   },
   {
     id: "morning-clarity",
@@ -104,6 +111,7 @@ export const TRACKS: Track[] = [
     cautions: [
       "Kudzu: never frame as alcohol-dependence treatment or a hangover cure.",
     ],
+    image: "/products/tracks/morning-clarity.jpg",
   },
   {
     id: "womens-rhythm",
@@ -125,6 +133,7 @@ export const TRACKS: Track[] = [
       "Do not recommend to anyone mentioning hormonal contraceptives or fertility treatment — flag for a healthcare provider conversation instead.",
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
     ],
+    image: "/products/tracks/womens-rhythm.jpg",
   },
   {
     id: "mens-rhythm",
@@ -144,6 +153,7 @@ export const TRACKS: Track[] = [
       "Longjack: avoid direct testosterone claims — frame as vitality/stamina support only.",
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
     ],
+    image: "/products/tracks/mens-rhythm.jpg",
   },
   {
     id: "cognitive-focus",
@@ -164,6 +174,7 @@ export const TRACKS: Track[] = [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
       "Never use 'neurogenesis' or similar terms as a clinical/medical claim — keep to plain-language 'supports brain energy and focus.'",
     ],
+    image: "/products/tracks/cognitive-focus.jpg",
   },
 ];
 

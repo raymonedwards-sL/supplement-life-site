@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFile } from "fs/promises";
+import path from "path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { createClient } from "@/lib/supabase/server";
 import { findTrack } from "@/lib/tracks";
@@ -21,7 +23,6 @@ const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
 
 const NAVY = rgb(0x1b / 255, 0x2a / 255, 0x4a / 255);
 const COPPER = rgb(0xb5 / 255, 0x73 / 255, 0x2b / 255);
-const CREAM = rgb(0xf5 / 255, 0xef / 255, 0xe6 / 255);
 const INK = rgb(0.15, 0.15, 0.17);
 const MUTED = rgb(0.42, 0.42, 0.46);
 
@@ -81,9 +82,9 @@ export async function GET() {
   const italic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
   const firstPage = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  drawBrandHeader(firstPage, bold, font, user.email ?? "");
+  const headerBottomY = await drawBrandHeader(pdfDoc, firstPage, bold, font, user.email ?? "");
 
-  const cursor: Cursor = { page: firstPage, y: PAGE_HEIGHT - 150, pageNumber: 1 };
+  const cursor: Cursor = { page: firstPage, y: headerBottomY - 20, pageNumber: 1 };
 
   const generatedOn = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -184,38 +185,65 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function drawBrandHeader(page: PDFPage, bold: PDFFont, font: PDFFont, email: string) {
-  page.drawRectangle({
-    x: 0,
-    y: PAGE_HEIGHT - 110,
-    width: PAGE_WIDTH,
-    height: 110,
-    color: NAVY,
-  });
-  page.drawText("SUPPLEMENT :: LIFE", {
+const LOGO_WIDTH = 170;
+
+/**
+ * Draws the real brand lockup (public/branding/logo-light.png) at the top
+ * of the report, followed by a copper rule and a "Your Wellness Insights"
+ * eyebrow line with the subscriber's email. Returns the y-coordinate right
+ * below the header, so the caller knows where body content can start.
+ */
+async function drawBrandHeader(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  bold: PDFFont,
+  font: PDFFont,
+  email: string
+): Promise<number> {
+  const logoBytes = await readFile(
+    path.join(process.cwd(), "public", "branding", "logo-light.png")
+  );
+  const logoImage = await pdfDoc.embedPng(logoBytes);
+  const logoDims = logoImage.scale(LOGO_WIDTH / logoImage.width);
+  const logoY = PAGE_HEIGHT - 44 - logoDims.height;
+
+  page.drawImage(logoImage, {
     x: MARGIN_X,
-    y: PAGE_HEIGHT - 55,
-    size: 20,
-    font: bold,
-    color: CREAM,
+    y: logoY,
+    width: logoDims.width,
+    height: logoDims.height,
   });
-  page.drawText("Your Wellness Insights", {
-    x: MARGIN_X,
-    y: PAGE_HEIGHT - 76,
-    size: 12,
-    font,
+
+  const ruleY = logoY - 16;
+  page.drawLine({
+    start: { x: MARGIN_X, y: ruleY },
+    end: { x: PAGE_WIDTH - MARGIN_X, y: ruleY },
+    thickness: 1.25,
     color: COPPER,
   });
+
+  const labelY = ruleY - 20;
+  page.drawText("YOUR WELLNESS INSIGHTS", {
+    x: MARGIN_X,
+    y: labelY,
+    size: 11,
+    font: bold,
+    color: COPPER,
+  });
+
   if (email) {
+    const emailSize = 9;
+    const emailWidth = font.widthOfTextAtSize(email, emailSize);
     page.drawText(email, {
-      x: MARGIN_X,
-      y: PAGE_HEIGHT - 95,
-      size: 9,
+      x: PAGE_WIDTH - MARGIN_X - emailWidth,
+      y: labelY + 1,
+      size: emailSize,
       font,
-      color: CREAM,
-      opacity: 0.7,
+      color: MUTED,
     });
   }
+
+  return labelY;
 }
 
 /** Wraps `text` to fit within the page's content width, drawing line by line and advancing the cursor. Adds a new page when it runs out of vertical room. */
