@@ -12,7 +12,7 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 type Completion = {
   summary: string;
   recommended_track_ids: string[];
-  rationale: string;
+  rationale: { track_id: string; reason: string }[];
   ingredient_highlights: { ingredient: string; role: string }[];
 };
 
@@ -172,6 +172,8 @@ function SummaryCard({ summary }: { summary: Completion }) {
 
   const allIngredients = getIngredientEducationList(tracks.flatMap((t) => t.ingredients));
   const atmosphere = getTrackAtmosphere(tracks[0]?.id);
+  const reasonFor = (trackId: string) =>
+    summary.rationale.find((r) => r.track_id === trackId)?.reason;
 
   return (
     <div className="rounded-2xl border border-copper/30 bg-white/70 p-6 sm:p-10">
@@ -191,7 +193,7 @@ function SummaryCard({ summary }: { summary: Completion }) {
             {tracks.map((t, i) => (
               <div
                 key={t.id}
-                className="flex flex-col items-center rounded-lg border border-navy/10 bg-white/60 p-3 text-center"
+                className="flex flex-col items-center rounded-lg border border-navy/10 bg-white/60 p-4 text-center"
               >
                 <div className="relative h-32 w-16 overflow-hidden rounded-sm">
                   <Image
@@ -206,12 +208,14 @@ function SummaryCard({ summary }: { summary: Completion }) {
                   {TRACK_ROLE_LABELS[i] ?? "Additional"}
                 </span>
                 <span className="mt-0.5 text-base font-bold text-navy">{t.name}</span>
+                {reasonFor(t.id) && (
+                  <p className="mt-3 border-t border-navy/10 pt-3 text-left text-sm leading-relaxed text-navy/75">
+                    {reasonFor(t.id)}
+                  </p>
+                )}
               </div>
             ))}
           </div>
-          <p className="mt-5 text-base font-medium leading-relaxed text-navy/80">
-            {summary.rationale}
-          </p>
         </div>
       )}
 

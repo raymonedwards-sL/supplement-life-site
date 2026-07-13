@@ -4,6 +4,7 @@ import path from "path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { createClient } from "@/lib/supabase/server";
 import { findTrack } from "@/lib/tracks";
+import { parseRationale } from "@/lib/rationale";
 
 /**
  * Generates a branded "Wellness Insights" PDF snapshot of the subscriber's
@@ -118,6 +119,9 @@ export async function GET() {
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
   if (tracks.length > 0) {
+    const rationaleEntries = parseRationale(trackAssignment?.rationale);
+    const legacyRationale = rationaleEntries.find((r) => !r.track_id)?.reason;
+
     tracks.forEach((track, i) => {
       const label = TRACK_ROLE_LABELS[i] ?? "Additional";
       drawText(pdfDoc, cursor, `${label.toUpperCase()} — ${track.name}`, bold, 13, COPPER);
@@ -133,13 +137,23 @@ export async function GET() {
         INK
       );
       drawParagraph(pdfDoc, cursor, `Format: ${track.format}`, font, 10, INK);
+
+      const reason = rationaleEntries.find((r) => r.track_id === track.id)?.reason;
+      if (reason) {
+        cursor.y -= 6;
+        drawText(pdfDoc, cursor, "Why this fits you", bold, 10, NAVY);
+        cursor.y -= 14;
+        drawParagraph(pdfDoc, cursor, reason, font, 10, INK);
+      }
       cursor.y -= 10;
     });
 
-    if (trackAssignment?.rationale) {
+    // Legacy rows (pre 2026-07-13) stored one shared paragraph with no
+    // track_id — still show it rather than silently dropping it.
+    if (legacyRationale) {
       drawText(pdfDoc, cursor, "Why this fits you", bold, 11, NAVY);
       cursor.y -= 16;
-      drawParagraph(pdfDoc, cursor, trackAssignment.rationale, font, 11, INK);
+      drawParagraph(pdfDoc, cursor, legacyRationale, font, 11, INK);
     }
   } else {
     drawParagraph(

@@ -29,7 +29,7 @@ type TurnInput = {
   completion: {
     summary: string;
     recommended_track_ids: string[];
-    rationale: string;
+    rationale: { track_id: string; reason: string }[];
     ingredient_highlights: { ingredient: string; role: string }[];
   } | null;
 };
@@ -193,7 +193,10 @@ export async function POST(request: NextRequest) {
       const { error: trackError } = await supabase.from("track_assignments").insert({
         user_id: user.id,
         tracks: completion.recommended_track_ids,
-        rationale: completion.rationale,
+        // rationale is a plain `text` column — JSON-encode the per-track
+        // array into it rather than migrating the column type. See
+        // lib/rationale.ts for the corresponding parser used on read.
+        rationale: JSON.stringify(completion.rationale),
       });
       if (trackError) console.error("Failed to save track assignment:", trackError);
 

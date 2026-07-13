@@ -13,6 +13,16 @@
  * Vitality/Men's Rhythm, not Daily Restore — removed. Added Yellow Dock,
  * Ginger, Fennel to Daily Restore; Fennel, Ginger to Reset; Ginger to
  * Vitality; Burdock, Raspberry Leaf, Fennel to Women's Rhythm.
+ *
+ * 2026-07-13: `image` is intentionally mixed-source right now. Daily
+ * Restore/Vitality/Immunity point to public/products/tracks-v2/ (cropped
+ * from a newer AI-generated packaging render, SKU-collection-1.jpg — only
+ * these 3 had correctly legible box-front track-name text on close
+ * inspection; the other 6 boxes in that same source image had garbled or
+ * duplicated text and were not usable). The remaining 6 tracks still use
+ * the original public/products/tracks/ crop from full-collection.jpg
+ * (2026-07-10). If a full matching set is ever generated for all 9, swap
+ * all `image` values together rather than leaving it a permanent mix.
  */
 
 export type Track = {
@@ -41,7 +51,7 @@ export const TRACKS: Track[] = [
       "Ginger: mild anticoagulant adjacency — avoid drug-interaction claims proactively, but acknowledge if blood-thinning medication is disclosed.",
       "Yellow dock: keep laxative-effect language conservative for sensitive users; don't overstate its iron contribution — Callaloo is this track's dedicated iron ingredient.",
     ],
-    image: "/products/tracks/daily-restore.jpg",
+    image: "/products/tracks-v2/daily-restore.jpg",
   },
   {
     id: "pm-calm",
@@ -90,7 +100,7 @@ export const TRACKS: Track[] = [
       "Damiana: avoid fertility guarantees or performance claims.",
       "Ginger: mild anticoagulant adjacency — frame as circulation/warmth support, not a stimulant; acknowledge if blood-thinning medication is disclosed.",
     ],
-    image: "/products/tracks/vitality.jpg",
+    image: "/products/tracks-v2/vitality.jpg",
   },
   {
     id: "immunity",
@@ -111,7 +121,7 @@ export const TRACKS: Track[] = [
     cautions: [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
     ],
-    image: "/products/tracks/immunity.jpg",
+    image: "/products/tracks-v2/immunity.jpg",
   },
   {
     id: "morning-clarity",

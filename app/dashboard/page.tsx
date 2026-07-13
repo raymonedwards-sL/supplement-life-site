@@ -10,6 +10,7 @@ import { Container, Eyebrow } from "@/components/ui/Container";
 import { getIngredientEducationList } from "@/lib/ingredient-education";
 import { IngredientCard } from "@/components/ingredients/IngredientCard";
 import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
+import { parseRationale } from "@/lib/rationale";
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
@@ -84,6 +85,13 @@ export default async function Dashboard() {
     .filter((t: ReturnType<typeof findTrack>): t is NonNullable<typeof t> => Boolean(t));
   const ingredients = getIngredientEducationList(tracks.flatMap((t) => t.ingredients));
   const atmosphere = getTrackAtmosphere(tracks[0]?.id);
+  const rationaleEntries = parseRationale(trackAssignment?.rationale);
+  const reasonFor = (trackId: string) =>
+    rationaleEntries.find((r) => r.track_id === trackId)?.reason;
+  // Legacy rows (pre 2026-07-13) stored one shared paragraph with no
+  // track_id — surface that as a general note instead of silently
+  // dropping it, since it's still real content for existing subscribers.
+  const legacyRationale = rationaleEntries.find((r) => !r.track_id)?.reason;
 
   const conversionDate = subscription?.conversion_date
     ? new Date(subscription.conversion_date).toLocaleDateString("en-US", {
@@ -159,11 +167,11 @@ export default async function Dashboard() {
             <p className="text-sm font-medium text-navy/50">Your Botanical Tracks</p>
             {tracks.length > 0 ? (
               <>
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   {tracks.map((t, i) => (
                     <div
                       key={t.id}
-                      className="flex flex-col items-center rounded-xl border border-navy/10 bg-white/70 p-3 text-center"
+                      className="flex flex-col items-center rounded-xl border border-navy/10 bg-white/70 p-4 text-center"
                     >
                       <div className="relative h-36 w-20 overflow-hidden rounded-sm shadow-sm">
                         <Image
@@ -177,15 +185,20 @@ export default async function Dashboard() {
                       <span className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-copper/70">
                         {TRACK_ROLE_LABELS[i] ?? "Additional"}
                       </span>
-                      <span className="mt-0.5 text-sm font-semibold text-navy">
+                      <span className="mt-0.5 text-base font-bold text-navy">
                         {t.name}
                       </span>
+                      {reasonFor(t.id) && (
+                        <p className="mt-3 border-t border-navy/10 pt-3 text-left text-sm leading-relaxed text-navy/75">
+                          {reasonFor(t.id)}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
-                {trackAssignment?.rationale && (
-                  <p className="mt-5 text-sm leading-relaxed text-navy/60">
-                    {trackAssignment.rationale}
+                {legacyRationale && (
+                  <p className="mt-5 text-base font-medium leading-relaxed text-navy/80">
+                    {legacyRationale}
                   </p>
                 )}
               </>

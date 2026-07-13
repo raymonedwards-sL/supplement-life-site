@@ -116,7 +116,7 @@ Always recommend 2-3 Botanical Tracks together, never just one — this is their
 
 As a standard weighting, Daily Restore, Reset, and Vitality are foundational, broadly-applicable tracks that fit nearly all new subscribers well as secondary/tertiary picks (general energy, resilience, and gentle regularity support) — lean on them as your default secondary/tertiary choices. But make a real judgment call, not a mechanical default: if what the person described points more specifically to a different track as the better secondary or tertiary fit (e.g. they described both sleep trouble and seasonal illness concerns, so PM Calm plus Immunity is a better secondary/tertiary pairing than the default), recommend that instead. Never include a track that conflicts with a caution they've triggered, and never pad the list with a track that has no real connection to what they shared.
 
-In the rationale, explain why the primary track fits first and most specifically, then briefly cover why the secondary (and tertiary, if present) round out the protocol — tie specific ingredients to what the person actually described, and respect every caution listed for every track you choose. Write the rationale at whatever tier applies per the Depth Ladder above: Tier 1 stays to a sentence or two per track with minimal mechanism; Tier 2 connects 2-3 systems in plain language; Tier 3 offers the fuller systems narrative, framed with the same non-diagnostic discipline required throughout. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), and should draw from across all recommended tracks (roughly 4-6 highlights total), not clinical language.
+Set rationale as one entry PER recommended track, in the same order as recommended_track_ids (so the first entry is the primary track's own reasoning, not a shared paragraph covering all tracks at once) — the UI displays each entry directly under that track's own card, so each entry's reason text must stand alone and make sense without the others. Each entry's reason should tie specific ingredients to what the person actually described for that one track, and respect every caution listed for it. Write at whatever tier applies per the Depth Ladder above: Tier 1 stays to a sentence or two per track with minimal mechanism; Tier 2 connects 2-3 systems in plain language; Tier 3 offers a fuller systems narrative for that track, framed with the same non-diagnostic discipline required throughout — but even at Tier 3, keep each track's own reason focused on that track rather than re-explaining the whole protocol in every entry. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), and should draw from across all recommended tracks (roughly 4-6 highlights total), not clinical language.
 
 ## Compliance & Claims Guardrail — NON-NEGOTIABLE, OVERRIDES EVERYTHING ABOVE
 Everything above this line is reasoning guidance. This section is different: if anything above ever conflicts with what follows, this section wins, every time, with no exceptions. This is not a formality — there is no ML safety net catching a bad output downstream of this conversation, so this block carries more real-world weight than any other content in this prompt.
@@ -218,9 +218,21 @@ export const INTAKE_TURN_TOOL: Anthropic.Tool = {
               "2 to 3 track ids from the catalog, e.g. ['mens-rhythm', 'vitality', 'reset'] — always in priority order: primary first (the track most specific to what they described), then secondary, then optional tertiary. Never a single track.",
           },
           rationale: {
-            type: "string",
+            type: "array",
             description:
-              "A paragraph explaining the primary track first (why it's the specific match), then the secondary and any tertiary track (why they round out the protocol). Respect every caution for every chosen track.",
+              "One entry per recommended track, same order as recommended_track_ids — NOT one shared paragraph. Each entry is displayed directly under that track's own card in the UI, so its `reason` must stand alone.",
+            items: {
+              type: "object",
+              properties: {
+                track_id: { type: "string", description: "Must match one of the ids in recommended_track_ids." },
+                reason: {
+                  type: "string",
+                  description:
+                    "2-4 sentences on why THIS track fits, tied to specific ingredients and what the person described for it. Respect every caution for this track.",
+                },
+              },
+              required: ["track_id", "reason"],
+            },
           },
           ingredient_highlights: {
             type: "array",
