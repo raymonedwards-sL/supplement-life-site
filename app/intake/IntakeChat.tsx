@@ -195,12 +195,12 @@ function SummaryCard({ summary }: { summary: Completion }) {
                 key={t.id}
                 className="flex flex-col items-center rounded-lg border border-navy/10 bg-white/60 p-4 text-center"
               >
-                <div className="relative h-32 w-16 overflow-hidden rounded-sm">
+                <div className="relative h-56 w-32 overflow-hidden rounded-md shadow-sm">
                   <Image
                     src={t.image}
                     alt={`${t.name} packaging`}
                     fill
-                    sizes="64px"
+                    sizes="128px"
                     className="object-cover"
                   />
                 </div>

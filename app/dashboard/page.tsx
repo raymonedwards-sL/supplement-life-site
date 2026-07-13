@@ -173,12 +173,12 @@ export default async function Dashboard() {
                       key={t.id}
                       className="flex flex-col items-center rounded-xl border border-navy/10 bg-white/70 p-4 text-center"
                     >
-                      <div className="relative h-36 w-20 overflow-hidden rounded-sm shadow-sm">
+                      <div className="relative h-56 w-32 overflow-hidden rounded-md shadow-sm">
                         <Image
                           src={t.image}
                           alt={`${t.name} packaging`}
                           fill
-                          sizes="80px"
+                          sizes="128px"
                           className="object-cover"
                         />
                       </div>
