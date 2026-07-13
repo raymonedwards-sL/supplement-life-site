@@ -7,6 +7,9 @@ import AccountSettings from "./AccountSettings";
 import BillingPortalButton from "./BillingPortalButton";
 import { findTrack } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
+import { getIngredientEducationList } from "@/lib/ingredient-education";
+import { IngredientCard } from "@/components/ingredients/IngredientCard";
+import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
@@ -79,6 +82,8 @@ export default async function Dashboard() {
   const tracks = trackIds
     .map((id: string) => findTrack(id))
     .filter((t: ReturnType<typeof findTrack>): t is NonNullable<typeof t> => Boolean(t));
+  const ingredients = getIngredientEducationList(tracks.flatMap((t) => t.ingredients));
+  const atmosphere = getTrackAtmosphere(tracks[0]?.id);
 
   const conversionDate = subscription?.conversion_date
     ? new Date(subscription.conversion_date).toLocaleDateString("en-US", {
@@ -118,7 +123,7 @@ export default async function Dashboard() {
             </p>
             {profile?.current_summary ? (
               <>
-                <p className="mt-3 leading-relaxed text-navy/80">
+                <p className="mt-3 border-l-4 border-copper/30 pl-5 text-lg font-medium leading-relaxed text-navy">
                   {profile.current_summary}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
@@ -188,6 +193,29 @@ export default async function Dashboard() {
               <p className="mt-2 text-navy/60">Not assigned yet.</p>
             )}
           </div>
+
+          {ingredients.length > 0 && (
+            <div className="relative overflow-hidden rounded-2xl border border-navy/10 border-t-2 border-t-copper sm:col-span-2">
+              {atmosphere && (
+                <>
+                  <Image src={atmosphere} alt="" fill sizes="100vw" className="object-cover" aria-hidden />
+                  <div className="absolute inset-0 bg-white/90" />
+                </>
+              )}
+              <div className="relative p-6">
+                <p className="text-sm font-medium text-navy/50">Your Botanical Compounds</p>
+                <p className="mt-1 text-sm text-navy/60">
+                  Every ingredient across your current protocol — what it is, why
+                  it&apos;s formulated in, and where to read more.
+                </p>
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {ingredients.map((ing) => (
+                    <IngredientCard key={ing.name} ingredient={ing} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-navy/10 bg-white/40 p-6 sm:col-span-2">
             <p className="text-sm font-medium text-navy/50">

@@ -2,10 +2,17 @@
  * Supplement :: LIFE product catalog — source of truth for the intake
  * recommendation engine (app/api/intake/chat/route.ts).
  *
- * Pulled from LIFE_Product_Map_v7_callaloo.docx and
- * LIFE_CoPacker_Formulation_Packet_v5_final.docx (June 2026 revision).
- * Update this file, not the prompt in lib/claude/intake.ts, when the
- * formulation changes — the system prompt reads from here directly.
+ * Pulled from LIFE_Product_Map_v8.docx (July 2026 revision, reconciled
+ * against the Co-Packer Formulation Packet). Update this file, not the
+ * prompt in lib/claude/intake.ts, when the formulation changes — the
+ * system prompt reads from here directly.
+ *
+ * 2026-07-12 correction: reconciled against v8's "Launch Structure"
+ * section (the authoritative confirmed-SKU ingredient lists). Daily
+ * Restore previously listed Sarsaparilla/Damiana, which belong to
+ * Vitality/Men's Rhythm, not Daily Restore — removed. Added Yellow Dock,
+ * Ginger, Fennel to Daily Restore; Fennel, Ginger to Reset; Ginger to
+ * Vitality; Burdock, Raspberry Leaf, Fennel to Women's Rhythm.
  */
 
 export type Track = {
@@ -26,11 +33,13 @@ export const TRACKS: Track[] = [
     id: "daily-restore",
     name: "Daily Restore",
     consumerNeed: "Fatigue, low vitality, post-exertion recovery",
-    ingredients: ["Sea moss", "Burdock", "Sarsaparilla", "Damiana", "Callaloo"],
+    ingredients: ["Burdock", "Yellow dock", "Sea moss", "Ginger", "Fennel", "Callaloo"],
     format: "AM tonic, capsules, mineral powder",
     positioning: "Mineral-rich daily support for energy and resilience.",
     cautions: [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
+      "Ginger: mild anticoagulant adjacency — avoid drug-interaction claims proactively, but acknowledge if blood-thinning medication is disclosed.",
+      "Yellow dock: keep laxative-effect language conservative for sensitive users; don't overstate its iron contribution — Callaloo is this track's dedicated iron ingredient.",
     ],
     image: "/products/tracks/daily-restore.jpg",
   },
@@ -58,12 +67,14 @@ export const TRACKS: Track[] = [
     id: "reset",
     name: "Reset",
     consumerNeed: "Temporary constipation support",
-    ingredients: ["Cascara sagrada", "Burdock", "Chamomile"],
+    ingredients: ["Cascara sagrada", "Burdock", "Chamomile", "Fennel", "Ginger"],
     format: "Short-cycle capsule or tea",
     positioning: "Short-term regularity support only.",
     cautions: [
       "Occasional-use only — never frame as a daily-use product.",
       "Keep laxative-effect language conservative; caution for sensitive users.",
+      "Ginger and Fennel are formulated in specifically to ease cramping from Cascara Sagrada's stimulant action — mild anticoagulant adjacency (Ginger) and mild phytoestrogenic activity (Fennel) apply; keep both conservative if raised.",
+      "Cascara Sagrada: absolute exclusion for pregnancy or nursing, no exceptions — do not recommend this track to anyone who discloses being pregnant or nursing.",
     ],
     image: "/products/tracks/reset.jpg",
   },
@@ -71,12 +82,13 @@ export const TRACKS: Track[] = [
     id: "vitality",
     name: "Vitality",
     consumerNeed: "Stamina, energy, post-exertion recovery",
-    ingredients: ["Damiana", "Sarsaparilla", "Sea moss", "Burdock", "Callaloo"],
+    ingredients: ["Damiana", "Sarsaparilla", "Sea moss", "Burdock", "Ginger", "Callaloo"],
     format: "Capsules, mineral powder, AM tonic",
     positioning: "Mineral-rich daily support for energy and resilience.",
     cautions: [
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
       "Damiana: avoid fertility guarantees or performance claims.",
+      "Ginger: mild anticoagulant adjacency — frame as circulation/warmth support, not a stimulant; acknowledge if blood-thinning medication is disclosed.",
     ],
     image: "/products/tracks/vitality.jpg",
   },
@@ -124,14 +136,20 @@ export const TRACKS: Track[] = [
       "Blue vervain",
       "Yellow dock",
       "Sea moss",
+      "Burdock",
+      "Raspberry leaf",
+      "Fennel",
       "Callaloo",
     ],
     format: "Cycle-phase packs, AM/PM stack",
     positioning: "Hormone-supportive wellness without medical promises.",
     cautions: [
       "Vitex: frame only as 'supports natural hormonal rhythm,' never 'regulates hormones.' Effects are gradual (8-12 week onset) — don't promise fast results.",
+      "Vitex: absolute exclusion for pregnancy or nursing, no exceptions — do not recommend this track to anyone who discloses being pregnant or nursing.",
       "Do not recommend to anyone mentioning hormonal contraceptives or fertility treatment — flag for a healthcare provider conversation instead.",
       "Callaloo is high in Vitamin K — do not recommend to anyone who mentions taking anticoagulant/blood-thinning medication.",
+      "Fennel: mild phytoestrogenic activity — keep hormone-related language especially conservative in this track.",
+      "Raspberry leaf: avoid pregnancy-specific claims unless intentionally positioned that way.",
     ],
     image: "/products/tracks/womens-rhythm.jpg",
   },

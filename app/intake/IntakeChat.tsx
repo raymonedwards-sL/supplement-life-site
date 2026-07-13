@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { findTrack } from "@/lib/tracks";
+import { getIngredientEducationList } from "@/lib/ingredient-education";
+import { IngredientCard } from "@/components/ingredients/IngredientCard";
+import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -167,16 +170,21 @@ function SummaryCard({ summary }: { summary: Completion }) {
     .map((id) => findTrack(id))
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
+  const allIngredients = getIngredientEducationList(tracks.flatMap((t) => t.ingredients));
+  const atmosphere = getTrackAtmosphere(tracks[0]?.id);
+
   return (
-    <div className="rounded-2xl border border-copper/30 bg-white/70 p-6 sm:p-8">
-      <p className="text-xs font-semibold uppercase tracking-wide text-copper">
+    <div className="rounded-2xl border border-copper/30 bg-white/70 p-6 sm:p-10">
+      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-copper">
         Your Wellness Profile Summary
       </p>
-      <p className="mt-3 leading-relaxed text-navy/80">{summary.summary}</p>
+      <p className="mt-4 border-l-4 border-copper/30 pl-5 text-lg font-medium leading-relaxed text-navy sm:text-xl">
+        {summary.summary}
+      </p>
 
       {tracks.length > 0 && (
-        <div className="mt-6 rounded-xl bg-navy/5 p-4">
-          <p className="text-sm font-semibold text-navy">
+        <div className="mt-8 rounded-xl bg-navy/5 p-5 sm:p-6">
+          <p className="text-base font-bold text-navy">
             Your Initial Protocol
           </p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -197,29 +205,65 @@ function SummaryCard({ summary }: { summary: Completion }) {
                 <span className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-copper/70">
                   {TRACK_ROLE_LABELS[i] ?? "Additional"}
                 </span>
-                <span className="mt-0.5 text-sm font-semibold text-navy">{t.name}</span>
+                <span className="mt-0.5 text-base font-bold text-navy">{t.name}</span>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-navy/70">
+          <p className="mt-5 text-base font-medium leading-relaxed text-navy/80">
             {summary.rationale}
           </p>
         </div>
       )}
 
-      <div className="mt-6 flex flex-col gap-2">
-        {summary.ingredient_highlights.map((ing, i) => (
-          <div key={i} className="flex items-baseline gap-2 text-sm">
-            <span className="font-semibold text-copper">{ing.ingredient}</span>
-            <span className="text-navy/60">— {ing.role}</span>
+      {summary.ingredient_highlights.length > 0 && (
+        <div className="mt-8">
+          <p className="text-base font-bold text-navy">Why these, specifically</p>
+          <div className="mt-3 flex flex-col gap-2.5">
+            {summary.ingredient_highlights.map((ing, i) => (
+              <div key={i} className="rounded-lg bg-copper/5 px-4 py-2.5 text-sm sm:text-base">
+                <span className="font-bold text-copper">{ing.ingredient}</span>
+                <span className="ml-2 text-navy/75">{ing.role}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {allIngredients.length > 0 && (
+        <div className="relative mt-10 overflow-hidden rounded-2xl">
+          {atmosphere && (
+            <>
+              <Image
+                src={atmosphere}
+                alt=""
+                fill
+                sizes="100vw"
+                className="object-cover"
+                aria-hidden
+              />
+              <div className="absolute inset-0 bg-cream/90" />
+            </>
+          )}
+          <div className="relative p-5 sm:p-7">
+            <p className="text-base font-bold text-navy">Your Botanical Compounds</p>
+            <p className="mt-1 text-sm text-navy/60">
+              The full ingredient story behind your protocol — what each one is, why
+              it&apos;s formulated in, and where to read more.
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {allIngredients.map((ing) => (
+                <IngredientCard key={ing.name} ingredient={ing} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <p className="mt-8 text-xs leading-relaxed text-navy/40">
         This is personalized wellness information, not medical advice,
-        diagnosis, or treatment. Your profile has been saved — you can revisit
-        it any time from your{" "}
+        diagnosis, or treatment. Wikipedia links are provided as a general
+        reference, not as medical guidance. Your profile has been saved — you
+        can revisit it any time from your{" "}
         <a href="/dashboard" className="underline">
           dashboard
         </a>

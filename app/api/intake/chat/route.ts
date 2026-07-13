@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { buildSystemPrompt, INTAKE_TURN_TOOL } from "@/lib/claude/intake";
+import {
+  buildSubscriberContext,
+  isCuriositySignal,
+  LIFESTYLE_FIELD_COLUMNS,
+} from "@/lib/claude/subscriber-context";
 
 const MODEL = "claude-sonnet-5";
 
@@ -13,6 +18,12 @@ type TurnInput = {
     question: string;
     answer: string;
     structured_value: { field: string; value: unknown };
+  } | null;
+  safety_flag: {
+    flag_type: "medication" | "allergy" | "pregnancy_nursing" | "health_condition";
+    value: string;
+    action: "add" | "remove";
+    note?: string;
   } | null;
   reply: string;
   completion: {
@@ -63,27 +74,50 @@ export async function POST(request: NextRequest) {
     content: m.content,
   }));
 
+  // Empty history means this is a brand-new conversation (the very first
+  // load, before the seed message below is added) — used both to fetch
+  // the opening question and, further down, to bump conversation_count
+  // exactly once per conversation rather than once per turn.
+  const isNewConversation = anthropicMessages.length === 0;
+
   // First load sends an empty history to get Claude's opening question —
   // the API requires at least one message, so seed a hidden starter turn.
-  if (anthropicMessages.length === 0) {
+  if (isNewConversation) {
     anthropicMessages.push({ role: "user", content: "Hi, I'm ready to begin." });
   }
 
   try {
+    // Stage 3 of the Sage Knowledge Architecture spec: pull the
+    // subscriber's persisted profile (safety flags, lifestyle inputs,
+    // engagement signals, track/feedback history — see
+    // lib/claude/subscriber-context.ts) into context so Sage can
+    // self-assess Depth Ladder tier from real data density, not just
+    // what's been said in this one conversation.
+    const subscriberContext = await buildSubscriberContext(supabase, user.id);
+
+    if (isNewConversation) {
+      const { error: convCountError } = await supabase.rpc("increment_conversation_count", {
+        p_user_id: user.id,
+      });
+      if (convCountError) console.error("Failed to increment conversation_count:", convCountError);
+    }
+
     // NOTE: buildSystemPrompt() now includes the full Hero Ingredient
-    // Reference (lib/claude/ingredient-reference.ts) and is identical on
-    // every turn of a given intake conversation — a good candidate for
-    // Anthropic prompt caching (cache_control on the system block) to cut
-    // repeat-turn cost/latency. Not wired up yet: the installed
-    // @anthropic-ai/sdk (0.32.1) only exposes cache_control via the beta
-    // client (anthropic.beta.messages.create), which has slightly
-    // different response/type shapes than the stable client used below —
-    // switching call sites deserves its own tested pass rather than being
-    // bundled into this ingredient-reference change.
+    // Reference (lib/claude/ingredient-reference.ts) and the Systems
+    // Framework, plus the subscriber-specific context block above, so it
+    // varies per subscriber and is NOT identical across every intake
+    // conversation the way it used to be — the catalog/ingredient/systems
+    // portions are still static and remain a good candidate for Anthropic
+    // prompt caching (cache_control on a shared prefix) to cut repeat-turn
+    // cost/latency. Not wired up yet: the installed @anthropic-ai/sdk
+    // (0.32.1) only exposes cache_control via the beta client
+    // (anthropic.beta.messages.create), which has slightly different
+    // response/type shapes than the stable client used below — switching
+    // call sites deserves its own tested pass.
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1536,
-      system: buildSystemPrompt(),
+      system: buildSystemPrompt(subscriberContext.text),
       tools: [INTAKE_TURN_TOOL],
       tool_choice: { type: "tool", name: "intake_turn" },
       messages: anthropicMessages,
@@ -109,6 +143,39 @@ export async function POST(request: NextRequest) {
         structured_value: input.log_entry.structured_value,
       });
       if (error) console.error("Failed to log intake response:", error);
+
+      // Opportunistically persist lifestyle inputs to the rolled-up
+      // profile (Stage 2 schema) so they're available as Tier context in
+      // future conversations — a partial upsert only touches the one
+      // column named here, so this never clobbers other profile fields.
+      const column = LIFESTYLE_FIELD_COLUMNS[input.log_entry.structured_value.field];
+      if (column) {
+        const { error: lifestyleError } = await supabase
+          .from("profiles")
+          .upsert({ user_id: user.id, [column]: input.log_entry.structured_value.value }, { onConflict: "user_id" });
+        if (lifestyleError) console.error("Failed to persist lifestyle field:", lifestyleError);
+      }
+
+      // Simple keyword-based curiosity-signal detection (spec Section 7)
+      // — not a classifier, just a "did they ask a why/mechanism
+      // question" check — feeds Tier 3 unlock in future conversations.
+      if (isCuriositySignal(input.log_entry.answer)) {
+        const { error: curiosityError } = await supabase.rpc("increment_curiosity_signal", {
+          p_user_id: user.id,
+        });
+        if (curiosityError) console.error("Failed to increment curiosity_signal_count:", curiosityError);
+      }
+    }
+
+    if (input.safety_flag) {
+      const { error: safetyError } = await supabase.from("safety_flags").insert({
+        user_id: user.id,
+        flag_type: input.safety_flag.flag_type,
+        value: input.safety_flag.value,
+        action: input.safety_flag.action,
+        note: input.safety_flag.note ?? null,
+      });
+      if (safetyError) console.error("Failed to record safety flag:", safetyError);
     }
 
     if (input.completion) {
