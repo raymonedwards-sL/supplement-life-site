@@ -122,9 +122,10 @@ export default function Home() {
               The fatigue that lingers no matter how much you sleep. The
               recovery that used to take a day and now takes a week. The
               mental fog that shows up right when you need to be sharpest.
-              These aren&apos;t things to just accept — they&apos;re signals.
-              Supplement :: LIFE builds a bespoke botanical protocol around
-              your actual biology and lifestyle, engineered for the demands
+              These aren&apos;t things to just accept — they&apos;re signals.{" "}
+              <strong className="font-semibold text-navy">Supplement :: LIFE</strong> builds a
+              bespoke <strong className="font-semibold text-navy">botanical protocol</strong>{" "}
+              around your actual biology and lifestyle, engineered for the demands
               of a full, high-performing life after 35.
             </p>
           </div>
