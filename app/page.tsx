@@ -163,7 +163,7 @@ export default function Home() {
             {failureFactors.map((factor) => (
               <span
                 key={factor}
-                className="rounded-full bg-navy/5 px-4 py-1.5 text-sm capitalize text-navy/70"
+                className="rounded-full bg-navy/10 px-4 py-1.5 text-sm font-bold capitalize text-navy"
               >
                 {factor}
               </span>
@@ -196,7 +196,7 @@ export default function Home() {
             {signals.map((signal) => (
               <div
                 key={signal}
-                className="rounded-xl border border-navy/10 bg-cream px-4 py-3 text-center text-sm font-medium text-navy/70"
+                className="rounded-xl border border-navy/10 bg-cream px-4 py-3 text-center text-sm font-bold text-navy"
               >
                 {signal}
               </div>
@@ -328,7 +328,7 @@ export default function Home() {
                   {track.ingredients.slice(0, 3).map((ingredient) => (
                     <span
                       key={ingredient}
-                      className="rounded-full bg-navy/5 px-3 py-1 text-xs text-navy/60"
+                      className="rounded-full bg-navy/10 px-3 py-1 text-xs font-bold text-navy"
                     >
                       {ingredient}
                     </span>
