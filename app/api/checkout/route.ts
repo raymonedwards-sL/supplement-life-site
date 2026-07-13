@@ -36,6 +36,14 @@ export async function POST(request: NextRequest) {
       mode: "payment",
       customer_creation: "always",
       customer_email: email,
+      // Shows a promo-code field on the hosted checkout page. Actual
+      // coupons/promotion codes (e.g. a 100%-off code for comped
+      // feedback-tester reservations) are created and managed directly in
+      // the Stripe Dashboard — no code change needed per code. See the
+      // amount_total-based balance-credit logic in
+      // app/api/webhooks/stripe/route.ts, which correctly credits $0 (not
+      // a phantom $249) when a 100%-off code is used.
+      allow_promotion_codes: true,
       shipping_address_collection: {
         allowed_countries: ["US", "CA", "MX"],
       },

@@ -122,14 +122,23 @@ export async function POST(request: NextRequest) {
       userId = invited.user.id;
     }
 
-    // 2. Apply the $249 deposit as a Stripe Customer Balance credit
-    // (negative amount = credit in the customer's favor).
-    await stripe.customers.createBalanceTransaction(customerId, {
-      amount: -FOUNDING_RESERVATION_DEPOSIT_CENTS,
-      currency: "usd",
-      description:
-        "Founding Subscription deposit — credited toward your Protocol Subscription at go-live ($249/mo for 6 months, then $499/mo).",
-    });
+    // 2. Apply what was ACTUALLY PAID as a Stripe Customer Balance credit
+    // (negative amount = credit in the customer's favor) — deliberately
+    // reads session.amount_total rather than assuming the full
+    // FOUNDING_RESERVATION_DEPOSIT_CENTS, so a 100%-off promotion code
+    // (e.g. for comped feedback-tester reservations) correctly credits $0
+    // instead of a phantom $249 credit for a payment that never happened.
+    // Skip the balance transaction entirely when nothing was paid — a $0
+    // credit is a no-op Stripe call.
+    const amountPaidCents = session.amount_total ?? FOUNDING_RESERVATION_DEPOSIT_CENTS;
+    if (amountPaidCents > 0) {
+      await stripe.customers.createBalanceTransaction(customerId, {
+        amount: -amountPaidCents,
+        currency: "usd",
+        description:
+          "Founding Subscription deposit — credited toward your Protocol Subscription at go-live ($249/mo for 6 months, then $499/mo).",
+      });
+    }
 
     // 3. Record the subscription as pending until go-live conversion.
     // conversion_date drives the 14-day pre-conversion notice job.
@@ -142,6 +151,11 @@ export async function POST(request: NextRequest) {
           stripe_customer_id: customerId,
           status: "pending",
           conversion_date: conversionDate,
+          // See supabase/migrations/0006_subscription_amount_paid.sql —
+          // 0 here means a 100%-off promotion code was used (a comped
+          // feedback-tester reservation), distinguishable from a real
+          // $249 deposit without cross-referencing Stripe by hand.
+          amount_paid_cents: amountPaidCents,
         },
         { onConflict: "user_id" }
       );
