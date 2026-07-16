@@ -9,6 +9,7 @@ import AccountMenu from "@/components/AccountMenu";
 
 const links = [
   { href: "/how-it-works", label: "How It Works" },
+  { href: "/ingredients", label: "Ingredients" },
   { href: "/faq", label: "FAQ" },
 ];
 

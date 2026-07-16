@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui/Container";
 
 export default function Reserve() {
@@ -200,6 +201,24 @@ function ReserveForm() {
               </span>
             </label>
             {error && <p className="text-sm text-red-600">{error}</p>}
+            <p className="text-xs leading-relaxed text-navy/50">
+              By reserving, you agree to our{" "}
+              <Link href="/terms" className="underline underline-offset-2 hover:text-copper">
+                Terms of Service
+              </Link>
+              ,{" "}
+              <Link href="/privacy" className="underline underline-offset-2 hover:text-copper">
+                Privacy Policy
+              </Link>
+              , and{" "}
+              <Link
+                href="/refund-policy"
+                className="underline underline-offset-2 hover:text-copper"
+              >
+                Refund &amp; Shipping Policy
+              </Link>
+              .
+            </p>
             <button
               type="submit"
               disabled={loading || !residencyConfirmed}

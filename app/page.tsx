@@ -337,6 +337,12 @@ export default function Home() {
               </div>
             ))}
           </div>
+          <Link
+            href="/ingredients"
+            className="mt-8 inline-block text-sm font-semibold text-copper hover:text-copper/80"
+          >
+            See the full ingredient science &rarr;
+          </Link>
         </Container>
       </section>
 

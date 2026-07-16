@@ -35,24 +35,61 @@ export default function OurStory() {
             <p className="font-serif text-2xl text-navy">
               One conversation. One protocol. Built around one person. You.
             </p>
-            <p>
-              So we built Supplement :: LIFE around a simple idea: wellness
-              after 35 isn&apos;t generic, and it shouldn&apos;t be treated
-              that way. Instead of another shelf of one-size-fits-all
-              bottles, we built a guided conversation that gets to know how
-              you actually live, and matches you to Botanical Tracks —
-              formulations built from time-tested herbal and mineral
-              ingredients — designed around real, specific wellness needs.
-            </p>
-            <p>
-              We&apos;re starting with a personalized botanical protocol. Over
-              time, we intend for Supplement :: LIFE to grow into a broader
-              wellness companion for the decades ahead — one that keeps
-              learning how you live and keeps your protocol current as your
-              life changes, rather than a one-time quiz result that sits on
-              a shelf.
-            </p>
           </div>
+        </Container>
+      </section>
+
+      {/* Founder */}
+      <section className="border-y border-navy/10 bg-white/40 py-20">
+        <Container className="max-w-3xl">
+          <Eyebrow>Founder</Eyebrow>
+          <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-copper/30 bg-copper/10 text-xl font-semibold text-copper">
+              RE
+            </span>
+            <div>
+              <p className="text-lg font-semibold text-navy">Ray Edwards</p>
+              <p className="text-sm text-navy/50">Founder, Supplement :: LIFE</p>
+              <div className="mt-4 flex flex-col gap-5 leading-relaxed text-navy/80">
+                <p>
+                  My own supplement journey after 35 is what started this. I
+                  kept running into the same wall: formulas built for whoever
+                  I was in my twenties, that never adjusted as my body
+                  actually changed, and that never fit the way I actually
+                  live. Off-the-shelf wellness wasn&apos;t built to evolve
+                  with anyone — it&apos;s built to sit on a shelf.
+                </p>
+                <p>
+                  That frustration is what led me to build Supplement ::
+                  LIFE as an adaptive botanical program — one designed
+                  around the piece of adult wellness I think matters most
+                  and gets talked about least: cellular rejuvenation.
+                </p>
+                <p>
+                  Professionally, my background is in environmental risk
+                  intelligence — building systems at pūrtec that model risk
+                  and adapt as conditions change in real time. That same
+                  discipline shaped how Supplement :: LIFE works: a protocol
+                  built from real data about how you actually live, not a
+                  static formula, designed to keep adapting as your biology
+                  changes — the same way any good risk model has to.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <section className="py-20">
+        <Container className="max-w-3xl">
+          <p className="text-lg leading-relaxed text-navy/80">
+            We&apos;re starting with a personalized botanical protocol. Over
+            time, we intend for Supplement :: LIFE to grow into a broader
+            wellness companion for the decades ahead — one that keeps
+            learning how you live and keeps your protocol current as your
+            life changes, rather than a one-time quiz result that sits on a
+            shelf.
+          </p>
         </Container>
       </section>
 

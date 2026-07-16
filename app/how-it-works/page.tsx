@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 
@@ -116,6 +117,12 @@ export default function HowItWorks() {
               are pregnant or nursing, talk to your healthcare provider
               before starting any new supplement.
             </p>
+            <Link
+              href="/ingredients"
+              className="mt-4 inline-block text-sm font-semibold text-copper hover:text-copper/80"
+            >
+              See every ingredient, named &rarr;
+            </Link>
           </div>
         </Container>
       </section>
