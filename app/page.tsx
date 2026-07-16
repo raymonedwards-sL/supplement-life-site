@@ -210,11 +210,11 @@ export default function Home() {
           <p className="mt-2 text-lg text-navy/70">
             Most people simply aren&apos;t listening.
           </p>
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             {signals.map((signal) => (
               <div
                 key={signal}
-                className="rounded-xl border border-navy/10 bg-cream px-4 py-3 text-center text-sm font-bold text-navy"
+                className="shrink-0 grow-0 basis-[calc(50%-0.375rem)] rounded-xl border border-navy/10 bg-cream px-4 py-3 text-center text-sm font-bold text-navy sm:basis-[calc(33.333%-0.5rem)]"
               >
                 {signal}
               </div>

@@ -7,10 +7,14 @@ import AccountSettings from "./AccountSettings";
 import BillingPortalButton from "./BillingPortalButton";
 import { findTrack } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
-import { getIngredientEducationList } from "@/lib/ingredient-education";
+import {
+  groupIngredientEducationByCategory,
+  getDominantBenefitCategory,
+} from "@/lib/ingredient-education";
 import { IngredientCard } from "@/components/ingredients/IngredientCard";
 import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
 import { parseRationale } from "@/lib/rationale";
+import { fetchTrustedArticlesByCategory } from "@/lib/third-party-articles";
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
@@ -83,8 +87,16 @@ export default async function Dashboard() {
   const tracks = trackIds
     .map((id: string) => findTrack(id))
     .filter((t: ReturnType<typeof findTrack>): t is NonNullable<typeof t> => Boolean(t));
-  const ingredients = getIngredientEducationList(tracks.flatMap((t) => t.ingredients));
+  const allIngredientNames = tracks.flatMap((t) => t.ingredients);
+  const ingredientGroups = groupIngredientEducationByCategory(allIngredientNames);
   const atmosphere = getTrackAtmosphere(tracks[0]?.id);
+  // Live third-party credible-source articles, one query per benefit
+  // category present in this subscriber's protocol (lib/third-party-
+  // articles.ts) — resolves to [] until GOOGLE_CSE_API_KEY/GOOGLE_CSE_CX
+  // are configured, so this never blocks the rest of the dashboard.
+  const trustedArticleGroups = await fetchTrustedArticlesByCategory(
+    ingredientGroups.map((g) => ({ key: g.key, label: g.label }))
+  );
   const rationaleEntries = parseRationale(trackAssignment?.rationale);
   const reasonFor = (trackId: string) =>
     rationaleEntries.find((r) => r.track_id === trackId)?.reason;
@@ -168,33 +180,42 @@ export default async function Dashboard() {
             {tracks.length > 0 ? (
               <>
                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  {tracks.map((t, i) => (
-                    <div
-                      key={t.id}
-                      className="flex flex-col items-center rounded-xl border border-navy/10 bg-white/70 p-4 text-center"
-                    >
-                      <div className="relative h-56 w-32 overflow-hidden rounded-md shadow-sm">
-                        <Image
-                          src={t.image}
-                          alt={`${t.name} packaging`}
-                          fill
-                          sizes="128px"
-                          className="object-cover"
-                        />
+                  {tracks.map((t, i) => {
+                    const dominantCategory = getDominantBenefitCategory(t.ingredients);
+                    return (
+                      <div
+                        key={t.id}
+                        className="flex flex-col items-center rounded-xl border border-navy/10 bg-white/70 p-4 text-center"
+                      >
+                        <div className="relative h-72 w-44 overflow-hidden rounded-lg shadow-md">
+                          <Image
+                            src={t.image}
+                            alt={`${t.name} packaging`}
+                            fill
+                            quality={90}
+                            sizes="(min-width: 640px) 176px, 60vw"
+                            className="object-cover"
+                          />
+                        </div>
+                        <span className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-copper/70">
+                          {TRACK_ROLE_LABELS[i] ?? "Additional"}
+                        </span>
+                        <span className="mt-0.5 text-base font-bold text-navy">
+                          {t.name}
+                        </span>
+                        {dominantCategory && (
+                          <span className="mt-1.5 rounded-full bg-copper/10 px-2.5 py-0.5 text-[11px] font-bold text-copper">
+                            {dominantCategory.label}
+                          </span>
+                        )}
+                        {reasonFor(t.id) && (
+                          <p className="mt-3 border-t border-navy/10 pt-3 text-left text-sm leading-relaxed text-navy/75">
+                            {reasonFor(t.id)}
+                          </p>
+                        )}
                       </div>
-                      <span className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-copper/70">
-                        {TRACK_ROLE_LABELS[i] ?? "Additional"}
-                      </span>
-                      <span className="mt-0.5 text-base font-bold text-navy">
-                        {t.name}
-                      </span>
-                      {reasonFor(t.id) && (
-                        <p className="mt-3 border-t border-navy/10 pt-3 text-left text-sm leading-relaxed text-navy/75">
-                          {reasonFor(t.id)}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {legacyRationale && (
                   <p className="mt-5 text-base font-medium leading-relaxed text-navy/80">
@@ -207,7 +228,7 @@ export default async function Dashboard() {
             )}
           </div>
 
-          {ingredients.length > 0 && (
+          {ingredientGroups.length > 0 && (
             <div className="relative overflow-hidden rounded-2xl border border-navy/10 border-t-2 border-t-copper sm:col-span-2">
               {atmosphere && (
                 <>
@@ -218,14 +239,64 @@ export default async function Dashboard() {
               <div className="relative p-6">
                 <p className="text-sm font-medium text-navy/50">Your Botanical Compounds</p>
                 <p className="mt-1 text-sm text-navy/60">
-                  Every ingredient across your current protocol — what it is, why
-                  it&apos;s formulated in, and where to read more.
+                  Grouped by what each one actually helps with — the copper tag
+                  above each Botanical Track image above tells you which group
+                  it draws from most.
                 </p>
-                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {ingredients.map((ing) => (
-                    <IngredientCard key={ing.name} ingredient={ing} />
+                <div className="mt-6 flex flex-col gap-8">
+                  {ingredientGroups.map((group) => (
+                    <div key={group.key}>
+                      <div className="flex items-baseline gap-2">
+                        <h3 className="text-base font-bold text-navy">{group.label}</h3>
+                        <span className="text-xs text-navy/50">{group.description}</span>
+                      </div>
+                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {group.ingredients.map((ing) => (
+                          <IngredientCard key={ing.name} ingredient={ing} />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {trustedArticleGroups.length > 0 && (
+            <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
+              <p className="text-sm font-medium text-navy/50">From Trusted Sources</p>
+              <p className="mt-1 text-sm text-navy/60">
+                Independent, credible writing on your protocol&apos;s benefit
+                areas — so you can verify the wellness thinking here without
+                leaving your dashboard. Updates as your protocol evolves.
+              </p>
+              <div className="mt-4 flex flex-col gap-6">
+                {trustedArticleGroups.map((group) => (
+                  <div key={group.categoryKey}>
+                    <h3 className="text-sm font-bold text-navy">{group.categoryLabel}</h3>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {group.articles.map((article) => (
+                        <a
+                          key={article.url}
+                          href={article.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-xl border border-navy/10 bg-white/70 p-4 transition-colors hover:border-copper/40"
+                        >
+                          <p className="text-sm font-semibold text-navy">{article.title}</p>
+                          {article.snippet && (
+                            <p className="mt-1 text-xs leading-relaxed text-navy/60">
+                              {article.snippet}
+                            </p>
+                          )}
+                          <p className="mt-1.5 text-xs font-medium text-copper">
+                            {article.source}
+                          </p>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

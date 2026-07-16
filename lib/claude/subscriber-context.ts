@@ -41,7 +41,7 @@ export async function buildSubscriberContext(
       supabase
         .from("profiles")
         .select(
-          "current_summary, sleep_hours, sleep_quality, stress_load, alcohol_frequency, exercise_pattern, diet_pattern, cycle_life_stage, recurring_complaints, curiosity_signal_count, conversation_count, last_conversation_at"
+          "current_summary, sleep_hours, sleep_quality, stress_load, alcohol_frequency, exercise_pattern, diet_pattern, cycle_life_stage, water_intake, fasting_pattern, living_environment, work_environment, travel_frequency, recurring_complaints, curiosity_signal_count, conversation_count, last_conversation_at"
         )
         .eq("user_id", userId)
         .maybeSingle(),
@@ -84,6 +84,11 @@ export async function buildSubscriberContext(
     ["Exercise pattern", profile?.exercise_pattern ?? null],
     ["Diet pattern", profile?.diet_pattern ?? null],
     ["Cycle/life stage", profile?.cycle_life_stage ?? null],
+    ["Water intake", profile?.water_intake ?? null],
+    ["Fasting pattern", profile?.fasting_pattern ?? null],
+    ["Living environment", profile?.living_environment ?? null],
+    ["Work environment", profile?.work_environment ?? null],
+    ["Travel frequency", profile?.travel_frequency ?? null],
   ];
   const populatedLifestyle = lifestyleFields.filter(([, v]) => v);
 
@@ -182,4 +187,9 @@ export const LIFESTYLE_FIELD_COLUMNS: Record<string, string> = {
   exercise_pattern: "exercise_pattern",
   diet_pattern: "diet_pattern",
   cycle_life_stage: "cycle_life_stage",
+  water_intake: "water_intake",
+  fasting_pattern: "fasting_pattern",
+  living_environment: "living_environment",
+  work_environment: "work_environment",
+  travel_frequency: "travel_frequency",
 };

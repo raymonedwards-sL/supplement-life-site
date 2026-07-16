@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, FOUNDING_RESERVATION_DEPOSIT_CENTS } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { addBeehiivSubscriber } from "@/lib/beehiiv";
 
 /**
  * Handles Stripe webhook events.
@@ -161,6 +162,15 @@ export async function POST(request: NextRequest) {
       );
 
     if (upsertError) throw upsertError;
+
+    // 4. Add the new Founding Subscriber to the beehiiv mailing list for
+    // the daily branded educational email. Deliberately NOT awaited into
+    // the try/catch above — a beehiiv outage or missing API key must
+    // never fail reservation provisioning (account creation, balance
+    // credit, subscription row) for a paying customer. addBeehiivSubscriber
+    // already fails soft internally and only logs; this just makes sure a
+    // slow beehiiv response can't add latency to the webhook response either.
+    void addBeehiivSubscriber(email, { stripeCustomerId: customerId });
 
     return NextResponse.json({ received: true });
   } catch (err) {
