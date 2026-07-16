@@ -255,9 +255,9 @@ export default function Home() {
                 Meet Sage, Your LIFE Guide.
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-navy/70">
-                Not another chatbot. Not another quiz. Sage is an intelligent
-                wellness agent that learns how you live — not just how old you
-                are. It builds a comprehensive personal wellness
+                Not another chatbot. Not another quiz. Sage is a warm,
+                attentive wellness guide who learns how you live — not just
+                how old you are. She builds a comprehensive personal wellness
                 profile and recommends the Botanical Tracks that best align
                 with your lifestyle today. This isn&apos;t a one-time quiz
                 result: as you share more about how your protocol is working
