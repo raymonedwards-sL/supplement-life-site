@@ -148,49 +148,27 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* The full product line */}
-      <section className="py-16">
-        <Container className="max-w-5xl text-center">
-          <Eyebrow>The Full Line</Eyebrow>
-          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
-            Nine Botanical Tracks. One system.
-          </h2>
-          <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10">
-            <Image
-              src="/products/Supplement-line-boxes.jpg"
-              alt="The full Supplement :: LIFE Botanical Track product line"
-              width={2752}
-              height={1536}
-              className="h-full w-full object-cover"
-              sizes="(min-width: 1024px) 1024px, 100vw"
-            />
-          </div>
-        </Container>
-      </section>
-
-      {/* Real life */}
-      <section className="py-16">
-        <Container className="max-w-5xl">
-          <div className="overflow-hidden rounded-2xl border border-navy/10">
-            <Image
-              src="/lifestyle/Woman-water-glass.jpeg"
-              alt="A woman relaxing at home with a glass of water"
-              width={2752}
-              height={1536}
-              className="h-full w-full object-cover"
-              sizes="(min-width: 1024px) 1024px, 100vw"
-            />
-          </div>
-          <p className="mt-6 text-center font-serif text-2xl leading-relaxed text-navy">
-            This isn&apos;t about another bottle on the counter. It&apos;s
-            about feeling like yourself again.
-          </p>
-        </Container>
-      </section>
-
       {/* Why most supplements fail */}
-      <section className="py-24">
-        <Container className="max-w-3xl">
+      <section className="relative overflow-hidden py-24">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-[200px] sm:w-[460px] lg:w-[640px]"
+          style={{
+            maskImage: "linear-gradient(to right, black 45%, transparent 92%)",
+            WebkitMaskImage:
+              "linear-gradient(to right, black 45%, transparent 92%)",
+          }}
+        >
+          <Image
+            src="/products/Supplement-line-boxes.jpg"
+            alt=""
+            fill
+            className="object-cover opacity-40"
+            sizes="(min-width: 1024px) 640px, (min-width: 640px) 460px, 200px"
+          />
+        </div>
+
+        <Container className="relative max-w-3xl">
           <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
             Why most supplements fail.
           </h2>
@@ -247,6 +225,20 @@ export default function Home() {
             organize those signals into a personalized wellness profile so
             your botanical recommendations are based on your life — not
             marketing trends.
+          </p>
+          <div className="mt-10 overflow-hidden rounded-2xl border border-navy/10">
+            <Image
+              src="/lifestyle/Woman-water-glass.jpeg"
+              alt="A woman relaxing at home with a glass of water"
+              width={2752}
+              height={1536}
+              className="h-full w-full object-cover"
+              sizes="(min-width: 1024px) 768px, 100vw"
+            />
+          </div>
+          <p className="mt-6 text-center font-serif text-2xl leading-relaxed text-navy">
+            This isn&apos;t about another bottle on the counter. It&apos;s
+            about feeling like yourself again.
           </p>
         </Container>
       </section>
