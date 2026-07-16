@@ -87,12 +87,26 @@ export default function IntakeChat() {
   }
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white/50">
-      <div className="flex items-center justify-between gap-3 border-b border-navy/10 bg-navy/5 px-6 py-3">
+    <div className="relative">
+      {/* Sage avatar callout — deliberately a sibling of the chat box (not
+          nested inside it) so it can overlap the top-left corner without
+          fighting the box's own overflow-hidden, which clips the rounded
+          message-scroll area. This is meant to make the intake feel like a
+          real one-on-one conversation with Sage, not an anonymous form. */}
+      <div className="absolute -top-6 -left-3 z-10 h-16 w-16 overflow-hidden rounded-full border-4 border-cream shadow-lg sm:-top-8 sm:-left-4 sm:h-20 sm:w-20">
+        <Image
+          src="/Sage-avatar.png"
+          alt="Sage, Your LIFE Guide"
+          fill
+          priority
+          sizes="80px"
+          className="object-cover"
+        />
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white/50">
+      <div className="flex items-center justify-between gap-3 border-b border-navy/10 bg-navy/5 py-3 pl-20 pr-6 sm:pl-24">
         <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-copper/15 text-sm font-semibold text-copper">
-            S
-          </span>
           <div>
             <p className="text-sm font-semibold text-navy">Sage</p>
             <p className="text-xs text-navy/50">Your LIFE Guide</p>
@@ -159,6 +173,7 @@ export default function IntakeChat() {
           Send
         </button>
       </form>
+      </div>
     </div>
   );
 }
