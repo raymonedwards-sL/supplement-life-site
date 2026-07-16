@@ -168,6 +168,26 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* Real life */}
+      <section className="py-16">
+        <Container className="max-w-5xl">
+          <div className="overflow-hidden rounded-2xl border border-navy/10">
+            <Image
+              src="/lifestyle/Woman-water-glass.jpeg"
+              alt="A woman relaxing at home with a glass of water"
+              width={2752}
+              height={1536}
+              className="h-full w-full object-cover"
+              sizes="(min-width: 1024px) 1024px, 100vw"
+            />
+          </div>
+          <p className="mt-6 text-center font-serif text-2xl leading-relaxed text-navy">
+            This isn&apos;t about another bottle on the counter. It&apos;s
+            about feeling like yourself again.
+          </p>
+        </Container>
+      </section>
+
       {/* Why most supplements fail */}
       <section className="py-24">
         <Container className="max-w-3xl">
