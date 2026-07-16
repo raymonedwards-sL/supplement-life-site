@@ -245,31 +245,45 @@ export default function Home() {
 
       {/* Meet Your LIFE Guide */}
       <section className="py-24">
-        <Container className="max-w-3xl">
-          <Eyebrow>Your LIFE Guide</Eyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-            Meet Sage, Your LIFE Guide.
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-navy/70">
-            Not another chatbot. Not another quiz. Sage is an intelligent
-            wellness agent that learns how you live — not just how old you
-            are. It builds a comprehensive personal wellness
-            profile and recommends the Botanical Tracks that best align
-            with your lifestyle today. This isn&apos;t a one-time quiz
-            result: as you share more about how your protocol is working
-            for you, your profile deepens and your recommendations evolve
-            — a bespoke system built to keep pace with your actual life,
-            not a static formula you&apos;re locked into.
-          </p>
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {positioningPoints.map((point) => (
-              <div
-                key={point}
-                className="rounded-xl border border-navy/10 bg-white/50 p-4 text-sm font-medium text-navy/70"
-              >
-                {point}
+        <Container className="max-w-5xl">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <Eyebrow>Your LIFE Guide</Eyebrow>
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+                Meet Sage, Your LIFE Guide.
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-navy/70">
+                Not another chatbot. Not another quiz. Sage is an intelligent
+                wellness agent that learns how you live — not just how old you
+                are. It builds a comprehensive personal wellness
+                profile and recommends the Botanical Tracks that best align
+                with your lifestyle today. This isn&apos;t a one-time quiz
+                result: as you share more about how your protocol is working
+                for you, your profile deepens and your recommendations evolve
+                — a bespoke system built to keep pace with your actual life,
+                not a static formula you&apos;re locked into.
+              </p>
+              <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {positioningPoints.map((point) => (
+                  <div
+                    key={point}
+                    className="rounded-xl border border-navy/10 bg-white/50 p-4 text-sm font-medium text-navy/70"
+                  >
+                    {point}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-navy/10 shadow-sm">
+              <Image
+                src="/Sage-avatar.png"
+                alt="Sage, Your LIFE Guide"
+                width={1122}
+                height={1402}
+                className="h-full w-full object-cover"
+                sizes="(min-width: 1024px) 380px, 70vw"
+              />
+            </div>
           </div>
         </Container>
       </section>
