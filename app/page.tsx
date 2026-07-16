@@ -163,41 +163,43 @@ export default function Home() {
             src="/products/Supplement-line-boxes.jpg"
             alt=""
             fill
-            className="object-cover opacity-40"
+            className="object-cover opacity-30"
             sizes="(min-width: 1024px) 640px, (min-width: 640px) 460px, 200px"
           />
         </div>
 
         <Container className="relative max-w-3xl">
-          <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-            Why most supplements fail.
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-navy/70">
-            Most supplements were designed for everyone. So they end up being
-            perfect for almost no one. Generic multivitamins assume every
-            body has the same needs. They don&apos;t account for:
-          </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {failureFactors.map((factor) => (
-              <span
-                key={factor}
-                className="rounded-full bg-navy/10 px-4 py-1.5 text-sm font-bold capitalize text-navy"
-              >
-                {factor}
-              </span>
-            ))}
+          <div className="rounded-2xl bg-cream/85 p-6 backdrop-blur-sm sm:p-10">
+            <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+              Why most supplements fail.
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-navy/70">
+              Most supplements were designed for everyone. So they end up
+              being perfect for almost no one. Generic multivitamins assume
+              every body has the same needs. They don&apos;t account for:
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {failureFactors.map((factor) => (
+                <span
+                  key={factor}
+                  className="rounded-full bg-navy/10 px-4 py-1.5 text-sm font-bold capitalize text-navy"
+                >
+                  {factor}
+                </span>
+              ))}
+            </div>
+            <p className="mt-6 font-serif text-2xl text-navy">
+              Your protocol should.
+            </p>
+            <p className="mt-6 leading-relaxed text-navy/70">
+              This isn&apos;t another discount multivitamin subscription
+              competing for shelf space, and taking more of them rarely means
+              better results. Supplement :: LIFE is a single, precisely built
+              protocol for people who&apos;ve decided their long-term vitality
+              deserves the same level of investment as everything else they
+              take seriously.
+            </p>
           </div>
-          <p className="mt-6 font-serif text-2xl text-navy">
-            Your protocol should.
-          </p>
-          <p className="mt-6 leading-relaxed text-navy/70">
-            This isn&apos;t another discount multivitamin subscription
-            competing for shelf space, and taking more of them rarely means
-            better results. Supplement :: LIFE is a single, precisely built
-            protocol for people who&apos;ve decided their long-term vitality
-            deserves the same level of investment as everything else they
-            take seriously.
-          </p>
         </Container>
       </section>
 
