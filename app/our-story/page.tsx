@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 
@@ -44,9 +45,15 @@ export default function OurStory() {
         <Container className="max-w-3xl">
           <Eyebrow>Founder</Eyebrow>
           <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-copper/30 bg-copper/10 text-xl font-semibold text-copper">
-              RE
-            </span>
+            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-copper/30">
+              <Image
+                src="/Ray-founder.png"
+                alt="Ray Edwards, Founder of Supplement :: LIFE"
+                fill
+                sizes="112px"
+                className="object-cover"
+              />
+            </div>
             <div>
               <p className="text-lg font-semibold text-navy">Ray Edwards</p>
               <p className="text-sm text-navy/50">Founder, Supplement :: LIFE</p>
