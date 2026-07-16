@@ -89,6 +89,17 @@ export default async function Dashboard() {
     .filter((t: ReturnType<typeof findTrack>): t is NonNullable<typeof t> => Boolean(t));
   const allIngredientNames = tracks.flatMap((t) => t.ingredients);
   const ingredientGroups = groupIngredientEducationByCategory(allIngredientNames);
+  // Legend for the copper category tags shown on each track's image below —
+  // only the categories actually in use for this subscriber's own tracks,
+  // deduped, in first-seen order.
+  const categoryLegend = Array.from(
+    new Map(
+      tracks
+        .map((t) => getDominantBenefitCategory(t.ingredients))
+        .filter((c): c is NonNullable<typeof c> => Boolean(c))
+        .map((c) => [c.key, c])
+    ).values()
+  );
   const atmosphere = getTrackAtmosphere(tracks[0]?.id);
   // Live third-party credible-source articles, one query per benefit
   // category present in this subscriber's protocol (lib/third-party-
@@ -217,6 +228,21 @@ export default async function Dashboard() {
                     );
                   })}
                 </div>
+                {categoryLegend.length > 0 && (
+                  <div className="mt-5 flex flex-col gap-2 border-t border-navy/10 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">
+                      What the copper tags mean
+                    </p>
+                    {categoryLegend.map((cat) => (
+                      <p key={cat.key} className="text-sm leading-relaxed text-navy/70">
+                        <span className="mr-2 inline-block rounded-full bg-copper/10 px-2.5 py-0.5 text-[11px] font-bold text-copper">
+                          {cat.label}
+                        </span>
+                        {cat.description}
+                      </p>
+                    ))}
+                  </div>
+                )}
                 {legacyRationale && (
                   <p className="mt-5 text-base font-medium leading-relaxed text-navy/80">
                     {legacyRationale}
@@ -246,9 +272,9 @@ export default async function Dashboard() {
                 <div className="mt-6 flex flex-col gap-8">
                   {ingredientGroups.map((group) => (
                     <div key={group.key}>
-                      <div className="flex items-baseline gap-2">
+                      <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
                         <h3 className="text-base font-bold text-navy">{group.label}</h3>
-                        <span className="text-xs text-navy/50">{group.description}</span>
+                        <span className="text-sm font-medium text-navy/70">{group.description}</span>
                       </div>
                       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {group.ingredients.map((ing) => (

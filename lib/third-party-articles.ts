@@ -7,26 +7,38 @@
  * list) so results evolve as a subscriber's protocol evolves, rather than
  * needing manual refresh.
  *
- * Uses Google Programmable Search Engine (Custom Search JSON API). Setup
- * required before this does anything (until then it fails soft and the
- * dashboard section simply doesn't render — see getTrustedArticles below):
- *   1. Create a Programmable Search Engine at
- *      https://programmablesearchengine.google.com/ restricted to "Search
- *      specific sites" — add ONLY credible health/wellness sources (e.g.
- *      examine.com, health.clevelandclinic.org, healthline.com,
- *      medicalnewstoday.com, ncbi.nlm.nih.gov, mayoclinic.org,
- *      verywellhealth.com, webmd.com). Restricting at the engine level
- *      (rather than per-request domain filtering) keeps every query
- *      automatically limited to sources worth a skeptical subscriber's
- *      trust — do not point this at the open web.
- *   2. Get an API key from Google Cloud Console (enable the "Custom Search
- *      API"), and the Search Engine ID ("cx") from the PSE control panel.
- *   3. Set GOOGLE_CSE_API_KEY and GOOGLE_CSE_CX in the deploy environment.
+ * 2026-07-17 — SWITCHED from Google Programmable Search Engine (Custom
+ * Search JSON API) to the Brave Search API. Verified directly against
+ * Google's own docs (developers.google.com/custom-search/v1/overview,
+ * updated 2026-02-18): "The Custom Search JSON API is closed to new
+ * customers" — existing customers get until Jan 1 2027, but a fresh setup
+ * like this one can no longer get an API key at all. That's why the
+ * previous GOOGLE_CSE_API_KEY/GOOGLE_CSE_CX setup step had no visible "get
+ * a key" path. User chose Brave Search API as the replacement (still open
+ * to new signups, simple single-key REST API, 2,000 free queries/month) —
+ * see api-dashboard.search.brave.com/app/documentation/web-search.
+ *
+ * Setup required before this does anything (until then it fails soft and
+ * the dashboard section simply doesn't render — see fetchTrustedArticles
+ * below):
+ *   1. Sign up at https://brave.com/search/api/ and subscribe to the Web
+ *      Search plan (free tier: 2,000 queries/month, 1 query/second).
+ *   2. Get your API key from the Brave Search API dashboard
+ *      (api-dashboard.search.brave.com) — Settings/API Keys.
+ *   3. Set BRAVE_SEARCH_API_KEY in the deploy environment.
+ *
+ * Credibility is enforced TWO ways, not just one: (1) every query embeds a
+ * `site:` OR-group restricting results to a fixed allowlist of reputable
+ * health/wellness domains, and (2) TRUSTED_DOMAINS is re-checked against
+ * every returned result's hostname in code as a second gate — belt and
+ * suspenders, since Brave's exact operator-grouping behavior isn't
+ * something to blindly trust for a compliance-sensitive feature like this
+ * one. A result that somehow slips past the query restriction still gets
+ * dropped here if its domain isn't on the allowlist.
  *
  * Results are cached via Next.js's fetch cache (`next.revalidate`) rather
  * than refetched on every dashboard load — daily is frequent enough for
- * "continuously evolving" content without hammering the API or the Custom
- * Search free-tier quota (100 queries/day) on every page view.
+ * "continuously evolving" content without hammering the free-tier quota.
  */
 
 export type TrustedArticle = {
@@ -39,16 +51,41 @@ export type TrustedArticle = {
 const REVALIDATE_SECONDS = 60 * 60 * 24; // daily
 const RESULTS_PER_QUERY = 3;
 
-type GoogleCseItem = {
+/**
+ * Reputable health/wellness sources a skeptical subscriber would actually
+ * trust. Update this list, not per-request logic, if the credibility bar
+ * needs to change — every result is checked against it twice (query-level
+ * `site:` restriction + a code-level hostname check on the response).
+ */
+const TRUSTED_DOMAINS = [
+  "healthline.com",
+  "examine.com",
+  "mayoclinic.org",
+  "medicalnewstoday.com",
+  "webmd.com",
+  "verywellhealth.com",
+  "ncbi.nlm.nih.gov",
+  "clevelandclinic.org",
+  "health.harvard.edu",
+];
+
+const SITE_RESTRICTION = TRUSTED_DOMAINS.map((d) => `site:${d}`).join(" OR ");
+
+type BraveWebResult = {
   title?: string;
-  link?: string;
-  snippet?: string;
-  displayLink?: string;
+  url?: string;
+  description?: string;
 };
 
-type GoogleCseResponse = {
-  items?: GoogleCseItem[];
+type BraveSearchResponse = {
+  web?: {
+    results?: BraveWebResult[];
+  };
 };
+
+function isTrustedDomain(hostname: string): boolean {
+  return TRUSTED_DOMAINS.some((d) => hostname === d || hostname.endsWith(`.${d}`));
+}
 
 /**
  * Fetches credible third-party articles for one query (an ingredient name
@@ -57,22 +94,23 @@ type GoogleCseResponse = {
  * momentarily-down search API never breaks the dashboard.
  */
 export async function fetchTrustedArticles(query: string): Promise<TrustedArticle[]> {
-  const apiKey = process.env.GOOGLE_CSE_API_KEY;
-  const cx = process.env.GOOGLE_CSE_CX;
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY;
 
-  if (!apiKey || !cx) {
+  if (!apiKey) {
     return [];
   }
 
   try {
-    const url = new URL("https://www.googleapis.com/customsearch/v1");
-    url.searchParams.set("key", apiKey);
-    url.searchParams.set("cx", cx);
-    url.searchParams.set("q", `${query} wellness benefits`);
-    url.searchParams.set("num", String(RESULTS_PER_QUERY));
-    url.searchParams.set("safe", "active");
+    const url = new URL("https://api.search.brave.com/res/v1/web/search");
+    url.searchParams.set("q", `${query} wellness benefits (${SITE_RESTRICTION})`);
+    url.searchParams.set("count", String(RESULTS_PER_QUERY));
+    url.searchParams.set("safesearch", "moderate");
 
     const response = await fetch(url.toString(), {
+      headers: {
+        Accept: "application/json",
+        "X-Subscription-Token": apiKey,
+      },
       next: { revalidate: REVALIDATE_SECONDS },
     });
 
@@ -83,17 +121,23 @@ export async function fetchTrustedArticles(query: string): Promise<TrustedArticl
       return [];
     }
 
-    const data = (await response.json()) as GoogleCseResponse;
+    const data = (await response.json()) as BraveSearchResponse;
 
-    return (data.items ?? [])
-      .filter((item): item is Required<Pick<GoogleCseItem, "title" | "link">> & GoogleCseItem =>
-        Boolean(item.title && item.link)
-      )
+    return (data.web?.results ?? [])
+      .filter((item): item is Required<BraveWebResult> => Boolean(item.title && item.url))
+      .filter((item) => {
+        try {
+          return isTrustedDomain(new URL(item.url).hostname);
+        } catch {
+          return false;
+        }
+      })
+      .slice(0, RESULTS_PER_QUERY)
       .map((item) => ({
-        title: item.title!,
-        url: item.link!,
-        snippet: item.snippet ?? "",
-        source: item.displayLink ?? new URL(item.link!).hostname,
+        title: item.title,
+        url: item.url,
+        snippet: item.description ?? "",
+        source: new URL(item.url).hostname,
       }));
   } catch (error) {
     console.error(`Trusted-article search threw for "${query}":`, error);
