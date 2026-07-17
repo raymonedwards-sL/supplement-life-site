@@ -29,6 +29,13 @@ alter table public.life_assessment_purchases enable row level security;
 -- Subscribers can read their own purchase record (e.g. to show "you
 -- already took the LIFE Assessment" state). Only the service role
 -- (webhook) ever inserts — no public insert/update policy.
+--
+-- drop-if-exists first since `create policy` has no `if not exists`
+-- guard (unlike the table/index above) — makes this file safe to
+-- re-run, e.g. if it's ever applied twice by mistake.
+drop policy if exists "Users can view their own LIFE Assessment purchase"
+  on public.life_assessment_purchases;
+
 create policy "Users can view their own LIFE Assessment purchase"
   on public.life_assessment_purchases
   for select

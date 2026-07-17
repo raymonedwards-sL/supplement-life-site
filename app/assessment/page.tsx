@@ -111,10 +111,15 @@ function AssessmentForm() {
               what you actually need now.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-navy/70">
-              At the end, you get your personal LIFE Brief — your Botanical
-              Track, the reasoning behind every ingredient, and what your
-              first 90 days is designed to do. It&apos;s yours immediately,
-              on-screen and by email.
+              At the end, you receive your personal LIFE Brief — practical
+              lifestyle guidance built around how you actually eat, move,
+              sleep, and recover, paired with a bespoke botanical
+              formulation designed to target the specific wellness gaps
+              showing up in your body right now. It&apos;s not a one-time
+              result: it&apos;s the start of an ongoing relationship with
+              Sage, who keeps refining both the guidance and the formula as
+              your first 90 days unfold. Yours immediately, on-screen and
+              by email.
             </p>
 
             <div className="mt-8 flex flex-col gap-4">
