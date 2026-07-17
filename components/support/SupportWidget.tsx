@@ -104,7 +104,7 @@ export default function SupportWidget() {
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "ml-auto max-w-[85%]" : "mr-auto max-w-[85%]"}>
                 <div
-                  className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                  className={`whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
                     m.role === "user"
                       ? "rounded-br-sm bg-copper text-cream"
                       : "rounded-bl-sm bg-navy/5 text-navy"

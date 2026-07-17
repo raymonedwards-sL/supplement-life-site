@@ -142,7 +142,7 @@ export default function IntakeChat() {
               <p className="mb-1 px-1 text-xs font-semibold text-navy/40">Sage</p>
             )}
             <div
-              className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              className={`whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 m.role === "user"
                   ? "rounded-br-sm bg-copper text-cream"
                   : "rounded-bl-sm bg-navy/5 text-navy"

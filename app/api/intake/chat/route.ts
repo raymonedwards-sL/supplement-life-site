@@ -45,6 +45,20 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 
+// Occasionally the model double-escapes a paragraph break inside the
+// tool_use JSON it constructs for the `reply` field — instead of a real
+// newline character, the string ends up containing the literal two-character
+// sequence backslash-n (and sometimes backslash-r-backslash-n), which then
+// renders on screen as visible "\n\n" text rather than a line break. This is
+// a known quirk of models generating multi-paragraph prose inside a JSON
+// string value, not something the client should have to work around — fix
+// it once here so every consumer of `reply` gets a clean string. Order
+// matters: collapse \r\n before \n so Windows-style sequences don't leave a
+// stray \r behind.
+function sanitizeModelText(text: string): string {
+  return text.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
@@ -247,7 +261,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ done: true, summary: completion });
     }
 
-    return NextResponse.json({ done: false, reply: input.reply });
+    return NextResponse.json({ done: false, reply: sanitizeModelText(input.reply) });
   } catch (error) {
     console.error("Intake chat failed:", error);
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
