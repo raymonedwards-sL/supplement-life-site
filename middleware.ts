@@ -9,12 +9,13 @@ import {
 /**
  * Geo-restriction, layer 1 of 3 (see lib/geo/allowed-countries.ts for the
  * full picture). Supplement :: LIFE is only offered to US/CA/MX residents:
- *   - /reserve renders a hard "not available in your region" state instead
- *     of the reservation form.
- *   - /api/checkout is rejected outright, in case /reserve is bypassed.
+ *   - /reserve and /assessment render a hard "not available in your
+ *     region" state instead of the reservation/assessment form.
+ *   - /api/checkout and /api/checkout-assessment are rejected outright,
+ *     in case the form page is bypassed.
  * Both checks fail OPEN on an unresolvable IP or a lookup error/timeout —
- * layers 2 (attestation checkbox) and 3 (Stripe allowed_countries) remain
- * as backstops either way.
+ * layers 2 (attestation checkbox) and 3 (Stripe allowed_countries, where
+ * applicable) remain as backstops either way.
  */
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -26,7 +27,7 @@ export async function middleware(request: NextRequest) {
   const codeExchange = await exchangeStrayCode(request);
   if (codeExchange) return codeExchange;
 
-  if (pathname === "/api/checkout") {
+  if (pathname === "/api/checkout" || pathname === "/api/checkout-assessment") {
     const ip = getClientIp(request);
     const country = ip ? await lookupCountryForIp(ip) : null;
     if (!isAllowedCountry(country)) {
@@ -40,7 +41,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname === "/reserve" && searchParams.get("region") !== "unsupported") {
+  if (
+    (pathname === "/reserve" || pathname === "/assessment") &&
+    searchParams.get("region") !== "unsupported"
+  ) {
     const ip = getClientIp(request);
     const country = ip ? await lookupCountryForIp(ip) : null;
     if (!isAllowedCountry(country)) {

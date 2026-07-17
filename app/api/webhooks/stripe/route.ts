@@ -3,11 +3,15 @@ import Stripe from "stripe";
 import { stripe, FOUNDING_RESERVATION_DEPOSIT_CENTS } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { addBeehiivSubscriber } from "@/lib/beehiiv";
+import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
 
 /**
  * Handles Stripe webhook events.
  *
- * checkout.session.completed — on the $249 Founding Reservation Deposit:
+ * checkout.session.completed — two products, distinguished by
+ * session.metadata.type:
+ *
+ * "founding_reservation_deposit" (the $249 Founding Reservation Deposit):
  *   1. Creates (or reuses) the user's Supabase account and emails them an
  *      invite link to set a password / log in (PRD 5.1).
  *   2. Applies the $249 as a Stripe Customer Balance credit, so it can be
@@ -15,11 +19,22 @@ import { addBeehiivSubscriber } from "@/lib/beehiiv";
  *   3. Records a `subscriptions` row with status "pending" and
  *      conversion_date = GO_LIVE_DATE, which the 14-day notice job reads.
  *
- * charge.refunded — when a deposit is fully refunded, flips the matching
- * `subscriptions` row to status "refunded". Portal access is then blocked
- * at the application layer (see app/intake/page.tsx, app/dashboard/page.tsx,
- * app/api/intake/chat/route.ts) — their prior intake/profile/track data is
- * intentionally left in place, not deleted.
+ * "life_assessment_purchase" (the $89 LIFE Assessment, added 2026-07-17):
+ *   1. Same account creation/reuse as above — a subscriber can arrive via
+ *      either product first.
+ *   2. Records a `life_assessment_purchases` row. No customer-balance
+ *      credit and no `subscriptions` row — this is a standalone product,
+ *      not a deposit toward the Founding Subscription. See
+ *      supabase/migrations/0010_life_assessment_purchases.sql.
+ *
+ * charge.refunded — when a Founding deposit is fully refunded, flips the
+ * matching `subscriptions` row to status "refunded". Portal access is then
+ * blocked at the application layer (see app/intake/page.tsx,
+ * app/dashboard/page.tsx, app/api/intake/chat/route.ts) — their prior
+ * intake/profile/track data is intentionally left in place, not deleted.
+ * (LIFE Assessment purchases don't currently have a refund-triggered
+ * access block — $89 is a much lower-stakes one-time charge than the
+ * $249 deposit; add one here if that changes.)
  *
  * Add this route's URL (https://yourdomain.com/api/webhooks/stripe) as an
  * endpoint in Stripe: Developers > Webhooks, subscribed to
@@ -71,6 +86,10 @@ export async function POST(request: NextRequest) {
 
   const session = event.data.object as Stripe.Checkout.Session;
 
+  if (session.metadata?.type === "life_assessment_purchase") {
+    return handleLifeAssessmentPurchase(session, request);
+  }
+
   if (session.metadata?.type !== "founding_reservation_deposit") {
     return NextResponse.json({ received: true });
   }
@@ -93,35 +112,13 @@ export async function POST(request: NextRequest) {
     // 1. Create the portal account and email the user an invite link.
     // reservation_id ties back to this Checkout Session; the
     // handle_new_user() trigger copies it onto public.users automatically.
-    let userId: string;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
-    const { data: invited, error: inviteError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        data: { reservation_id: session.id },
-        redirectTo: `${siteUrl}/auth/callback?next=/intake`,
-      });
-
-    if (inviteError) {
-      const alreadyExists = /already been registered|already exists/i.test(
-        inviteError.message
-      );
-      if (!alreadyExists) throw inviteError;
-
-      // User already has an account (e.g. reserved a second track) —
-      // look up their existing id instead of failing the webhook.
-      const { data: existing, error: lookupError } = await supabaseAdmin
-        .from("users")
-        .select("id")
-        .eq("email", email)
-        .single();
-
-      if (lookupError || !existing) {
-        throw lookupError ?? new Error(`No existing user found for ${email}`);
-      }
-      userId = existing.id;
-    } else {
-      userId = invited.user.id;
-    }
+    const userId = await getOrCreateUserForCheckout(supabaseAdmin, {
+      email,
+      reservationId: session.id,
+      siteUrl,
+      redirectNext: "/intake",
+    });
 
     // 2. Apply what was ACTUALLY PAID as a Stripe Customer Balance credit
     // (negative amount = credit in the customer's favor) — deliberately
@@ -176,6 +173,57 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("Stripe webhook processing failed:", err);
     // Non-2xx so Stripe retries this event.
+    return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+  }
+}
+
+/**
+ * Handles the $89 LIFE Assessment product — same account creation/reuse
+ * as the Founding deposit, but records a life_assessment_purchases row
+ * instead of a subscriptions row (no balance credit, no go-live
+ * conversion). See supabase/migrations/0010_life_assessment_purchases.sql.
+ */
+async function handleLifeAssessmentPurchase(session: Stripe.Checkout.Session, request: NextRequest) {
+  const email = session.customer_details?.email ?? session.customer_email;
+  const customerId =
+    typeof session.customer === "string" ? session.customer : session.customer?.id;
+
+  if (!email || !customerId) {
+    console.error("LIFE Assessment checkout completed without an email or customer id:", session.id);
+    return NextResponse.json(
+      { error: "Missing email or customer id on session." },
+      { status: 400 }
+    );
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
+    const userId = await getOrCreateUserForCheckout(supabaseAdmin, {
+      email,
+      reservationId: session.id,
+      siteUrl,
+      redirectNext: "/intake",
+    });
+
+    const amountPaidCents = session.amount_total ?? 0;
+    const { error: insertError } = await supabaseAdmin.from("life_assessment_purchases").insert({
+      user_id: userId,
+      stripe_customer_id: customerId,
+      stripe_checkout_session_id: session.id,
+      amount_paid_cents: amountPaidCents,
+    });
+    if (insertError) throw insertError;
+
+    // Same daily-email list as Founding Subscribers — an assessment-only
+    // customer is exactly the audience the daily digest is meant to warm
+    // up toward the $249/mo upsell.
+    void addBeehiivSubscriber(email, { stripeCustomerId: customerId });
+
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    console.error("LIFE Assessment webhook processing failed:", err);
     return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
   }
 }

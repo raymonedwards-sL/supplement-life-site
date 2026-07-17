@@ -14,3 +14,12 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 /** The one-time Founding Reservation deposit amount, in cents. */
 export const FOUNDING_RESERVATION_DEPOSIT_CENTS = 24900;
+
+/**
+ * The one-time LIFE Assessment price, in cents — a separate, cheaper
+ * product from the Founding Reservation deposit above. Paying this
+ * unlocks Sage's guided intake and generates the subscriber's LIFE
+ * Brief; it is NOT credited toward the $249 Founding Subscription,
+ * which remains a distinct upsell offered after the Brief is delivered.
+ */
+export const LIFE_ASSESSMENT_PRICE_CENTS = 8900;

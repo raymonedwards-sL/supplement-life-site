@@ -8,6 +8,7 @@ import { LinkButton } from "@/components/ui/Button";
 import AccountMenu from "@/components/AccountMenu";
 
 const links = [
+  { href: "/assessment", label: "Take the LIFE Assessment" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/ingredients", label: "Ingredients" },
   { href: "/faq", label: "FAQ" },

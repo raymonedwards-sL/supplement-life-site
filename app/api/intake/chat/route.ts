@@ -7,6 +7,8 @@ import {
   isCuriositySignal,
   LIFESTYLE_FIELD_COLUMNS,
 } from "@/lib/claude/subscriber-context";
+import { buildLifeBriefPdf } from "@/lib/pdf/life-brief";
+import { sendLifeBriefEmail } from "@/lib/email/send-life-brief";
 
 const MODEL = "claude-sonnet-5";
 
@@ -206,6 +208,41 @@ export async function POST(request: NextRequest) {
         rationale: JSON.stringify(completion.rationale),
       });
       if (trackError) console.error("Failed to save track assignment:", trackError);
+
+      // Email "Your LIFE Brief" immediately on completion — the
+      // "she receives the Brief immediately" moment from the LIFE
+      // Assessment funnel. Built straight from this turn's completion
+      // data (no extra profile/track re-fetch needed) plus one light
+      // subscription-status lookup so the Brief's status section is
+      // accurate for both a $249 Founding Subscriber and an
+      // assessment-only ($89) customer with no subscriptions row at all.
+      // Fire-and-forget: a PDF-build or Resend hiccup must never fail
+      // intake completion for the subscriber.
+      if (user.email) {
+        void (async () => {
+          try {
+            const { data: subscription } = await supabase
+              .from("subscriptions")
+              .select("status, conversion_date")
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            const pdfBytes = await buildLifeBriefPdf({
+              email: user.email!,
+              currentSummary: completion.summary,
+              waterIntakeRecommendation: completion.daily_practices.water_intake,
+              fastingRecommendation: completion.daily_practices.fasting,
+              trackIds: completion.recommended_track_ids,
+              rationale: completion.rationale,
+              subscriptionStatus: subscription?.status ?? null,
+              conversionDate: subscription?.conversion_date ?? null,
+            });
+            await sendLifeBriefEmail({ email: user.email!, pdfBytes });
+          } catch (err) {
+            console.error("Failed to generate/send LIFE Brief email:", err);
+          }
+        })();
+      }
 
       return NextResponse.json({ done: true, summary: completion });
     }

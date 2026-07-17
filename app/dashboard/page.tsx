@@ -47,6 +47,7 @@ export default async function Dashboard() {
     { data: trackAssignment },
     { data: subscription },
     { data: accountRow },
+    { data: lifeAssessmentPurchase },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -68,7 +69,19 @@ export default async function Dashboard() {
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase.from("users").select("full_name").eq("id", user.id).maybeSingle(),
+    // LIFE Assessment funnel (2026-07-17): a subscriber who paid $89 for
+    // the assessment but never reserved a Founding Subscription has no
+    // `subscriptions` row at all — used below to surface the "Become a
+    // Founding Subscriber" upsell instead of assuming everyone here
+    // arrived via the $249 reservation flow.
+    supabase
+      .from("life_assessment_purchases")
+      .select("id, purchased_at")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
+
+  const isAssessmentOnlyAccount = !subscription && Boolean(lifeAssessmentPurchase);
 
   if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
     return (
@@ -150,6 +163,32 @@ export default async function Dashboard() {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {isAssessmentOnlyAccount && (
+            <div className="rounded-2xl border border-copper/30 bg-navy p-6 text-cream sm:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-copper">
+                Become a Founding Subscriber
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-cream">
+                Lock in $249/month before public launch.
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-cream/70">
+                Your LIFE Assessment and Brief are a one-time diagnostic —
+                the Founding Subscription is the ongoing relationship:
+                monthly Botanical Track shipments, and Sage refining your
+                formula as your life changes. Reserve now and your rate is
+                locked at $249/month for your first six months, half the
+                $499/month we&apos;ll charge the public starting October
+                2026.
+              </p>
+              <Link
+                href="/reserve"
+                className="mt-4 inline-block rounded-full bg-copper px-5 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
+              >
+                Reserve Your Founding Subscription
+              </Link>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
             <p className="text-sm font-medium text-navy/50">
               Your Wellness Profile
@@ -170,7 +209,7 @@ export default async function Dashboard() {
                     href="/api/dashboard/insights-pdf"
                     className="text-sm font-semibold text-copper underline underline-offset-2"
                   >
-                    Download My Wellness Insights (PDF)
+                    Download Your LIFE Brief (PDF)
                   </a>
                 </div>
               </>

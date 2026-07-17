@@ -3,6 +3,7 @@ import Image from "next/image";
 import { TRACKS } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
+import { PricingComparisonTable } from "@/components/PricingComparisonTable";
 
 const PREVIEW_TRACK_IDS = [
   "daily-restore",
@@ -119,24 +120,33 @@ export default function Home() {
               The second half of your life deserves a better protocol.
             </h1>
             <p className="relative mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-navy/70">
-              The fatigue that lingers no matter how much you sleep. The
+              The fatigue that lingers no matter how much you sleep — even
+              when your own tracking says you should feel rested. The
               recovery that used to take a day and now takes a week. The
-              mental fog that shows up right when you need to be sharpest.
-              These aren&apos;t things to just accept — they&apos;re signals.{" "}
+              mental fog that arrives at the same hour every afternoon,
+              right when you need to be sharpest. These aren&apos;t things
+              to just accept — they&apos;re signals.{" "}
               <strong className="font-semibold text-navy">Supplement :: LIFE</strong> builds a
               bespoke <strong className="font-semibold text-navy">botanical protocol</strong>{" "}
-              around your actual biology and lifestyle, engineered for the demands
-              of a full, high-performing life after 35.
+              around your actual biology and lifestyle — one system, not one
+              more thing to manage — engineered for the demands of a full,
+              high-performing life after 35.
             </p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/reserve" size="lg">
               Reserve Your Founding Subscription
             </LinkButton>
-            <LinkButton href="/how-it-works" variant="secondary" size="lg">
-              See How It Works
+            <LinkButton href="/assessment" variant="secondary" size="lg">
+              Take the LIFE Assessment — $89
             </LinkButton>
           </div>
+          <Link
+            href="/how-it-works"
+            className="text-sm font-semibold text-navy/50 underline underline-offset-2 hover:text-copper"
+          >
+            See how it works &rarr;
+          </Link>
           <ul className="mt-6 flex flex-col flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-navy/50 sm:flex-row">
             {trust.map((item) => (
               <li key={item} className="flex items-center gap-2">
@@ -265,6 +275,11 @@ export default function Home() {
                 — a bespoke system built to keep pace with your actual life,
                 not a static formula you&apos;re locked into.
               </p>
+              <blockquote className="mt-6 border-l-4 border-copper/40 pl-5 font-serif text-xl italic leading-relaxed text-navy/80">
+                &ldquo;Sage learns from how your body responds across 90
+                days — not just what you reported on day one — and adjusts
+                your formula to what you actually need now.&rdquo;
+              </blockquote>
               <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {positioningPoints.map((point) => (
                   <div
@@ -453,6 +468,15 @@ export default function Home() {
               price we&apos;ll offer the public starting October 2026 — and
               fully refundable per the Founding Subscriber Program terms.
             </p>
+            <p className="mt-4 text-sm text-navy/50">
+              Not ready to commit? Start with the{" "}
+              <Link href="/assessment" className="font-semibold text-copper hover:text-copper/80">
+                LIFE Assessment ($89)
+              </Link>{" "}
+              — a guided conversation with Sage and your personal LIFE
+              Brief, with the Founding Subscription offered separately once
+              you&apos;ve seen it.
+            </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
               Reserve Your Founding Subscription
             </LinkButton>
@@ -467,6 +491,14 @@ export default function Home() {
                 <p className="text-sm text-navy/70">{item}</p>
               </div>
             ))}
+          </div>
+        </Container>
+        <Container className="mt-16">
+          <p className="text-center text-sm font-semibold uppercase tracking-wide text-navy/50">
+            The full value stack
+          </p>
+          <div className="mt-6">
+            <PricingComparisonTable />
           </div>
         </Container>
       </section>
