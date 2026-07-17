@@ -187,7 +187,7 @@ export default function AccountMenu() {
                 onClick={close}
                 className="rounded-lg px-3 py-2 text-left transition-colors hover:bg-navy/5"
               >
-                Wellness Intake
+                Talk with Sage
               </Link>
               <button
                 type="button"
