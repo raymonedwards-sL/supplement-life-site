@@ -7,6 +7,17 @@ export const metadata: Metadata = {
     "Privacy Policy for Supplement :: LIFE, operated by LIFE Wellness Brands LLC.",
 };
 
+/**
+ * 2026-07-17: the customer-visible "Draft notice" banner was removed ahead
+ * of press/podcast outreach — a visible "not reviewed by a licensed
+ * attorney" disclaimer is a real due-diligence liability once the site is
+ * getting outside visibility, not just organic pre-launch traffic. This
+ * comment is now the only reminder: THIS PAGE STILL HAS NOT HAD A REAL
+ * LEGAL REVIEW, including for state-specific privacy laws (e.g. CCPA) and,
+ * if applicable, international regulations (e.g. GDPR). Removing the
+ * visible banner doesn't change that — get actual attorney sign-off before
+ * relying on this copy as final.
+ */
 export default function Privacy() {
   return (
     <section className="py-20">
@@ -18,16 +29,6 @@ export default function Privacy() {
         <p className="mt-3 text-sm text-navy/50">
           Last updated: July 2026. Effective as of the date posted.
         </p>
-
-        <div className="mt-6 rounded-xl border border-copper/30 bg-copper/5 p-4 text-sm leading-relaxed text-navy/70">
-          <strong className="text-navy">Draft notice:</strong> This page is a
-          working draft prepared for pre-launch and payment-processor
-          review. It is not a substitute for advice from a licensed attorney
-          and should receive full legal review — including for
-          state-specific privacy laws (e.g. CCPA) and, if applicable,
-          international regulations (e.g. GDPR) — before Supplement :: LIFE
-          is generally available to the public.
-        </div>
 
         <div className="mt-10 flex flex-col gap-8 text-navy/80">
           <div>

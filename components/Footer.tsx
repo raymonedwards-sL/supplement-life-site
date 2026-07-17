@@ -15,6 +15,7 @@ const columns = [
     links: [
       { href: "/our-story", label: "Our Story" },
       { href: "/wellness-after-35", label: "Why Wellness Changes After 35" },
+      { href: "/press", label: "Press & Media" },
     ],
   },
   {

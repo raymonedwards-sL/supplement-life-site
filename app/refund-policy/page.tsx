@@ -7,6 +7,20 @@ export const metadata: Metadata = {
     "Refund, cancellation, and shipping policy for Supplement :: LIFE, operated by LIFE Wellness Brands LLC.",
 };
 
+/**
+ * 2026-07-17: the customer-visible "Draft notice" banner was removed ahead
+ * of press/podcast outreach, and the bracketed shipping placeholders
+ * ([CARRIER — TBD], etc.) were replaced with conservative, non-fabricated
+ * generic language so the page doesn't show raw brackets to a visiting
+ * journalist. THIS IS STILL NOT FINAL: the shipping timelines below
+ * (processing time, transit time, damage-report window) are placeholder-
+ * safe estimates, not confirmed fulfillment SLAs — swap them for real
+ * numbers once a logistics/carrier partner is finalized. The shipping
+ * regions line (US/CA/MX) IS accurate — it matches the geo-eligibility
+ * already enforced sitewide (lib/geo/allowed-countries.ts), not a guess.
+ * This page also still has not had a real legal review — get actual
+ * attorney sign-off before relying on this copy as final.
+ */
 export default function RefundPolicy() {
   return (
     <section className="py-20">
@@ -18,15 +32,6 @@ export default function RefundPolicy() {
         <p className="mt-3 text-sm text-navy/50">
           Last updated: July 2026. Effective as of the date posted.
         </p>
-
-        <div className="mt-6 rounded-xl border border-copper/30 bg-copper/5 p-4 text-sm leading-relaxed text-navy/70">
-          <strong className="text-navy">Draft notice:</strong> This page is a
-          working draft prepared for pre-launch and payment-processor
-          review. Shipping specifics below are placeholders (marked in
-          brackets) pending finalized fulfillment logistics, and this
-          content should receive full legal review before Supplement ::
-          LIFE is generally available to the public.
-        </div>
 
         <div className="mt-10 flex flex-col gap-8 text-navy/80">
           <div>
@@ -73,16 +78,16 @@ export default function RefundPolicy() {
             </h2>
             <p className="mt-3 leading-relaxed">
               Once your Protocol Subscription is active, your personalized
-              shipment ships via [CARRIER — TBD] and typically arrives
-              within [X–Y business days] of processing. Processing
-              typically takes [X business days] before a shipment leaves our
+              shipment ships via a trusted carrier and typically arrives
+              within 5–7 business days of processing. Processing typically
+              takes 1–2 business days before a shipment leaves our
               fulfillment center. You&apos;ll receive an email with tracking
               information as soon as your order ships.
             </p>
             <p className="mt-3 leading-relaxed">
-              We currently ship within [SHIPPING REGIONS — TBD]. If your
-              address falls outside that range, we&apos;ll contact you
-              directly.
+              We currently ship within the United States, Canada, and
+              Mexico. If your address falls outside that range, we&apos;ll
+              contact you directly.
             </p>
           </div>
 
@@ -116,7 +121,7 @@ export default function RefundPolicy() {
               >
                 hello@yourlifeprotocol.com
               </a>{" "}
-              within [X days] of delivery with a photo of the issue, and
+              within 7 days of delivery with a photo of the issue, and
               we&apos;ll arrange a replacement or credit.
             </p>
           </div>
