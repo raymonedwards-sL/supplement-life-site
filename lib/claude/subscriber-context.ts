@@ -41,7 +41,7 @@ export async function buildSubscriberContext(
       supabase
         .from("profiles")
         .select(
-          "current_summary, sleep_hours, sleep_quality, stress_load, alcohol_frequency, exercise_pattern, diet_pattern, cycle_life_stage, water_intake, fasting_pattern, living_environment, work_environment, travel_frequency, recurring_complaints, curiosity_signal_count, conversation_count, last_conversation_at"
+          "current_summary, sleep_hours, sleep_quality, stress_load, alcohol_frequency, exercise_pattern, diet_pattern, cycle_life_stage, water_intake, fasting_pattern, living_environment, work_environment, travel_frequency, water_intake_recommendation, fasting_recommendation, recurring_complaints, curiosity_signal_count, conversation_count, last_conversation_at"
         )
         .eq("user_id", userId)
         .maybeSingle(),
@@ -138,6 +138,19 @@ export async function buildSubscriberContext(
     lines.push("RECENT SELF-REPORTED OUTCOMES (personalize with this — never use it to make efficacy claims):");
     for (const f of feedback) {
       lines.push(`- ${f.track_id ?? "general"}: ${f.feedback}`);
+    }
+  }
+
+  if (profile?.water_intake_recommendation || profile?.fasting_recommendation) {
+    lines.push("");
+    lines.push(
+      "PRIOR DAILY PRACTICES GUIDANCE (refine or reaffirm this based on what's new this conversation, rather than starting from scratch):"
+    );
+    if (profile?.water_intake_recommendation) {
+      lines.push(`- Water intake: ${profile.water_intake_recommendation}`);
+    }
+    if (profile?.fasting_recommendation) {
+      lines.push(`- Fasting: ${profile.fasting_recommendation}`);
     }
   }
 

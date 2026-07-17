@@ -49,7 +49,9 @@ export async function GET() {
     await Promise.all([
       supabase
         .from("profiles")
-        .select("current_summary, updated_at")
+        .select(
+          "current_summary, updated_at, water_intake_recommendation, fasting_recommendation"
+        )
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase
@@ -166,6 +168,23 @@ export async function GET() {
     );
   }
   cursor.y -= 18;
+
+  // --- Daily Practices ---
+  if (profile?.water_intake_recommendation || profile?.fasting_recommendation) {
+    drawSectionHeading(pdfDoc, cursor, "Your Daily Practices", bold);
+    if (profile?.water_intake_recommendation) {
+      drawText(pdfDoc, cursor, "HYDRATION", bold, 10, COPPER);
+      cursor.y -= 14;
+      drawParagraph(pdfDoc, cursor, profile.water_intake_recommendation, font, 10, INK);
+      cursor.y -= 6;
+    }
+    if (profile?.fasting_recommendation) {
+      drawText(pdfDoc, cursor, "FASTING WINDOW", bold, 10, COPPER);
+      cursor.y -= 14;
+      drawParagraph(pdfDoc, cursor, profile.fasting_recommendation, font, 10, INK);
+    }
+    cursor.y -= 18;
+  }
 
   // --- Subscription status ---
   drawSectionHeading(pdfDoc, cursor, "Subscription Status", bold);

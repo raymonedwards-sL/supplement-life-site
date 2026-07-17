@@ -31,6 +31,7 @@ type TurnInput = {
     recommended_track_ids: string[];
     rationale: { track_id: string; reason: string }[];
     ingredient_highlights: { ingredient: string; role: string }[];
+    daily_practices: { water_intake: string; fasting: string };
   } | null;
 };
 
@@ -185,6 +186,12 @@ export async function POST(request: NextRequest) {
         {
           user_id: user.id,
           current_summary: completion.summary,
+          // Sage's synthesized daily guidance (distinct from the
+          // self-reported water_intake/fasting_pattern columns from
+          // 0007) — refreshed on every intake completion so it evolves
+          // the same way current_summary does. See 0009_daily_practices.sql.
+          water_intake_recommendation: completion.daily_practices.water_intake,
+          fasting_recommendation: completion.daily_practices.fasting,
         },
         { onConflict: "user_id" }
       );

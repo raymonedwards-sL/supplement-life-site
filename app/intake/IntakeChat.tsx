@@ -14,6 +14,7 @@ type Completion = {
   recommended_track_ids: string[];
   rationale: { track_id: string; reason: string }[];
   ingredient_highlights: { ingredient: string; role: string }[];
+  daily_practices: { water_intake: string; fasting: string };
 };
 
 export default function IntakeChat() {
@@ -244,6 +245,65 @@ function SummaryCard({ summary }: { summary: Completion }) {
                 <span className="ml-2 text-navy/75">{ing.role}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {summary.daily_practices && (
+        <div className="mt-8">
+          <p className="text-base font-bold text-navy">Your Daily Practices</p>
+          <p className="mt-1 text-sm text-navy/60">
+            Sage&apos;s hydration and fasting guidance, personalized to how you
+            actually live.
+          </p>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-navy/10 bg-white/70 p-5">
+              <div className="flex items-center gap-2 text-copper">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                  aria-hidden
+                >
+                  <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z" />
+                </svg>
+                <p className="text-sm font-bold uppercase tracking-wide">
+                  Hydration
+                </p>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-navy/75">
+                {summary.daily_practices.water_intake}
+              </p>
+            </div>
+            <div className="rounded-xl border border-navy/10 bg-white/70 p-5">
+              <div className="flex items-center gap-2 text-copper">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                  aria-hidden
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" />
+                </svg>
+                <p className="text-sm font-bold uppercase tracking-wide">
+                  Fasting Window
+                </p>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-navy/75">
+                {summary.daily_practices.fasting}
+              </p>
+            </div>
           </div>
         </div>
       )}

@@ -118,6 +118,12 @@ As a standard weighting, Daily Restore, Reset, and Vitality are foundational, br
 
 Set rationale as one entry PER recommended track, in the same order as recommended_track_ids (so the first entry is the primary track's own reasoning, not a shared paragraph covering all tracks at once) — the UI displays each entry directly under that track's own card, so each entry's reason text must stand alone and make sense without the others. Each entry's reason should tie specific ingredients to what the person actually described for that one track, and respect every caution listed for it. Write at whatever tier applies per the Depth Ladder above: Tier 1 stays to a sentence or two per track with minimal mechanism; Tier 2 connects 2-3 systems in plain language; Tier 3 offers a fuller systems narrative for that track, framed with the same non-diagnostic discipline required throughout — but even at Tier 3, keep each track's own reason focused on that track rather than re-explaining the whole protocol in every entry. ingredient_highlights should mirror packaging copy style, e.g. "Vitex — Hormonal-Rhythm Support" (ingredient name — plain-language role), and should draw from across all recommended tracks (roughly 4-6 highlights total), not clinical language.
 
+Always set daily_practices too — this is a required part of every completion, not an optional add-on. It has two fields, water_intake and fasting, each a short (1-3 sentence), specific, doable daily guidance, not a generic "stay hydrated" or "try fasting" platitude:
+- **water_intake**: Ground this in what they actually told you — self-reported water_intake, activity level, travel/climate patterns (living/work/travel environment), and alcohol/caffeine mentions all matter here. Give a concrete daily target (e.g. "aim for roughly 90-100 oz across the day") and one practical anchor tied to their actual routine (e.g. a travel day, a workout, a wake-up ritual), not just a number in isolation.
+- **fasting**: Ground this in their self-reported fasting_pattern, sleep/wake rhythm, and stress load. If they already follow a fasting protocol, refine or affirm it rather than replacing it wholesale. If they don't, suggest a gentle, realistic starting point (e.g. a 12-13 hour overnight window before anything more structured) rather than defaulting to a demanding protocol like 16:8 for someone with no fasting history. If the subscriber has a pregnancy/nursing safety flag on file (persisted or disclosed this conversation), do NOT suggest any fasting window — say plainly that fasting guidance isn't appropriate right now and to focus on consistent, regular nourishment instead, and recommend a conversation with their healthcare provider if they want to explore fasting after pregnancy/nursing.
+
+Both daily_practices fields must end with a light, natural nod to checking with a healthcare provider before making a significant change to hydration or eating patterns — especially for fasting, given how much more individual variation and risk (medication timing, blood sugar, pregnancy/nursing) applies there than to hydration. Keep this brief; it should read as a natural caveat, not a legal disclaimer bolted onto the end.
+
 ## Compliance & Claims Guardrail — NON-NEGOTIABLE, OVERRIDES EVERYTHING ABOVE
 Everything above this line is reasoning guidance. This section is different: if anything above ever conflicts with what follows, this section wins, every time, with no exceptions. This is not a formality — there is no ML safety net catching a bad output downstream of this conversation, so this block carries more real-world weight than any other content in this prompt.
 
@@ -131,7 +137,7 @@ Never name a specific medical diagnosis, disorder, or disease as something the s
 
 If a subscriber describes symptoms that sound acute, severe, or safety-relevant (chest pain, suicidal ideation, signs of an eating disorder, severe unexplained symptoms), do not offer a botanical recommendation. Direct them toward appropriate professional or emergency care instead — do not attempt to address it through a product recommendation, and do not soften this into a lesser response.
 
-Always honor permanent safety flags before any recommendation, regardless of tier or how confident the systems-reasoning seems — both the ones listed in the Subscriber profile section above (from prior conversations) and anything newly disclosed this turn: medications and supplements (cross-check against every recommendation for interaction flags — e.g. anticoagulants vs. Callaloo/Ginger/Ginkgo/Reishi/Chaga), allergies and sensitivities (including plant-family cross-reactivities, e.g. Asteraceae for Chamomile), and pregnancy/nursing status (hard-exclusion for Cascara Sagrada, Vitex, and any other track/ingredient cautioned against it above). If a subscriber volunteers an existing health condition, you may record it, but never use it to infer an undisclosed condition, and never solicit it directly yourself.
+Always honor permanent safety flags before any recommendation, regardless of tier or how confident the systems-reasoning seems — both the ones listed in the Subscriber profile section above (from prior conversations) and anything newly disclosed this turn: medications and supplements (cross-check against every recommendation for interaction flags — e.g. anticoagulants vs. Callaloo/Ginger/Ginkgo/Reishi/Chaga), allergies and sensitivities (including plant-family cross-reactivities, e.g. Asteraceae for Chamomile), and pregnancy/nursing status (hard-exclusion for Cascara Sagrada, Vitex, and any other track/ingredient cautioned against it above — and also a hard-exclusion for any fasting-window suggestion in daily_practices.fasting; nourishment consistency, not fasting, is the right guidance during pregnancy/nursing). If a subscriber volunteers an existing health condition, you may record it, but never use it to infer an undisclosed condition, and never solicit it directly yourself.
 
 You are not a doctor, and you say so plainly whenever a subscriber's question drifts from lifestyle education toward a medical question you are not positioned to answer.`;
 }
@@ -247,8 +253,32 @@ export const INTAKE_TURN_TOOL: Anthropic.Tool = {
             description:
               "4-6 ingredients drawn from across all recommended tracks (not just the primary), each with a labeled role.",
           },
+          daily_practices: {
+            type: "object",
+            description:
+              "Personalized daily hydration and fasting guidance, synthesized from what the subscriber shared (self-reported water intake/fasting pattern, activity, sleep, stress, living/work/travel environment) — required on every completion, not optional.",
+            properties: {
+              water_intake: {
+                type: "string",
+                description:
+                  "1-3 sentences: a concrete daily hydration target plus one practical anchor tied to their actual routine. End with a brief, natural nod to checking with a healthcare provider before a significant change.",
+              },
+              fasting: {
+                type: "string",
+                description:
+                  "1-3 sentences: a specific, realistic fasting/eating-window suggestion that respects their current fasting_pattern and sleep/stress load. If a pregnancy/nursing safety flag applies, do NOT suggest a fasting window — say fasting guidance isn't appropriate right now and focus on consistent nourishment instead. End with a brief, natural nod to checking with a healthcare provider before a significant change.",
+              },
+            },
+            required: ["water_intake", "fasting"],
+          },
         },
-        required: ["summary", "recommended_track_ids", "rationale", "ingredient_highlights"],
+        required: [
+          "summary",
+          "recommended_track_ids",
+          "rationale",
+          "ingredient_highlights",
+          "daily_practices",
+        ],
       },
     },
     required: ["reply"],

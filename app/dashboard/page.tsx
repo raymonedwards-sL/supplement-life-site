@@ -50,7 +50,9 @@ export default async function Dashboard() {
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("current_summary, updated_at")
+      .select(
+        "current_summary, updated_at, water_intake_recommendation, fasting_recommendation"
+      )
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
@@ -185,6 +187,69 @@ export default async function Dashboard() {
               </p>
             )}
           </div>
+
+          {(profile?.water_intake_recommendation || profile?.fasting_recommendation) && (
+            <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
+              <p className="text-sm font-medium text-navy/50">Your Daily Practices</p>
+              <p className="mt-1 text-sm text-navy/60">
+                Sage&apos;s hydration and fasting guidance, personalized to how
+                you actually live — revisit your intake any time to refine it.
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {profile?.water_intake_recommendation && (
+                  <div className="rounded-xl border border-navy/10 bg-white/70 p-5">
+                    <div className="flex items-center gap-2 text-copper">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5"
+                        aria-hidden
+                      >
+                        <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z" />
+                      </svg>
+                      <p className="text-sm font-bold uppercase tracking-wide">
+                        Hydration
+                      </p>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-navy/75">
+                      {profile.water_intake_recommendation}
+                    </p>
+                  </div>
+                )}
+                {profile?.fasting_recommendation && (
+                  <div className="rounded-xl border border-navy/10 bg-white/70 p-5">
+                    <div className="flex items-center gap-2 text-copper">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5"
+                        aria-hidden
+                      >
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 3" />
+                      </svg>
+                      <p className="text-sm font-bold uppercase tracking-wide">
+                        Fasting Window
+                      </p>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-navy/75">
+                      {profile.fasting_recommendation}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
             <p className="text-sm font-medium text-navy/50">Your Botanical Tracks</p>
