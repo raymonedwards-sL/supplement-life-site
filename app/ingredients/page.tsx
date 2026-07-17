@@ -117,9 +117,14 @@ export default function Ingredients() {
             more if you want to go deeper. This is a sample of our ingredient
             library, not the complete list for any single Track.
           </p>
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
             {featuredIngredients.map((ingredient) => (
-              <IngredientCard key={ingredient.name} ingredient={ingredient} />
+              <div
+                key={ingredient.name}
+                className="shrink-0 grow-0 basis-full sm:basis-[calc(50%-0.5rem)] lg:basis-[calc(33.333%-0.667rem)]"
+              >
+                <IngredientCard ingredient={ingredient} />
+              </div>
             ))}
           </div>
         </Container>
