@@ -4,11 +4,15 @@ import { LinkButton } from "@/components/ui/Button";
 import { TRACKS } from "@/lib/tracks";
 import { getIngredientEducationList } from "@/lib/ingredient-education";
 import { IngredientCard } from "@/components/ingredients/IngredientCard";
+import {
+  FEATURED_INGREDIENTS_BY_TRACK,
+  PUBLIC_SUMMARY_OVERRIDES,
+} from "@/lib/featured-ingredients";
 
 export const metadata: Metadata = {
-  title: "Every Ingredient, Named",
+  title: "The Ingredient Science",
   description:
-    "Every ingredient in every Supplement :: LIFE Botanical Track, named and explained in plain language — before you ever reserve a spot.",
+    "A look at the key botanicals behind every Supplement :: LIFE Botanical Track, explained in plain language — before you ever reserve a spot.",
 };
 
 /**
@@ -21,11 +25,29 @@ export const metadata: Metadata = {
  * evaluate the brand's actual depth of ingredient knowledge before paying
  * anything — and so the pre- and post-signup experience stay visually and
  * editorially consistent rather than feeling like two different products.
+ *
+ * 2026-07-17: pulled back from showing every Track's complete ingredient
+ * roster (that made the full formulation scrapeable/copyable — a real
+ * proprietary-info concern) to a curated sampling of 1-2 "hero" ingredients
+ * per Track, defined in lib/featured-ingredients.ts (shared with the
+ * homepage Tracks teaser, so both public surfaces show the same
+ * intentional sample rather than two different arbitrary cuts).
+ * lib/tracks.ts's full `ingredients` arrays are untouched and still power
+ * the private, post-payment/assessment surfaces (dashboard, LIFE Brief,
+ * Sage's intake reasoning), which should keep showing a subscriber their
+ * own complete formula.
  */
 export default function Ingredients() {
-  const allIngredients = getIngredientEducationList(
-    TRACKS.flatMap((t) => t.ingredients)
-  );
+  // Public-page-only: swap in a redacted summary for any entry whose
+  // shared write-up (also used on the private dashboard/intake summary)
+  // names a companion ingredient that isn't part of this public
+  // sampling — see PUBLIC_SUMMARY_OVERRIDES's doc comment.
+  const featuredIngredients = getIngredientEducationList(
+    TRACKS.flatMap((t) => FEATURED_INGREDIENTS_BY_TRACK[t.id] ?? [])
+  ).map((ingredient) => {
+    const override = PUBLIC_SUMMARY_OVERRIDES[ingredient.name];
+    return override ? { ...ingredient, summary: override } : ingredient;
+  });
 
   return (
     <>
@@ -33,15 +55,17 @@ export default function Ingredients() {
         <Container className="max-w-3xl">
           <Eyebrow>The Ingredient Science</Eyebrow>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-            Every ingredient, named.
+            A look at what&apos;s inside.
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-navy/70">
-            No proprietary blends. No &ldquo;other ingredients&rdquo; footnote
-            hiding what&apos;s actually in the bottle. Every Botanical Track is
-            built from named, traditional herbal and mineral ingredients, and
-            every one of them is explained here in plain language — not locked
-            behind an intake conversation or a deposit. See the reasoning for
-            yourself before you decide anything.
+            Every Supplement :: LIFE Botanical Track is built from named,
+            traditional herbal and mineral ingredients — never a vague
+            &ldquo;proprietary blend&rdquo; footnote hiding what&apos;s
+            actually in the bottle. Below is a look at a few of the key
+            botanicals behind each Track, explained in plain language. Your
+            complete formula, and the full reasoning behind every ingredient
+            in it, is revealed in your personal LIFE Brief after your
+            assessment.
           </p>
         </Container>
       </section>
@@ -49,12 +73,15 @@ export default function Ingredients() {
       <section className="py-20">
         <Container className="max-w-3xl">
           <h2 className="text-2xl font-semibold tracking-tight text-navy">
-            Which tracks use which ingredients
+            A few of the botanicals behind each Track
           </h2>
           <p className="mt-3 text-navy/70">
-            Ingredients recur across tracks by design — a shared mineral or
-            digestive-support base shows up in several formulas because it
-            genuinely belongs there, not by accident.
+            This is a sample, not each Track&apos;s complete formulation —
+            your full ingredient list and the reasoning behind it live in
+            your personal LIFE Brief. Ingredients do recur across Tracks by
+            design, though: a shared mineral or digestive-support base shows
+            up in several formulas because it genuinely belongs there, not
+            by accident.
           </p>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {TRACKS.map((track) => (
@@ -65,7 +92,7 @@ export default function Ingredients() {
                 <h3 className="text-lg font-semibold text-copper">{track.name}</h3>
                 <p className="mt-1 text-sm text-navy/60">{track.consumerNeed}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {track.ingredients.map((ingredient) => (
+                  {(FEATURED_INGREDIENTS_BY_TRACK[track.id] ?? []).map((ingredient) => (
                     <span
                       key={ingredient}
                       className="rounded-full bg-navy/10 px-3 py-1 text-xs font-bold text-navy"
@@ -83,14 +110,15 @@ export default function Ingredients() {
       <section className="border-y border-navy/10 bg-white/40 py-20">
         <Container className="max-w-5xl">
           <h2 className="text-2xl font-semibold tracking-tight text-navy">
-            The full ingredient glossary
+            A closer look at featured ingredients
           </h2>
           <p className="mt-3 max-w-2xl text-navy/70">
             What each one is, why it&apos;s formulated in, and a place to read
-            more if you want to go deeper.
+            more if you want to go deeper. This is a sample of our ingredient
+            library, not the complete list for any single Track.
           </p>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {allIngredients.map((ingredient) => (
+            {featuredIngredients.map((ingredient) => (
               <IngredientCard key={ingredient.name} ingredient={ingredient} />
             ))}
           </div>
@@ -103,8 +131,8 @@ export default function Ingredients() {
             Supplement :: LIFE provides personalized wellness information, not
             medical advice, a diagnosis, or a treatment plan. Wikipedia links
             are provided as a general reference, not medical guidance. Some
-            ingredients carry individual cautions (for example, callaloo is
-            high in Vitamin K and isn&apos;t recommended alongside
+            ingredients carry individual cautions (for example, ginger has a
+            mild anticoagulant adjacency worth mentioning if you take
             blood-thinning medication) — always talk to your healthcare
             provider before starting any new supplement, especially if you
             have a medical condition, take prescription medication, or are

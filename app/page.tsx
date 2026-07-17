@@ -4,6 +4,7 @@ import { TRACKS } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 import { PricingComparisonTable } from "@/components/PricingComparisonTable";
+import { FEATURED_INGREDIENTS_BY_TRACK } from "@/lib/featured-ingredients";
 
 const PREVIEW_TRACK_IDS = [
   "daily-restore",
@@ -388,7 +389,7 @@ export default function Home() {
                   {track.consumerNeed}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {track.ingredients.slice(0, 3).map((ingredient) => (
+                  {(FEATURED_INGREDIENTS_BY_TRACK[track.id] ?? []).map((ingredient) => (
                     <span
                       key={ingredient}
                       className="rounded-full bg-navy/10 px-3 py-1 text-xs font-bold text-navy"
@@ -404,7 +405,7 @@ export default function Home() {
             href="/ingredients"
             className="mt-8 inline-block text-sm font-semibold text-copper hover:text-copper/80"
           >
-            See the full ingredient science &rarr;
+            See the ingredient science &rarr;
           </Link>
         </Container>
       </section>
