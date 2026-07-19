@@ -84,6 +84,22 @@ export default function WellnessAfter35() {
         </Container>
       </section>
 
+      <section className="py-20">
+        <Container className="max-w-3xl">
+          <p className="text-lg leading-relaxed text-navy/70">
+            None of these shifts happen in isolation. The recovery that
+            takes longer is also the reason you cancel plans you actually
+            wanted to keep. The focus that fluctuates is also the reason a
+            good idea sits unfinished instead of becoming something real.
+            Named and understood early, this is simply a different chapter
+            to build around — not something to fight. Left unaddressed, it
+            has a way of quietly narrowing what a full life looks like,
+            starting with the people and pursuits you&apos;d rather not
+            scale back.
+          </p>
+        </Container>
+      </section>
+
       <section className="border-y border-navy/10 bg-white/40 py-20">
         <Container className="max-w-3xl">
           <p className="font-serif text-2xl leading-relaxed text-navy">

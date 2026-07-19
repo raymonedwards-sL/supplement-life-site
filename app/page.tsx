@@ -256,6 +256,33 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* What's actually at stake */}
+      <section className="py-20">
+        <Container className="max-w-3xl">
+          <Eyebrow>Why This Matters</Eyebrow>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+            This isn&apos;t just about energy.
+          </h2>
+          <p className="mt-4 text-lg leading-relaxed text-navy/70">
+            Low energy doesn&apos;t stay contained to one part of your day.
+            It&apos;s the meeting you show up to a step behind instead of
+            sharp. The evening you spend recovering on the couch instead of
+            present with the people who matter most. The idea you keep to
+            yourself because you&apos;re not sure you have the follow-through
+            to see it out. A subtle biological shift, left unaddressed, has a
+            way of becoming a quiet tax on the parts of life you actually
+            care about — your relationships, your ambition, your sense of
+            being fully yourself.
+          </p>
+          <p className="mt-4 leading-relaxed text-navy/70">
+            A protocol built around your real biology isn&apos;t one more
+            thing to manage. It&apos;s how you get back the version of you
+            that shows up fully — for the people, the work, and the decade
+            ahead.
+          </p>
+        </Container>
+      </section>
+
       {/* Meet Your LIFE Guide */}
       <section className="py-24">
         <Container className="max-w-5xl">
