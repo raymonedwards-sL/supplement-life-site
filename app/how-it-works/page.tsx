@@ -5,24 +5,24 @@ import { LinkButton } from "@/components/ui/Button";
 
 const steps = [
   {
-    title: "Reserve your spot",
-    body: "A $249 Founding Subscription deposit holds your place and creates your account. It's fully credited toward your first six months of your Protocol Subscription at the Founding rate of $249/month — half the $499/month regular subscription price we'll offer the public starting October 2026 — and fully refundable per the Founding Subscriber Program terms.",
-  },
-  {
-    title: "Meet Sage, Your LIFE Guide",
-    body: "Log in and have a guided, in-depth conversation with Sage about how you actually live — sleep, stress, movement, recovery, focus, nutrition, energy, priorities. Take your time; there's no clock. It's a real conversation, not a quiz, and it's never a substitute for medical advice.",
+    title: "Take the LIFE Assessment",
+    body: "A one-time $99 guided conversation with Sage, Your LIFE Guide, creates your account and unlocks your intake — no reservation required to get started. Take your time; there's no clock. It's a real conversation, not a quiz, and it's never a substitute for medical advice.",
   },
   {
     title: "Get matched to a Botanical Track",
-    body: "Your responses are weighed against our Botanical Track library — formulations built around real needs like recovery, sleep onset, seasonal defense, or cycle comfort — using traditional herbal and mineral ingredients. You'll get a plain-language rationale for the match, not a black box.",
+    body: "Sage weighs what you share — sleep, stress, movement, recovery, focus, nutrition, energy, priorities — against our Botanical Track library, formulations built around real needs like recovery, sleep onset, seasonal defense, or cycle comfort, using traditional herbal and mineral ingredients. You'll get a plain-language rationale for the match, not a black box, plus your personal LIFE Brief immediately — on screen and by email.",
+  },
+  {
+    title: "Reserve your Founding Subscription",
+    body: "Ready for the ongoing relationship? Reserve your $249 Founding Subscription any time — it locks in $249/month for your first six months, half the $499/month regular subscription price we'll offer the public starting October 2026, fully refundable per the Founding Subscriber Program terms, and it's what unlocks monthly Botanical Track shipments once we go live.",
   },
   {
     title: "Your protocol ships",
-    body: "Once we go live, everyone who's reserved is first in line to receive their personalized protocol. You'll get an email as soon as your shipment is on its way.",
+    body: "Once we go live, every Founding Subscriber is first in line to receive their personalized protocol. You'll get an email as soon as your shipment is on its way.",
   },
   {
     title: "Improve over time",
-    body: "Great wellness isn't static. Your dashboard keeps a running wellness profile, and as your life changes, you can revisit your intake and adjust your Botanical Track — this isn't a one-and-done quiz result.",
+    body: "Great wellness isn't static. Revisit your intake any time within 90 days of your LIFE Assessment, or anytime as an active Founding Subscriber — your dashboard keeps a running wellness profile, and Sage refines your Botanical Track as your life changes. This isn't a one-and-done quiz result.",
   },
 ];
 
@@ -133,11 +133,11 @@ export default function HowItWorks() {
             Ready to get started?
           </h2>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <LinkButton href="/reserve" size="lg">
-              Reserve Your Founding Subscription
+            <LinkButton href="/assessment" size="lg">
+              Take the LIFE Assessment — $99
             </LinkButton>
-            <LinkButton href="/faq" variant="secondary" size="lg">
-              Read the FAQ
+            <LinkButton href="/reserve" variant="secondary" size="lg">
+              Reserve Your Founding Subscription
             </LinkButton>
           </div>
         </Container>
