@@ -15,6 +15,7 @@ import { IngredientCard } from "@/components/ingredients/IngredientCard";
 import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
 import { parseRationale } from "@/lib/rationale";
 import { fetchTrustedArticlesByCategory } from "@/lib/third-party-articles";
+import { resolveIntakeAccess } from "@/lib/access/intake-access";
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
@@ -82,6 +83,14 @@ export default async function Dashboard() {
   ]);
 
   const isAssessmentOnlyAccount = !subscription && Boolean(lifeAssessmentPurchase);
+  // Gates the "Retake your intake" link below — a LIFE Assessment-only
+  // account only gets retakes for its 90-day window (lib/access/
+  // intake-access.ts); this is a read of the same rule /api/intake/chat
+  // enforces server-side, not a second source of truth for it.
+  const intakeAccess = resolveIntakeAccess({
+    subscriptionStatus: subscription?.status ?? null,
+    lifeAssessmentPurchasedAt: lifeAssessmentPurchase?.purchased_at ?? null,
+  });
 
   if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
     return (
@@ -199,12 +208,14 @@ export default async function Dashboard() {
                   {profile.current_summary}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
-                  <Link
-                    href="/intake"
-                    className="text-sm font-semibold text-copper underline underline-offset-2"
-                  >
-                    Retake your intake
-                  </Link>
+                  {intakeAccess.allowed && (
+                    <Link
+                      href="/intake"
+                      className="text-sm font-semibold text-copper underline underline-offset-2"
+                    >
+                      Retake your intake
+                    </Link>
+                  )}
                   <a
                     href="/api/dashboard/insights-pdf"
                     className="text-sm font-semibold text-copper underline underline-offset-2"
@@ -212,6 +223,15 @@ export default async function Dashboard() {
                     Download Your LIFE Brief (PDF)
                   </a>
                 </div>
+                {!intakeAccess.allowed && intakeAccess.reason === "assessment_window_expired" && (
+                  <p className="mt-2 text-xs leading-relaxed text-navy/50">
+                    Your LIFE Assessment&apos;s 90-day retake window has closed.{" "}
+                    <Link href="/reserve" className="font-semibold text-copper underline underline-offset-2">
+                      Reserve a Founding Subscription
+                    </Link>{" "}
+                    to keep an ongoing relationship with Sage.
+                  </p>
+                )}
               </>
             ) : (
               <p className="mt-3 text-navy/60">

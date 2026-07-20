@@ -9,6 +9,7 @@ import {
 } from "@/lib/claude/subscriber-context";
 import { buildLifeBriefPdf } from "@/lib/pdf/life-brief";
 import { sendLifeBriefEmail } from "@/lib/email/send-life-brief";
+import { resolveIntakeAccess } from "@/lib/access/intake-access";
 
 const MODEL = "claude-sonnet-5";
 
@@ -43,8 +44,6 @@ if (!process.env.ANTHROPIC_API_KEY) {
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
-
 // Occasionally the model double-escapes a paragraph break inside the
 // tool_use JSON it constructs for the `reply` field — instead of a real
 // newline character, the string ends up containing the literal two-character
@@ -69,19 +68,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
 
-  // Refunded/canceled reservations lose intake access even though the
-  // account still exists — checked server-side too, not just in the UI.
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("status")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Enforced server-side too, not just in the /intake page UI — a
+  // refunded/canceled reservation always blocks access; a LIFE
+  // Assessment-only account only has access for its 90-day retake window
+  // (see lib/access/intake-access.ts for the full rule).
+  const [{ data: accessSubscription }, { data: lifeAssessmentPurchase }] = await Promise.all([
+    supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
+    supabase
+      .from("life_assessment_purchases")
+      .select("purchased_at")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
 
-  if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
-    return NextResponse.json(
-      { error: "This account's reservation is no longer active." },
-      { status: 403 }
-    );
+  const access = resolveIntakeAccess({
+    subscriptionStatus: accessSubscription?.status ?? null,
+    lifeAssessmentPurchasedAt: lifeAssessmentPurchase?.purchased_at ?? null,
+  });
+
+  if (!access.allowed) {
+    const message =
+      access.reason === "refunded_or_canceled"
+        ? "This account's reservation is no longer active."
+        : "Your LIFE Assessment's 90-day access window has closed. Reserve a Founding Subscription to continue with Sage.";
+    return NextResponse.json({ error: message }, { status: 403 });
   }
 
   const { messages }: { messages: ChatMessage[] } = await request.json();

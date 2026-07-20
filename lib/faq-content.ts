@@ -18,7 +18,7 @@ export const FAQS = [
   },
   {
     q: "What is the LIFE Assessment and what does the $99 cover?",
-    a: "The LIFE Assessment is a one-time, $99 guided conversation with Sage, Your LIFE Guide, that produces your personal LIFE Brief — your Botanical Track match, the reasoning behind every ingredient, and what your first 90 days is designed to do. It's a separate, standalone product from the Founding Subscription deposit below — it doesn't include ongoing product shipments on its own, and the $99 isn't credited toward the Founding Subscription.",
+    a: "The LIFE Assessment is a one-time, $99 guided conversation with Sage, Your LIFE Guide, that produces your personal LIFE Brief — your Botanical Track match, the reasoning behind every ingredient, and what your first 90 days is designed to do. It's a separate, standalone product from the Founding Subscription deposit below — it doesn't include ongoing product shipments on its own, and the $99 isn't credited toward the Founding Subscription. You can revisit and retake your intake with Sage any time within 90 days of your LIFE Assessment purchase; continuing to refine your protocol with Sage beyond that window is part of the Founding Subscription.",
   },
   {
     q: "What does the $249 Founding Subscription deposit cover?",

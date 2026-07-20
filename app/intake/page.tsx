@@ -3,9 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import IntakeChat from "./IntakeChat";
 import LoginPrompt from "@/components/LoginPrompt";
 import AccessRevoked from "@/components/AccessRevoked";
+import IntakeAccessLocked from "@/components/IntakeAccessLocked";
 import { Container, Eyebrow } from "@/components/ui/Container";
-
-const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
+import { resolveIntakeAccess, type IntakeAccessResult } from "@/lib/access/intake-access";
 
 export default async function Intake() {
   const supabase = await createClient();
@@ -13,14 +13,20 @@ export default async function Intake() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let isBlocked = false;
+  let access: IntakeAccessResult | null = null;
   if (user) {
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("status")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    isBlocked = Boolean(subscription?.status && BLOCKED_STATUSES.has(subscription.status));
+    const [{ data: subscription }, { data: lifeAssessmentPurchase }] = await Promise.all([
+      supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
+      supabase
+        .from("life_assessment_purchases")
+        .select("purchased_at")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+    access = resolveIntakeAccess({
+      subscriptionStatus: subscription?.status ?? null,
+      lifeAssessmentPurchasedAt: lifeAssessmentPurchase?.purchased_at ?? null,
+    });
   }
 
   return (
@@ -75,8 +81,10 @@ export default async function Intake() {
         <div className="mt-8">
           {!user ? (
             <LoginPrompt redirectPath="/intake" />
-          ) : isBlocked ? (
+          ) : access && !access.allowed && access.reason === "refunded_or_canceled" ? (
             <AccessRevoked />
+          ) : access && !access.allowed ? (
+            <IntakeAccessLocked />
           ) : (
             <IntakeChat />
           )}
