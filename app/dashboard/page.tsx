@@ -69,7 +69,7 @@ export default async function Dashboard() {
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase.from("users").select("full_name").eq("id", user.id).maybeSingle(),
-    // LIFE Assessment funnel (2026-07-17): a subscriber who paid $89 for
+    // LIFE Assessment funnel (2026-07-17): a subscriber who paid $99 for
     // the assessment but never reserved a Founding Subscription has no
     // `subscriptions` row at all — used below to surface the "Become a
     // Founding Subscriber" upsell instead of assuming everyone here

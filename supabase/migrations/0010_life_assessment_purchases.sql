@@ -1,4 +1,4 @@
--- LIFE Assessment Funnel (2026-07-17): tracks the new $89 one-time
+-- LIFE Assessment Funnel (2026-07-17): tracks the new $99 one-time
 -- "LIFE Assessment" purchase, which is a DIFFERENT product from the
 -- $249 Founding Subscription deposit tracked in `subscriptions`.
 --
@@ -10,7 +10,7 @@
 -- to Founding Subscriber after seeing their LIFE Brief).
 --
 -- No customer-balance credit applies here (unlike the $249 deposit) —
--- the $89 is a standalone diagnostic product, not credited toward the
+-- the $99 is a standalone diagnostic product, not credited toward the
 -- future subscription unless a later product decision says otherwise.
 create table if not exists public.life_assessment_purchases (
   id uuid primary key default gen_random_uuid(),

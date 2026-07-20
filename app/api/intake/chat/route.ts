@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
       // data (no extra profile/track re-fetch needed) plus one light
       // subscription-status lookup so the Brief's status section is
       // accurate for both a $249 Founding Subscriber and an
-      // assessment-only ($89) customer with no subscriptions row at all.
+      // assessment-only ($99) customer with no subscriptions row at all.
       // Fire-and-forget: a PDF-build or Resend hiccup must never fail
       // intake completion for the subscriber.
       if (user.email) {

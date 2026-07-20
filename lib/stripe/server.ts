@@ -22,4 +22,4 @@ export const FOUNDING_RESERVATION_DEPOSIT_CENTS = 24900;
  * Brief; it is NOT credited toward the $249 Founding Subscription,
  * which remains a distinct upsell offered after the Brief is delivered.
  */
-export const LIFE_ASSESSMENT_PRICE_CENTS = 8900;
+export const LIFE_ASSESSMENT_PRICE_CENTS = 9900;

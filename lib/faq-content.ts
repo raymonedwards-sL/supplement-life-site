@@ -17,8 +17,8 @@ export const FAQS = [
     a: "No. The intake is a conversational way to share what's going on with your energy, sleep, stress, and goals, and it produces personalized wellness information — not medical advice, a diagnosis, or a treatment plan. It's not a substitute for talking to a doctor, and it isn't reviewed by one in real time.",
   },
   {
-    q: "What is the LIFE Assessment and what does the $89 cover?",
-    a: "The LIFE Assessment is a one-time, $89 guided conversation with Sage, Your LIFE Guide, that produces your personal LIFE Brief — your Botanical Track match, the reasoning behind every ingredient, and what your first 90 days is designed to do. It's a separate, standalone product from the Founding Subscription deposit below — it doesn't include ongoing product shipments on its own, and the $89 isn't credited toward the Founding Subscription.",
+    q: "What is the LIFE Assessment and what does the $99 cover?",
+    a: "The LIFE Assessment is a one-time, $99 guided conversation with Sage, Your LIFE Guide, that produces your personal LIFE Brief — your Botanical Track match, the reasoning behind every ingredient, and what your first 90 days is designed to do. It's a separate, standalone product from the Founding Subscription deposit below — it doesn't include ongoing product shipments on its own, and the $99 isn't credited toward the Founding Subscription.",
   },
   {
     q: "What does the $249 Founding Subscription deposit cover?",

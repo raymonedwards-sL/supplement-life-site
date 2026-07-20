@@ -141,7 +141,7 @@ function AssessmentForm() {
             <p className="text-sm font-semibold uppercase tracking-wide text-navy/50">
               LIFE Assessment
             </p>
-            <p className="mt-1 font-serif text-3xl text-navy">$89</p>
+            <p className="mt-1 font-serif text-3xl text-navy">$99</p>
             <p className="mt-1 text-sm text-navy/50">One-time — not a subscription</p>
 
             {checkoutStatus === "cancelled" && (
@@ -217,7 +217,7 @@ function AssessmentForm() {
                 disabled={loading || !residencyConfirmed}
                 className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
               >
-                {loading ? "Redirecting to checkout…" : "Take the LIFE Assessment — $89"}
+                {loading ? "Redirecting to checkout…" : "Take the LIFE Assessment — $99"}
               </button>
               <p className="text-xs text-navy/40">
                 One-time charge for your guided assessment and LIFE Brief.
