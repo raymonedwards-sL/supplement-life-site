@@ -63,11 +63,20 @@ export async function POST(request: NextRequest) {
   // Challenge" custom field already exists in the beehiiv dashboard
   // (Settings > Custom Fields). Step 1 above is what guarantees this
   // data isn't lost while that one-time setup step is still pending.
+  // BEEHIIV_TRIBE_AUTOMATION_ID is intentionally optional — it can only be
+  // set once the "7 Signs" drip sequence has actually been built in the
+  // beehiiv dashboard with an "Add by API" trigger (beehiiv's API has no
+  // way to create that automation itself, only to enroll into one that
+  // already exists — see the automationIds comment in lib/beehiiv.ts).
+  // Until that env var is set, this is a no-op and nothing breaks.
+  const tribeAutomationId = process.env.BEEHIIV_TRIBE_AUTOMATION_ID;
+
   const result = await addBeehiivSubscriber(email, {
     utmMedium: "free_tribe_optin",
     ...(challengeList.length > 0
       ? { customFields: [{ name: "Biggest Challenge", value: challengeList.join("; ") }] }
       : {}),
+    ...(tribeAutomationId ? { automationIds: [tribeAutomationId] } : {}),
   });
 
   if (!result.ok && result.reason === "not_configured") {

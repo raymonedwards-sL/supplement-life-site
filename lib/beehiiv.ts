@@ -57,6 +57,20 @@ type AddSubscriberOptions = {
    * the join-tribe route).
    */
   customFields?: { name: string; value: string }[];
+  /**
+   * beehiiv Automation IDs to enroll this NEW subscriber into immediately
+   * after creation (verified 2026-07-20 against developers.beehiiv.com's
+   * Create Subscription reference: "Enroll the subscriber into automations
+   * after their subscription has been created. Requires the automations
+   * to have an active *Add by API* trigger"). IMPORTANT: beehiiv's API has
+   * no endpoint to CREATE an automation's actual content (steps/emails/
+   * delays) — only to list existing automations and enroll subscribers
+   * into ones that already exist with that trigger type turned on. The
+   * automation itself must be built by hand in the beehiiv dashboard
+   * (Automations > New Automation > trigger: "Add by API") before this
+   * option does anything.
+   */
+  automationIds?: string[];
 };
 
 export async function addBeehiivSubscriber(
@@ -90,6 +104,9 @@ export async function addBeehiivSubscriber(
           utm_source: "yourlifeprotocol.com",
           utm_medium: options.utmMedium ?? "founding_reservation",
           ...(options.customFields ? { custom_fields: options.customFields } : {}),
+          ...(options.automationIds && options.automationIds.length > 0
+            ? { automation_ids: options.automationIds }
+            : {}),
         }),
       }
     );
