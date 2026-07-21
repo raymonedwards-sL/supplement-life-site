@@ -223,11 +223,14 @@ export default function JoinTheTribe() {
           {step === "question" && (
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Sage&apos;s already done the matching.{" "}
-                <span className="text-copper">
-                  Your free guide: 7 Signs Your Body Is Asking for a Reset After 35.
-                </span>
+                Sage&apos;s already done the matching.
               </h1>
+              <p className="mt-4 text-2xl font-semibold tracking-tight text-copper sm:text-3xl">
+                Your free guide:
+              </p>
+              <p className="mt-1 text-lg font-medium leading-snug text-copper/90 sm:text-xl">
+                7 Signs Your Body Is Asking for a Reset After 35.
+              </p>
               <p className="mt-4 text-lg leading-relaxed text-navy/70">
                 The 3pm crash. The mind that won&apos;t quiet down at midnight.
                 The stomach that&apos;s never quite settled. Tell us which ones

@@ -330,6 +330,20 @@ export default function Home() {
               />
             </div>
           </div>
+
+          <div className="mt-10 overflow-hidden rounded-2xl border border-navy/10">
+            <Image
+              src="/lifestyle/Sage-garden.jpeg"
+              alt="Sage among traditional botanicals — the grounding behind every recommendation"
+              width={1376}
+              height={768}
+              className="h-full w-full object-cover"
+              sizes="(min-width: 1024px) 1024px, 100vw"
+            />
+          </div>
+          <p className="mt-6 text-center font-serif text-2xl leading-relaxed text-navy">
+            Sage&apos;s recommendations start with the plant, not the algorithm.
+          </p>
         </Container>
       </section>
 

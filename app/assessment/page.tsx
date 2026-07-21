@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { PricingComparisonTable } from "@/components/PricingComparisonTable";
 
@@ -226,6 +227,30 @@ function AssessmentForm() {
                 Secure checkout via Stripe.
               </p>
             </form>
+          </div>
+        </Container>
+      </section>
+
+      <section className="py-4 sm:py-8">
+        <Container className="max-w-3xl">
+          <Eyebrow>The Work Behind the Recommendation</Eyebrow>
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
+            Sage&apos;s reasoning isn&apos;t generated from nowhere.
+          </h2>
+          <p className="mt-4 text-navy/70">
+            From the garden to the greenhouse to hands-on formulation — every
+            recommendation Sage makes is grounded in real botanical practice,
+            not a generic quiz result.
+          </p>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10">
+            <Image
+              src="/lifestyle/Sage-recommends.jpeg"
+              alt="The botanical research and formulation practice behind Sage's recommendations"
+              width={1376}
+              height={768}
+              className="h-full w-full object-cover"
+              sizes="(min-width: 1024px) 768px, 100vw"
+            />
           </div>
         </Container>
       </section>
