@@ -232,14 +232,22 @@ export default function JoinTheTribe() {
                 Where should Sage send it?
               </h1>
               {challenges.length > 0 && (
-                <p className="mt-4 text-navy/70">
-                  Got it — {challenges.length === 1 ? "that's" : "that's a lot to be carrying, and it's"}{" "}
-                  useful to know:{" "}
-                  <span className="font-semibold text-copper">
-                    {challenges.map((c) => c.toLowerCase()).join(", ")}
-                  </span>
-                  . We&apos;ll keep that in mind for what we send you.
-                </p>
+                <div className="mt-4 text-navy/70">
+                  <p>
+                    {challenges.length === 1
+                      ? "Got it — thanks for sharing that."
+                      : "Got it — that's a lot to be carrying at once. Thanks for sharing all of it."}{" "}
+                    We&apos;ll keep this in mind for what we send you:
+                  </p>
+                  <ul className="mx-auto mt-3 flex max-w-sm flex-col gap-1.5 text-left">
+                    {challenges.map((c) => (
+                      <li key={c} className="flex items-start gap-2 text-sm">
+                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-copper" />
+                        <span className="font-semibold text-copper">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               <form

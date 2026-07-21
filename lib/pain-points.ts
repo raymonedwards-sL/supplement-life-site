@@ -41,22 +41,22 @@ export const PAIN_POINT_CATEGORY_LABELS: Record<PainPointCategory, string> = {
 
 export const PAIN_POINTS: PainPoint[] = [
   // Physical signals — from the user's list
-  { id: "racing-mind", label: "Racing mind at night", category: "physical_signal" },
-  { id: "poor-sleep-onset", label: "Poor sleep onset despite fatigue", category: "physical_signal" },
-  { id: "afternoon-crash", label: "Afternoon crash and brain fog", category: "physical_signal" },
-  { id: "stress-digestion", label: "Stress-linked bloating or digestion", category: "physical_signal" },
-  { id: "cycle-irregularity", label: "Unpredictable, uncomfortable cycle", category: "physical_signal" },
+  { id: "racing-mind", label: "My mind races at night", category: "physical_signal" },
+  { id: "poor-sleep-onset", label: "I'm exhausted, but I can't fall asleep", category: "physical_signal" },
+  { id: "afternoon-crash", label: "I crash and get foggy every afternoon", category: "physical_signal" },
+  { id: "stress-digestion", label: "Stress shows up in my digestion", category: "physical_signal" },
+  { id: "cycle-irregularity", label: "My cycle is unpredictable and uncomfortable", category: "physical_signal" },
   // Physical signals — carried over from the original /join question,
   // covering portrait content not in the user's list (Marcus-specific)
-  { id: "recovery-time", label: "Recovery that takes longer than it used to", category: "physical_signal" },
-  { id: "hormonal-metabolic-shift", label: "A hormonal or metabolic shift your labs don't explain", category: "physical_signal" },
+  { id: "recovery-time", label: "My recovery takes longer than it used to", category: "physical_signal" },
+  { id: "hormonal-metabolic-shift", label: "I'm going through a hormonal or metabolic shift my labs don't explain", category: "physical_signal" },
 
   // Buying frustrations — from the user's list
-  { id: "skeptical-generic", label: "Skeptical of generic wellness products", category: "buying_frustration" },
-  { id: "wants-one-stack", label: "Wants one stack, not four brands", category: "buying_frustration" },
-  { id: "distrust-fad-claims", label: "Distrust of fad or medical claims", category: "buying_frustration" },
-  { id: "wants-premium-not-impulse", label: "Wants premium, not an impulse-buy feel", category: "buying_frustration" },
-  { id: "doesnt-know-where-to-start", label: "Doesn't know where to start", category: "buying_frustration" },
+  { id: "skeptical-generic", label: "I'm skeptical of generic wellness products", category: "buying_frustration" },
+  { id: "wants-one-stack", label: "I want one stack, not multiple brands", category: "buying_frustration" },
+  { id: "distrust-fad-claims", label: "I distrust fads or medical claims", category: "buying_frustration" },
+  { id: "wants-premium-not-impulse", label: "I want premium products, not an impulse-buy vibe", category: "buying_frustration" },
+  { id: "doesnt-know-where-to-start", label: "I don't know where to start", category: "buying_frustration" },
 ];
 
 export function getPainPointsByCategory(category: PainPointCategory): PainPoint[] {
