@@ -12,14 +12,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
  *
  * Extended the same day the user shared a reference funnel (video +
  * conversational one-question intake before a lead form) and asked for
- * something similar here. Kept it to exactly one tap-to-select question
- * (see app/join/page.tsx) rather than a longer chain — the whole reason
- * this page exists is to be the LOW-friction alternative to the $99
- * guided Assessment; a long qualifying chain would just recreate the
+ * something similar here, then extended again same day to accept
+ * MULTIPLE selected pain points instead of one ("if they face a
+ * cacophony of issues, I want to capture that" — see
+ * supabase/migrations/0012_tribe_leads_multiselect.sql). Still just one
+ * qualifying step, not a chain of screens — the whole reason this page
+ * exists is to be the LOW-friction alternative to the $99 guided
+ * Assessment; a long multi-screen sequence would recreate the
  * paywall-shaped problem with extra steps instead of a price tag.
  */
 export async function POST(request: NextRequest) {
-  const { email, challenge } = await request.json();
+  const { email, challenges } = await request.json();
 
   if (!email || typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json(
@@ -28,10 +31,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const challengeText =
-    typeof challenge === "string" && challenge.trim().length > 0
-      ? challenge.trim()
-      : null;
+  const challengeList: string[] = Array.isArray(challenges)
+    ? challenges.filter(
+        (c): c is string => typeof c === "string" && c.trim().length > 0
+      )
+    : [];
 
   // 1. Durable capture, regardless of beehiiv's config state (see the
   // migration's comment on why this table exists alongside the beehiiv
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = createAdminClient();
     const { error: insertError } = await supabaseAdmin.from("tribe_leads").insert({
       email,
-      challenge: challengeText,
+      challenges: challengeList.length > 0 ? challengeList : null,
     });
     if (insertError) {
       console.error("join-tribe: failed to insert tribe_leads row:", insertError);
@@ -52,15 +56,16 @@ export async function POST(request: NextRequest) {
   }
 
   // 2. beehiiv sync — the actual mailing list. custom_fields is sent
-  // whenever we have an answer, but per beehiiv's docs it's silently
-  // discarded unless a "Biggest Challenge" custom field already exists
-  // in the beehiiv dashboard (Settings > Custom Fields). Step 1 above is
-  // what guarantees this data isn't lost while that one-time setup step
-  // is still pending.
+  // whenever we have at least one answer, joined into one string since a
+  // beehiiv custom field value is a single string, not an array. Per
+  // beehiiv's docs this is silently discarded unless a "Biggest
+  // Challenge" custom field already exists in the beehiiv dashboard
+  // (Settings > Custom Fields). Step 1 above is what guarantees this
+  // data isn't lost while that one-time setup step is still pending.
   const result = await addBeehiivSubscriber(email, {
     utmMedium: "free_tribe_optin",
-    ...(challengeText
-      ? { customFields: [{ name: "Biggest Challenge", value: challengeText }] }
+    ...(challengeList.length > 0
+      ? { customFields: [{ name: "Biggest Challenge", value: challengeList.join("; ") }] }
       : {}),
   });
 

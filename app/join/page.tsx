@@ -70,7 +70,7 @@ type Step = "question" | "email" | "success";
 
 export default function JoinTheTribe() {
   const [step, setStep] = useState<Step>("question");
-  const [challenge, setChallenge] = useState<string | null>(null);
+  const [challenges, setChallenges] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +85,12 @@ export default function JoinTheTribe() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  function toggleChallenge(label: string) {
+    setChallenges((prev) =>
+      prev.includes(label) ? prev.filter((c) => c !== label) : [...prev, label]
+    );
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -94,7 +100,7 @@ export default function JoinTheTribe() {
       const res = await fetch("/api/join-tribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, challenge }),
+        body: JSON.stringify({ email, challenges }),
       });
       const data = await res.json();
 
@@ -150,7 +156,8 @@ export default function JoinTheTribe() {
                 <span className="text-copper">Start here instead.</span>
               </h1>
               <p className="mt-4 text-lg leading-relaxed text-navy/70">
-                One tap, then you&apos;re on the list. Free, no commitment.
+                Select as many as apply — if it&apos;s more than one, that&apos;s
+                useful to know too. Free, no commitment.
               </p>
 
               <div className="mx-auto mt-8 flex max-w-md flex-col gap-6">
@@ -160,19 +167,41 @@ export default function JoinTheTribe() {
                       {PAIN_POINT_CATEGORY_LABELS[category]}
                     </p>
                     <div className="flex flex-col gap-3">
-                      {getPainPointsByCategory(category).map((option) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            setChallenge(option.label);
-                            setStep("email");
-                          }}
-                          className="rounded-xl border border-navy/15 bg-white/70 px-5 py-4 text-left text-navy transition-colors hover:border-copper hover:bg-copper/5"
-                        >
-                          {option.label}
-                        </button>
-                      ))}
+                      {getPainPointsByCategory(category).map((option) => {
+                        const selected = challenges.includes(option.label);
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => toggleChallenge(option.label)}
+                            className={`flex items-center gap-3 rounded-xl border px-5 py-4 text-left transition-colors ${
+                              selected
+                                ? "border-copper bg-copper/10 text-navy"
+                                : "border-navy/15 bg-white/70 text-navy hover:border-copper hover:bg-copper/5"
+                            }`}
+                          >
+                            <span
+                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                                selected ? "border-copper bg-copper text-cream" : "border-navy/30"
+                              }`}
+                            >
+                              {selected && (
+                                <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none">
+                                  <path
+                                    d="M2 6.2 4.8 9 10 3"
+                                    stroke="currentColor"
+                                    strokeWidth="1.6"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </span>
+                            {option.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -181,7 +210,16 @@ export default function JoinTheTribe() {
               <button
                 type="button"
                 onClick={() => setStep("email")}
-                className="mt-6 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
+                disabled={challenges.length === 0}
+                className="mt-8 w-full max-w-md rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Continue{challenges.length > 0 ? ` (${challenges.length} selected)` : ""}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep("email")}
+                className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
               >
                 Skip — just join the list
               </button>
@@ -193,11 +231,12 @@ export default function JoinTheTribe() {
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
                 Where should Sage send it?
               </h1>
-              {challenge && (
+              {challenges.length > 0 && (
                 <p className="mt-4 text-navy/70">
-                  Got it —{" "}
+                  Got it — {challenges.length === 1 ? "that's" : "that's a lot to be carrying, and it's"}{" "}
+                  useful to know:{" "}
                   <span className="font-semibold text-copper">
-                    {challenge.toLowerCase()}
+                    {challenges.map((c) => c.toLowerCase()).join(", ")}
                   </span>
                   . We&apos;ll keep that in mind for what we send you.
                 </p>
