@@ -8,7 +8,7 @@ import { sendTribeGuideEmail } from "@/lib/email/send-tribe-guide";
  * same day to add a qualifying question). Deliberately NOT a Stripe
  * checkout — no payment, no account, no auth.users row. This exists
  * because the ONLY way onto the beehiiv list used to be completing a
- * paid checkout ($99 Assessment or $249 Founding deposit — see the two
+ * paid checkout ($797 Assessment or $249 Founding deposit — see the two
  * addBeehiivSubscriber call sites in app/api/webhooks/stripe/route.ts).
  *
  * Extended the same day the user shared a reference funnel (video +
@@ -18,7 +18,7 @@ import { sendTribeGuideEmail } from "@/lib/email/send-tribe-guide";
  * cacophony of issues, I want to capture that" — see
  * supabase/migrations/0012_tribe_leads_multiselect.sql). Still just one
  * qualifying step, not a chain of screens — the whole reason this page
- * exists is to be the LOW-friction alternative to the $99 guided
+ * exists is to be the LOW-friction alternative to the $797 guided
  * Assessment; a long multi-screen sequence would recreate the
  * paywall-shaped problem with extra steps instead of a price tag.
  */

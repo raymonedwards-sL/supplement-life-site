@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe, LIFE_ASSESSMENT_PRICE_CENTS } from "@/lib/stripe/server";
 
 /**
- * Creates a Stripe Checkout Session for the $99 LIFE Assessment
+ * Creates a Stripe Checkout Session for the $797 LIFE Assessment
  * (one-time payment) and returns the hosted checkout URL.
  *
  * Mirrors app/api/checkout/route.ts's Founding Reservation deposit

@@ -19,7 +19,7 @@ import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
  *   3. Records a `subscriptions` row with status "pending" and
  *      conversion_date = GO_LIVE_DATE, which the 14-day notice job reads.
  *
- * "life_assessment_purchase" (the $99 LIFE Assessment, added 2026-07-17):
+ * "life_assessment_purchase" (the $797 LIFE Assessment, added 2026-07-17):
  *   1. Same account creation/reuse as above — a subscriber can arrive via
  *      either product first.
  *   2. Records a `life_assessment_purchases` row. No customer-balance
@@ -33,8 +33,10 @@ import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
  * app/dashboard/page.tsx, app/api/intake/chat/route.ts) — their prior
  * intake/profile/track data is intentionally left in place, not deleted.
  * (LIFE Assessment purchases don't currently have a refund-triggered
- * access block — $99 is a much lower-stakes one-time charge than the
- * $249 deposit; add one here if that changes.)
+ * access block. 2026-07-21: repriced from $99 to $797 — now a HIGHER
+ * one-time charge than the $249 Founding deposit, so the original "lower
+ * stakes, skip the block" reasoning no longer holds. Worth adding a
+ * refund-triggered access block here before this price change ships.)
  *
  * Add this route's URL (https://yourdomain.com/api/webhooks/stripe) as an
  * endpoint in Stripe: Developers > Webhooks, subscribed to
@@ -178,7 +180,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Handles the $99 LIFE Assessment product — same account creation/reuse
+ * Handles the $797 LIFE Assessment product — same account creation/reuse
  * as the Founding deposit, but records a life_assessment_purchases row
  * instead of a subscriptions row (no balance credit, no go-live
  * conversion). See supabase/migrations/0010_life_assessment_purchases.sql.

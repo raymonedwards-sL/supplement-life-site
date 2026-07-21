@@ -107,7 +107,6 @@ export default function Home() {
         </div>
 
         <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
-          <Eyebrow>Founding Subscriber Program — Now Open</Eyebrow>
           <div className="relative px-2 py-2 sm:px-4 sm:py-3">
             <div
               aria-hidden
@@ -139,7 +138,7 @@ export default function Home() {
               Reserve Your Founding Subscription
             </LinkButton>
             <LinkButton href="/assessment" variant="secondary" size="lg">
-              Take the LIFE Assessment — $99
+              Take the LIFE Assessment — $797
             </LinkButton>
           </div>
           <Link
@@ -513,7 +512,7 @@ export default function Home() {
             <p className="mt-4 text-sm text-navy/50">
               Not ready to commit? Start with the{" "}
               <Link href="/assessment" className="font-semibold text-copper hover:text-copper/80">
-                LIFE Assessment ($99)
+                LIFE Assessment ($797)
               </Link>{" "}
               — a guided conversation with Sage and your personal LIFE
               Brief, with the Founding Subscription offered separately once

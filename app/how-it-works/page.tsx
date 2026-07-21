@@ -6,7 +6,7 @@ import { LinkButton } from "@/components/ui/Button";
 const steps = [
   {
     title: "Take the LIFE Assessment",
-    body: "A one-time $99 guided conversation with Sage, Your LIFE Guide, creates your account and unlocks your intake — no reservation required to get started. Take your time; there's no clock. It's a real conversation, not a quiz, and it's never a substitute for medical advice.",
+    body: "A one-time $797 guided conversation with Sage, Your LIFE Guide, creates your account and unlocks your intake — no reservation required to get started. Take your time; there's no clock. It's a real conversation, not a quiz, and it's never a substitute for medical advice.",
   },
   {
     title: "Get matched to a Botanical Track",
@@ -134,7 +134,7 @@ export default function HowItWorks() {
           </h2>
           <div className="flex flex-col gap-4 sm:flex-row">
             <LinkButton href="/assessment" size="lg">
-              Take the LIFE Assessment — $99
+              Take the LIFE Assessment — $797
             </LinkButton>
             <LinkButton href="/reserve" variant="secondary" size="lg">
               Reserve Your Founding Subscription

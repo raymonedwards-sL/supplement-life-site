@@ -27,7 +27,7 @@ import {
  *      list, a fit/not-fit self-qualifier, raw social proof, and a
  *      persistent CTA. That structure maps directly onto this page
  *      (the free tribe IS this brand's version of "not ready for the
- *      full $99 Assessment yet") — deliberately did NOT copy two things
+ *      full $797 Assessment yet") — deliberately did NOT copy two things
  *      from the reference: dollar-value-stacking ("$18,000 value" per
  *      item) and a video. Both Maya/Marcus portraits list overpromising
  *      and generic-funnel tactics as instant trust-breakers for this
@@ -378,7 +378,7 @@ export default function JoinTheTribe() {
           <p className="mt-10 text-sm text-navy/50">
             Ready to see what Sage would say about you specifically?{" "}
             <Link href="/assessment" className="font-semibold text-copper hover:text-copper/80">
-              Take the LIFE Assessment — $99 &rarr;
+              Take the LIFE Assessment — $797 &rarr;
             </Link>
           </p>
         </Container>

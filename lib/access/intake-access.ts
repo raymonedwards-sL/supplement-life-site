@@ -4,7 +4,7 @@
  * your intake" link) so all three surfaces stay in sync rather than each
  * carrying its own copy of this decision.
  *
- * Product rule (confirmed 2026-07-20): a LIFE Assessment ($99) purchase
+ * Product rule (confirmed 2026-07-20): a LIFE Assessment ($797) purchase
  * grants intake access — including retakes — for LIFE_ASSESSMENT_RETAKE_
  * WINDOW_DAYS from the purchase date. This deliberately reuses the "first
  * 90 days" framing already established elsewhere in Sage's own copy (the

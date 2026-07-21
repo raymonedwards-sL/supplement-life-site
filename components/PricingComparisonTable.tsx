@@ -13,7 +13,7 @@ const TIERS: Tier[] = [
   {
     eyebrow: "Step one",
     name: "LIFE Assessment",
-    price: "$99",
+    price: "$797",
     priceDetail: "One-time",
   },
   {
@@ -71,7 +71,7 @@ function Cell({ value }: { value: boolean | string }) {
 }
 
 /**
- * The LIFE Assessment funnel's value-stack table — LIFE Assessment ($99
+ * The LIFE Assessment funnel's value-stack table — LIFE Assessment ($797
  * one-time) vs. Founding Subscriber ($249/mo x6, then $499/mo) vs. the
  * standard Public Rate starting October 2026. Built 2026-07-17 so the
  * funnel makes explicit, side by side, why registering as a Founding

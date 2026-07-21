@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  *
  * Shared by both checkout products handled in
  * app/api/webhooks/stripe/route.ts — the $249 Founding Reservation
- * deposit and the $99 LIFE Assessment purchase — since both need the
+ * deposit and the $797 LIFE Assessment purchase — since both need the
  * exact same "invite, or look up the existing user by email" logic.
  * Extracted here on 2026-07-17 when the LIFE Assessment product was
  * added, so the two checkout flows can't drift out of sync.

@@ -21,5 +21,9 @@ export const FOUNDING_RESERVATION_DEPOSIT_CENTS = 24900;
  * unlocks Sage's guided intake and generates the subscriber's LIFE
  * Brief; it is NOT credited toward the $249 Founding Subscription,
  * which remains a distinct upsell offered after the Brief is delivered.
+ *
+ * 2026-07-21: repriced from $99 to $797 per the finalized pricing
+ * strategy (expanded scope — fitness, nutrition, fasting, water intake,
+ * and personalized supplement kit — and repositioned ICP).
  */
-export const LIFE_ASSESSMENT_PRICE_CENTS = 9900;
+export const LIFE_ASSESSMENT_PRICE_CENTS = 79700;
