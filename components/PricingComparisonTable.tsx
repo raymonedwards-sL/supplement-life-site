@@ -36,11 +36,34 @@ type FeatureRow = {
   values: [boolean | string, boolean | string, boolean | string];
 };
 
-const FEATURES: FeatureRow[] = [
+type Row = FeatureRow | { divider: string };
+
+function isDivider(row: Row): row is { divider: string } {
+  return "divider" in row;
+}
+
+// Grouped into two sections on purpose — Sage's guidance (assessment,
+// LIFE Brief, Track match, ongoing dashboard) is genuinely included at
+// every tier, always has been (reserving the Founding Subscription has
+// redirected straight into the same /intake conversation since before
+// LIFE Assessment existed as its own product). The real differentiator
+// is product + terms, not access to Sage — the divider rows make that
+// explicit instead of leaving three all-true rows looking like a mistake.
+const FEATURES: Row[] = [
+  {
+    label: "Commitment",
+    values: [
+      "One-time — no further obligation, ever",
+      "Auto-converts to a recurring monthly charge at go-live (cancel anytime before then)",
+      "Recurring monthly subscription",
+    ],
+  },
+  { divider: "Included at every tier" },
   { label: "Guided LIFE Assessment with Sage", values: [true, true, true] },
   { label: "Personalized LIFE Brief (PDF + email)", values: [true, true, true] },
   { label: "Botanical Track match, with full rationale", values: [true, true, true] },
   { label: "Ongoing dashboard + evolving Sage relationship", values: [true, true, true] },
+  { divider: "Founding Subscriber exclusives" },
   { label: "Monthly Botanical Track shipments", values: [false, true, true] },
   { label: "Rate locked in before public launch", values: [false, true, false] },
   { label: "Priority onboarding at go-live", values: [false, true, false] },
@@ -108,27 +131,36 @@ export function PricingComparisonTable() {
         ))}
 
         {/* Feature rows */}
-        {FEATURES.map((row, i) => (
-          <Fragment key={row.label}>
+        {FEATURES.map((row, i) =>
+          isDivider(row) ? (
             <div
-              className={`flex items-center p-4 text-sm text-navy ${
-                i % 2 === 0 ? "bg-cream/60" : "bg-cream"
-              }`}
+              key={row.divider}
+              className="col-span-4 bg-navy/5 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-navy/50"
             >
-              {row.label}
+              {row.divider}
             </div>
-            {row.values.map((value, colIndex) => (
+          ) : (
+            <Fragment key={row.label}>
               <div
-                key={`${row.label}-${colIndex}`}
-                className={`flex items-center justify-center p-4 ${
+                className={`flex items-center p-4 text-sm text-navy ${
                   i % 2 === 0 ? "bg-cream/60" : "bg-cream"
-                } ${TIERS[colIndex].highlighted ? "bg-navy/[0.03]" : ""}`}
+                }`}
               >
-                <Cell value={value} />
+                {row.label}
               </div>
-            ))}
-          </Fragment>
-        ))}
+              {row.values.map((value, colIndex) => (
+                <div
+                  key={`${row.label}-${colIndex}`}
+                  className={`flex items-center justify-center p-4 ${
+                    i % 2 === 0 ? "bg-cream/60" : "bg-cream"
+                  } ${TIERS[colIndex].highlighted ? "bg-navy/[0.03]" : ""}`}
+                >
+                  <Cell value={value} />
+                </div>
+              ))}
+            </Fragment>
+          )
+        )}
       </div>
     </div>
   );

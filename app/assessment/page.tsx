@@ -264,8 +264,12 @@ function AssessmentForm() {
             </h2>
             <p className="mt-4 text-navy/70">
               The LIFE Assessment and the Founding Subscriber Program are
-              two separate decisions. Here&apos;s the full picture, side by
-              side.
+              two separate decisions. Sage&apos;s guidance is included
+              either way. The real difference is commitment: reserving a
+              Founding Subscription auto-converts into a real, recurring
+              monthly charge once we go live (cancel anytime before then)
+              — the LIFE Assessment is a single charge with no further
+              obligation, ever. Here&apos;s the full picture, side by side.
             </p>
           </div>
           <div className="mt-10">
