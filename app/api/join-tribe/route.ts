@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addBeehiivSubscriber } from "@/lib/beehiiv";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Free, zero-friction "Join the LIFE Tribe" opt-in (2026-07-20 launch-push
- * build). Deliberately NOT a Stripe checkout — no payment, no account, no
- * Supabase row. This exists because, before this route, the ONLY way onto
- * the beehiiv list was completing a paid checkout ($99 Assessment or $249
- * Founding deposit — see the two addBeehiivSubscriber call sites in
- * app/api/webhooks/stripe/route.ts). That meant there was no low-friction
- * capture for someone who's interested but not ready to pay, which is a
- * real gap for a broad reach push (cold/warm social, practitioner shares,
- * press) where most people who click a link aren't ready to buy on the
- * spot. This route is that capture.
+ * Free, zero-friction "Join the LIFE Tribe" opt-in (2026-07-20, extended
+ * same day to add a qualifying question). Deliberately NOT a Stripe
+ * checkout — no payment, no account, no auth.users row. This exists
+ * because the ONLY way onto the beehiiv list used to be completing a
+ * paid checkout ($99 Assessment or $249 Founding deposit — see the two
+ * addBeehiivSubscriber call sites in app/api/webhooks/stripe/route.ts).
  *
- * Tagged with utmMedium: "free_tribe_optin" (see lib/beehiiv.ts) so this
- * list is segmentable in beehiiv from actual paying customers — don't
- * silently email this segment the same upsell cadence as a $99/$249
- * customer without accounting for that difference.
+ * Extended the same day the user shared a reference funnel (video +
+ * conversational one-question intake before a lead form) and asked for
+ * something similar here. Kept it to exactly one tap-to-select question
+ * (see app/join/page.tsx) rather than a longer chain — the whole reason
+ * this page exists is to be the LOW-friction alternative to the $99
+ * guided Assessment; a long qualifying chain would just recreate the
+ * paywall-shaped problem with extra steps instead of a price tag.
  */
 export async function POST(request: NextRequest) {
-  const { email } = await request.json();
+  const { email, challenge } = await request.json();
 
   if (!email || typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json(
@@ -28,27 +28,52 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const challengeText =
+    typeof challenge === "string" && challenge.trim().length > 0
+      ? challenge.trim()
+      : null;
+
+  // 1. Durable capture, regardless of beehiiv's config state (see the
+  // migration's comment on why this table exists alongside the beehiiv
+  // custom field attempt below).
+  try {
+    const supabaseAdmin = createAdminClient();
+    const { error: insertError } = await supabaseAdmin.from("tribe_leads").insert({
+      email,
+      challenge: challengeText,
+    });
+    if (insertError) {
+      console.error("join-tribe: failed to insert tribe_leads row:", insertError);
+    }
+  } catch (error) {
+    // Same fail-soft posture as the rest of this route — a Supabase
+    // hiccup should never block someone from joining the free list.
+    console.error("join-tribe: tribe_leads insert threw:", error);
+  }
+
+  // 2. beehiiv sync — the actual mailing list. custom_fields is sent
+  // whenever we have an answer, but per beehiiv's docs it's silently
+  // discarded unless a "Biggest Challenge" custom field already exists
+  // in the beehiiv dashboard (Settings > Custom Fields). Step 1 above is
+  // what guarantees this data isn't lost while that one-time setup step
+  // is still pending.
   const result = await addBeehiivSubscriber(email, {
     utmMedium: "free_tribe_optin",
+    ...(challengeText
+      ? { customFields: [{ name: "Biggest Challenge", value: challengeText }] }
+      : {}),
   });
 
   if (!result.ok && result.reason === "not_configured") {
-    // beehiiv isn't wired up in this environment — don't tell the visitor
-    // it failed (that reads as broken), but don't silently claim success
-    // to hide a real integration gap either. Log it; this is loud enough
-    // for the deploy owner to notice in server logs without leaking
-    // internal config state to the client.
     console.error(
-      "join-tribe: beehiiv not configured, subscriber was NOT captured:",
+      "join-tribe: beehiiv not configured, subscriber was NOT synced to beehiiv (still captured in tribe_leads):",
       email
     );
   }
 
   // Always return success to the visitor even on a beehiiv API hiccup —
-  // same fail-soft posture as the existing webhook call sites. Someone
-  // handing over their email on a free opt-in should never see an error
-  // screen; if beehiiv genuinely fails, that's a server-log problem to
-  // fix, not something to surface as friction at the exact moment someone
-  // chose to join.
+  // the tribe_leads row above already guarantees the lead isn't lost, so
+  // there's no reason to show an error screen at the exact moment
+  // someone chose to join.
   return NextResponse.json({ ok: true });
 }

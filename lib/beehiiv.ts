@@ -42,6 +42,21 @@ type AddSubscriberOptions = {
    * can tell paying customers apart from free-list subscribers.
    */
   utmMedium?: string;
+  /**
+   * beehiiv custom field values, e.g. [{ name: "Biggest Challenge", value:
+   * "Sleep that doesn't actually restore you" }]. Verified against
+   * beehiiv's live API reference (developers.beehiiv.com/api-reference/
+   * subscriptions/create) on 2026-07-20: shape is { name, value } pairs.
+   * IMPORTANT — per that same doc, "the custom fields must already exist
+   * for the publication. Any new custom fields here will be discarded" —
+   * this call does NOT create the field. Create it once in the beehiiv
+   * dashboard (Settings > Custom Fields) with a matching name before
+   * assuming this data is actually landing in beehiiv; until then it's
+   * silently dropped (not an error) and the source of truth is wherever
+   * the caller also persisted it directly (e.g. public.tribe_leads for
+   * the join-tribe route).
+   */
+  customFields?: { name: string; value: string }[];
 };
 
 export async function addBeehiivSubscriber(
@@ -74,6 +89,7 @@ export async function addBeehiivSubscriber(
           stripe_customer_id: options.stripeCustomerId,
           utm_source: "yourlifeprotocol.com",
           utm_medium: options.utmMedium ?? "founding_reservation",
+          ...(options.customFields ? { custom_fields: options.customFields } : {}),
         }),
       }
     );
