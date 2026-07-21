@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 import { TRACKS } from "@/lib/tracks";
@@ -71,11 +72,11 @@ export default function Ingredients() {
       </section>
 
       <section className="py-20">
-        <Container className="max-w-3xl">
+        <Container className="max-w-5xl">
           <h2 className="text-2xl font-semibold tracking-tight text-navy">
             A few of the botanicals behind each Track
           </h2>
-          <p className="mt-3 text-navy/70">
+          <p className="mt-3 max-w-3xl text-navy/70">
             This is a sample, not each Track&apos;s complete formulation —
             your full ingredient list and the reasoning behind it live in
             your personal LIFE Brief. Ingredients do recur across Tracks by
@@ -83,23 +84,35 @@ export default function Ingredients() {
             up in several formulas because it genuinely belongs there, not
             by accident.
           </p>
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {TRACKS.map((track) => (
               <div
                 key={track.id}
-                className="rounded-2xl border border-navy/10 bg-white/50 p-6"
+                className="group overflow-hidden rounded-2xl border border-navy/10 bg-white/50 transition-shadow duration-300 hover:shadow-xl hover:shadow-navy/10"
               >
-                <h3 className="text-lg font-semibold text-copper">{track.name}</h3>
-                <p className="mt-1 text-sm text-navy/60">{track.consumerNeed}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {(FEATURED_INGREDIENTS_BY_TRACK[track.id] ?? []).map((ingredient) => (
-                    <span
-                      key={ingredient}
-                      className="rounded-full bg-navy/10 px-3 py-1 text-xs font-bold text-navy"
-                    >
-                      {ingredient}
-                    </span>
-                  ))}
+                <div className="relative h-56 w-full overflow-hidden bg-cream">
+                  <Image
+                    src={track.image}
+                    alt={`${track.name} Botanical Track packaging`}
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-copper">{track.name}</h3>
+                  <p className="mt-1 text-sm text-navy/60">{track.consumerNeed}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {(FEATURED_INGREDIENTS_BY_TRACK[track.id] ?? []).map((ingredient) => (
+                      <span
+                        key={ingredient}
+                        className="rounded-full bg-navy/10 px-3 py-1 text-xs font-bold text-navy"
+                      >
+                        {ingredient}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
