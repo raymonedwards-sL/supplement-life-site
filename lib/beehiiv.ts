@@ -33,6 +33,15 @@ type AddSubscriberOptions = {
   sendWelcomeEmail?: boolean;
   /** Ties the beehiiv subscription back to the Stripe customer for reference. */
   stripeCustomerId?: string;
+  /**
+   * Segmentation tag for where this subscriber entered from. Defaults to
+   * "founding_reservation" to preserve existing behavior at the two
+   * paid-checkout call sites (app/api/webhooks/stripe/route.ts) — pass an
+   * explicit value for any new, non-paid entry point (e.g. the free
+   * "Join the LIFE Tribe" opt-in) so beehiiv audience segments/automations
+   * can tell paying customers apart from free-list subscribers.
+   */
+  utmMedium?: string;
 };
 
 export async function addBeehiivSubscriber(
@@ -64,7 +73,7 @@ export async function addBeehiivSubscriber(
           send_welcome_email: options.sendWelcomeEmail ?? true,
           stripe_customer_id: options.stripeCustomerId,
           utm_source: "yourlifeprotocol.com",
-          utm_medium: "founding_reservation",
+          utm_medium: options.utmMedium ?? "founding_reservation",
         }),
       }
     );
