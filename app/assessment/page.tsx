@@ -102,30 +102,30 @@ function AssessmentForm() {
           <div>
             <Eyebrow>Take the LIFE Assessment</Eyebrow>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-              Understand what your body is asking for.
+              Understand what your body is actually asking for.
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-navy/70">
-              A guided, 6–8 minute conversation with Sage — not a generic
-              wellness quiz — exploring your symptoms, lifestyle, biology,
-              and goals. Sage learns from how you respond over time, not
-              just what you report on day one, and adjusts your formula to
-              what you actually need now.
+              A guided conversation with Sage — not a generic wellness quiz
+              — covering your fitness, nutrition, fasting patterns,
+              hydration, and daily biology in real depth. Sage learns from
+              how you respond over time, not just what you report on day
+              one, and continually adjusts your protocol to what you
+              actually need now.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-navy/70">
-              At the end, you receive your personal LIFE Brief — practical
-              lifestyle guidance built around how you actually eat, move,
-              sleep, and recover, paired with a bespoke botanical
-              formulation designed to target the specific wellness gaps
-              showing up in your body right now. It&apos;s not a one-time
-              result: it&apos;s the start of an ongoing relationship with
-              Sage, who keeps refining both the guidance and the formula as
-              your first 90 days unfold. Yours immediately, on-screen and
-              by email.
+              At the end, you receive your personal LIFE Brief — a complete
+              picture of how you eat, move, sleep, fast, hydrate, and
+              recover, paired with a bespoke botanical formulation built
+              around the specific gaps showing up in your biology right
+              now. It&apos;s not a one-time result. It&apos;s the start of
+              an ongoing relationship with Sage, who keeps refining both
+              the guidance and the formula as your first 90 days unfold —
+              yours immediately, on-screen and by email.
             </p>
 
             <div className="mt-8 flex flex-col gap-4">
               {[
-                "A guided conversation with Sage, Your LIFE Guide — 6–8 minutes",
+                "A guided, in-depth conversation with Sage, Your LIFE Guide — fitness, nutrition, fasting, hydration, and biology",
                 "Your personalized LIFE Brief, delivered immediately on-screen and by email",
                 "Your Botanical Track match, with a plain-language rationale for every ingredient",
                 "No ongoing commitment — decide separately if you'd like to become a Founding Subscriber",
