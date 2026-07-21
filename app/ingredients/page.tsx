@@ -69,6 +69,19 @@ export default function Ingredients() {
             assessment.
           </p>
         </Container>
+        <Container className="mt-12 max-w-5xl">
+          <div className="overflow-hidden rounded-2xl border border-navy/10 shadow-sm">
+            <Image
+              src="/products/hero-botanicals.png"
+              alt="Hero Botanicals — labeled photography of key ingredients used across Supplement :: LIFE Tracks, including Burdock, Sea Moss, Ashwagandha, Elderberry, Reishi, Bacopa monnieri, Dandelion Root, Vitex, Ginger, Damiana, Raspberry Leaf, Sarsaparilla, Kudzu Root Extract, Lion's Mane, Valerian Root, Cascara Sagrada, and Longjack"
+              width={1672}
+              height={941}
+              priority
+              className="h-auto w-full object-cover"
+              sizes="(min-width: 1024px) 1024px, 100vw"
+            />
+          </div>
+        </Container>
       </section>
 
       <section className="py-20">
