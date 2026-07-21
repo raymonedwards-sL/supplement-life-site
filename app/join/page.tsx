@@ -223,7 +223,8 @@ export default function JoinTheTribe() {
           {step === "question" && (
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Sage&apos;s already done the matching.
+                Meet Sage &mdash; matching your challenges to a new wellness
+                protocol is her job.
               </h1>
               <p className="mt-4 text-2xl font-semibold tracking-tight text-copper sm:text-3xl">
                 Your free guide:
