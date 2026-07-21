@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui/Container";
+import {
+  PAIN_POINT_CATEGORY_LABELS,
+  getPainPointsByCategory,
+  type PainPointCategory,
+} from "@/lib/pain-points";
 
 /**
  * Free "Join the LIFE Tribe" opt-in.
@@ -33,13 +38,7 @@ import { Container, Eyebrow } from "@/components/ui/Container";
  * once real quotes are added here; nothing fake ships in the meantime.
  */
 
-const CHALLENGES = [
-  "Energy that crashes by mid-afternoon",
-  "Sleep that doesn't actually restore you",
-  "Recovery that takes longer than it used to",
-  "A hormonal or metabolic shift your labs don't explain",
-  "Managing too many separate products with no real system",
-];
+const CHALLENGE_CATEGORIES: PainPointCategory[] = ["physical_signal", "buying_frustration"];
 
 const WHAT_YOU_GET = [
   "Sage's plain-language wellness insights, sent regularly — the same thinking behind the paid LIFE Brief, not personalized to you yet",
@@ -151,23 +150,31 @@ export default function JoinTheTribe() {
                 <span className="text-copper">Start here instead.</span>
               </h1>
               <p className="mt-4 text-lg leading-relaxed text-navy/70">
-                One tap, then you&apos;re on the list. Free, no commitment —
-                where do you feel it most right now?
+                One tap, then you&apos;re on the list. Free, no commitment.
               </p>
 
-              <div className="mx-auto mt-8 flex max-w-md flex-col gap-3">
-                {CHALLENGES.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => {
-                      setChallenge(option);
-                      setStep("email");
-                    }}
-                    className="rounded-xl border border-navy/15 bg-white/70 px-5 py-4 text-left text-navy transition-colors hover:border-copper hover:bg-copper/5"
-                  >
-                    {option}
-                  </button>
+              <div className="mx-auto mt-8 flex max-w-md flex-col gap-6">
+                {CHALLENGE_CATEGORIES.map((category) => (
+                  <div key={category}>
+                    <p className="mb-3 text-left text-xs font-semibold uppercase tracking-wide text-navy/40">
+                      {PAIN_POINT_CATEGORY_LABELS[category]}
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      {getPainPointsByCategory(category).map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => {
+                            setChallenge(option.label);
+                            setStep("email");
+                          }}
+                          className="rounded-xl border border-navy/15 bg-white/70 px-5 py-4 text-left text-navy transition-colors hover:border-copper hover:bg-copper/5"
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
 
