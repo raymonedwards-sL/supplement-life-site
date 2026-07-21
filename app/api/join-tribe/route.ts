@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addBeehiivSubscriber } from "@/lib/beehiiv";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTribeGuideEmail } from "@/lib/email/send-tribe-guide";
 
 /**
  * Free, zero-friction "Join the LIFE Tribe" opt-in (2026-07-20, extended
@@ -75,6 +76,15 @@ export async function POST(request: NextRequest) {
       email
     );
   }
+
+  // 3. Lead magnet delivery (2026-07-20) — the "7 Signs Your Body Is
+  // Asking for a Reset After 35" guide, offered in exchange for the
+  // email. The /join success screen also links straight to the PDF for
+  // instant access; this email is the durable copy in their inbox. Same
+  // fail-soft posture as everything above — sendTribeGuideEmail never
+  // throws out of its own try/catch, so this can't turn a successful
+  // join into an error response.
+  await sendTribeGuideEmail(email);
 
   // Always return success to the visitor even on a beehiiv API hiccup —
   // the tribe_leads row above already guarantees the lead isn't lost, so

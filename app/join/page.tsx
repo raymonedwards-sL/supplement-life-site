@@ -16,7 +16,7 @@ import {
  * account — after auditing the live funnel and finding the only path onto
  * the beehiiv list was a paid checkout.
  *
- * 2026-07-20, same day, extended twice more:
+ * 2026-07-20, same day, extended three more times:
  *  (a) added the one-question qualifier (CHALLENGES/step flow below)
  *      after the user shared a reference funnel (video + a single
  *      conversational question ahead of a lead form).
@@ -32,15 +32,28 @@ import {
  *      item) and a video. Both Maya/Marcus portraits list overpromising
  *      and generic-funnel tactics as instant trust-breakers for this
  *      ICP, and this project has a standing no-founder-on-camera pattern.
+ *  (c) made the "7 Signs Your Body Is Asking for a Reset After 35" PDF
+ *      (public/Supplement-LIFE-7-Signs-Reset-After-35.pdf) the named,
+ *      concrete lead magnet — swapped the generic "wellness insights"
+ *      framing for the actual guide, added a direct download link on
+ *      the success screen (instant access, no email-client round trip
+ *      required to see it), and send it as an attachment via
+ *      lib/email/send-tribe-guide.ts as the durable backup. This is
+ *      also the intended landing page for cold paid traffic per the
+ *      user's ad question that day — a named, specific asset converts
+ *      cold clicks better than "join our newsletter" ever does.
  *
  * TESTIMONIALS is deliberately an empty array — per this project's Trust
  * Journey Audit, never fabricate testimonials. The section only renders
  * once real quotes are added here; nothing fake ships in the meantime.
  */
 
+const GUIDE_PDF_PATH = "/Supplement-LIFE-7-Signs-Reset-After-35.pdf";
+
 const CHALLENGE_CATEGORIES: PainPointCategory[] = ["physical_signal", "buying_frustration"];
 
 const WHAT_YOU_GET = [
+  "Instant access to “7 Signs Your Body Is Asking for a Reset After 35” — the free guide, no strings attached",
   "Sage's plain-language wellness insights, sent regularly — the same thinking behind the paid LIFE Brief, not personalized to you yet",
   "First access when new Botanical Tracks launch",
   "A heads-up before Founding Subscriber pricing changes",
@@ -124,10 +137,20 @@ export default function JoinTheTribe() {
             Welcome to the LIFE Tribe.
           </h1>
           <p className="mt-4 text-navy/70">
-            Keep an eye on your inbox — you&apos;ll start hearing from Sage
-            with plain-language wellness insights, first access to new
-            Botanical Tracks, and a heads-up before Founding pricing
-            changes.
+            Your guide is on its way to your inbox now. Want it this second
+            instead?
+          </p>
+          <a
+            href={GUIDE_PDF_PATH}
+            download
+            className="mt-6 inline-block rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
+          >
+            Download &ldquo;7 Signs Your Body Is Asking for a Reset After 35&rdquo; &rarr;
+          </a>
+          <p className="mt-8 text-navy/70">
+            From here you&apos;ll also start hearing from Sage with
+            plain-language wellness insights, first access to new Botanical
+            Tracks, and a heads-up before Founding pricing changes.
           </p>
           <p className="mt-6 text-navy/70">
             Curious what Sage would say about you specifically?{" "}
@@ -152,12 +175,15 @@ export default function JoinTheTribe() {
           {step === "question" && (
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Not quite ready for the full Assessment?{" "}
-                <span className="text-copper">Start here instead.</span>
+                Get the free guide:{" "}
+                <span className="text-copper">
+                  7 Signs Your Body Is Asking for a Reset After 35
+                </span>
               </h1>
               <p className="mt-4 text-lg leading-relaxed text-navy/70">
-                Select as many as apply — if it&apos;s more than one, that&apos;s
-                useful to know too. Free, no commitment.
+                First, tell us which of this applies to you — select as many
+                as fit. It&apos;s how we make sure what Sage sends you
+                actually matters.
               </p>
 
               <div className="mx-auto mt-8 flex max-w-md flex-col gap-6">
@@ -229,7 +255,7 @@ export default function JoinTheTribe() {
           {step === "email" && (
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Where should Sage send it?
+                Where should we send your guide?
               </h1>
               {challenges.length > 0 && (
                 <div className="mt-4 text-navy/70">
