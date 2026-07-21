@@ -43,6 +43,22 @@ import {
  *      user's ad question that day — a named, specific asset converts
  *      cold clicks better than "join our newsletter" ever does.
  *
+ * 2026-07-21, hero sizzle video added: a deliberate reversal of the
+ * "skipped video entirely" note above — that earlier decision was about
+ * NOT copying the ebrahimturner reference's testimonial-style pitch
+ * video; this is a different thing (real/realistic actors demonstrating
+ * the same pain-point taxonomy as the tiles below, culminating in Sage),
+ * explicitly requested. Script + Google Flow generation prompts live in
+ * "Join Sizzle Video - Script & Production Guide.docx" (project folder
+ * root). Video file doesn't exist yet — <video> below points at
+ * /videos/join-sizzle.mp4 and the whole section auto-hides via
+ * onError/videoAvailable state until that file is actually dropped into
+ * public/videos/, so nothing looks broken in the meantime. Same
+ * "wire it now, it activates the moment the asset exists" pattern as the
+ * beehiiv automation_ids wiring elsewhere in this project. Only shown on
+ * the "question" step (first thing cold traffic sees) — not repeated
+ * once someone's already mid-form.
+ *
  * TESTIMONIALS is deliberately an empty array — per this project's Trust
  * Journey Audit, never fabricate testimonials. The section only renders
  * once real quotes are added here; nothing fake ships in the meantime.
@@ -88,7 +104,10 @@ export default function JoinTheTribe() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [videoAvailable, setVideoAvailable] = useState(true);
+  const [videoMuted, setVideoMuted] = useState(true);
   const formRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     function onScroll() {
@@ -168,6 +187,35 @@ export default function JoinTheTribe() {
 
   return (
     <>
+      {step === "question" && videoAvailable && (
+        <section className="bg-navy">
+          <div className="relative mx-auto aspect-video w-full max-w-5xl">
+            <video
+              ref={videoRef}
+              className="h-full w-full object-cover"
+              autoPlay
+              loop
+              playsInline
+              muted={videoMuted}
+              poster="/videos/join-sizzle-poster.jpg"
+              onError={() => setVideoAvailable(false)}
+            >
+              <source src="/videos/join-sizzle.mp4" type="video/mp4" />
+            </video>
+            <button
+              type="button"
+              onClick={() => {
+                setVideoMuted((m) => !m);
+                if (videoRef.current) videoRef.current.muted = !videoMuted;
+              }}
+              className="absolute bottom-4 right-4 rounded-full bg-navy/70 px-4 py-2 text-xs font-semibold text-cream backdrop-blur transition-colors hover:bg-navy/90"
+            >
+              {videoMuted ? "Unmute" : "Mute"}
+            </button>
+          </div>
+        </section>
+      )}
+
       <section className="py-20 sm:py-28" ref={formRef}>
         <Container className="max-w-xl text-center">
           <Eyebrow>Join the LIFE Tribe</Eyebrow>
