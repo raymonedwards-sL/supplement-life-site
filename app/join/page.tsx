@@ -224,15 +224,17 @@ export default function JoinTheTribe() {
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
                 Meet Sage &mdash; matching your challenges to a new wellness
-                protocol is her job.
+                protocol.
               </h1>
-              <p className="mt-4 text-2xl font-semibold tracking-tight text-copper sm:text-3xl">
-                Your free guide:
-              </p>
-              <p className="mt-1 text-lg font-medium leading-snug text-copper/90 sm:text-xl">
-                7 Signs Your Body Is Asking for a Reset After 35.
-              </p>
-              <p className="mt-4 text-lg leading-relaxed text-navy/70">
+              <div className="mx-auto mt-6 inline-flex max-w-md flex-col gap-1 rounded-2xl bg-copper px-6 py-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-wide text-cream/80">
+                  Your free guide:
+                </p>
+                <p className="text-xl font-bold leading-snug text-cream sm:text-2xl">
+                  7 Signs Your Body Is Asking for a Reset After 35.
+                </p>
+              </div>
+              <p className="mt-4 text-base font-semibold leading-relaxed text-navy/70">
                 The 3pm crash. The mind that won&apos;t quiet down at midnight.
                 The stomach that&apos;s never quite settled. Tell us which ones
                 are yours — select as many as apply — so what Sage sends is
