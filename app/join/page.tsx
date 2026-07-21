@@ -223,12 +223,12 @@ export default function JoinTheTribe() {
           {step === "question" && (
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Meet Sage &mdash; matching your challenges to a new wellness
-                protocol.
+                Stop guessing in the supplement aisle. Sage is here &mdash;
+                matching your challenges to a real protocol.
               </h1>
               <div className="mx-auto mt-6 inline-flex max-w-md flex-col gap-1 rounded-2xl bg-copper px-6 py-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-wide text-cream/80">
-                  Your free guide:
+                <p className="text-xs font-bold uppercase tracking-wide text-cream/80">
+                  Get your free guide
                 </p>
                 <p className="text-xl font-bold leading-snug text-cream sm:text-2xl">
                   7 Signs Your Body Is Asking for a Reset After 35.
