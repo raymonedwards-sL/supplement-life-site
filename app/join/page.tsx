@@ -175,15 +175,16 @@ export default function JoinTheTribe() {
           {step === "question" && (
             <>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Get the free guide:{" "}
+                Sage&apos;s already done the matching.{" "}
                 <span className="text-copper">
-                  7 Signs Your Body Is Asking for a Reset After 35
+                  Your free guide: 7 Signs Your Body Is Asking for a Reset After 35.
                 </span>
               </h1>
               <p className="mt-4 text-lg leading-relaxed text-navy/70">
-                First, tell us which of this applies to you — select as many
-                as fit. It&apos;s how we make sure what Sage sends you
-                actually matters.
+                The 3pm crash. The mind that won&apos;t quiet down at midnight.
+                The stomach that&apos;s never quite settled. Tell us which ones
+                are yours — select as many as apply — so what Sage sends is
+                actually matched to what your body&apos;s dealing with.
               </p>
 
               <div className="mx-auto mt-8 flex max-w-md flex-col gap-6">
