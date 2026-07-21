@@ -518,6 +518,14 @@ export default function Home() {
               Brief, with the Founding Subscription offered separately once
               you&apos;ve seen it.
             </p>
+            <p className="mt-2 text-sm text-navy/50">
+              Want more hands-on support along the way?{" "}
+              <Link href="/concierge" className="font-semibold text-copper hover:text-copper/80">
+                Explore LIFE Concierge ($1,995)
+              </Link>{" "}
+              — 3 private sessions with a dedicated practitioner, alongside
+              Sage.
+            </p>
             <LinkButton href="/reserve" size="lg" className="mt-8">
               Reserve Your Founding Subscription
             </LinkButton>

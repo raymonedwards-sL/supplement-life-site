@@ -49,6 +49,7 @@ export default async function Dashboard() {
     { data: subscription },
     { data: accountRow },
     { data: lifeAssessmentPurchase },
+    { data: lifeConciergePurchase },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -80,16 +81,32 @@ export default async function Dashboard() {
       .select("id, purchased_at")
       .eq("user_id", user.id)
       .maybeSingle(),
+    // LIFE Concierge (2026-07-21): same idea as the assessment purchase
+    // above, but for the $1,995 practitioner add-on — also has no
+    // `subscriptions` row on its own, since it doesn't include Botanical
+    // Track kits either.
+    supabase
+      .from("life_concierge_purchases")
+      .select("id, purchased_at")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
-  const isAssessmentOnlyAccount = !subscription && Boolean(lifeAssessmentPurchase);
-  // Gates the "Retake your intake" link below — a LIFE Assessment-only
-  // account only gets retakes for its 90-day window (lib/access/
-  // intake-access.ts); this is a read of the same rule /api/intake/chat
-  // enforces server-side, not a second source of truth for it.
+  const hasAssessment = Boolean(lifeAssessmentPurchase);
+  const hasConcierge = Boolean(lifeConciergePurchase);
+  // Surfaces the "Become a Founding Subscriber" upsell for anyone who's
+  // paid for guidance (Assessment and/or Concierge) but has no
+  // subscription row — i.e. no path to actually receiving Botanical Track
+  // kits yet, since only the Founding Subscription ships product.
+  const showFoundingSubscriberUpsell = !subscription && (hasAssessment || hasConcierge);
+  // Gates the "Retake your intake" link below — a LIFE Assessment-only or
+  // LIFE Concierge-only account only gets retakes for its own window
+  // (lib/access/intake-access.ts); this is a read of the same rule
+  // /api/intake/chat enforces server-side, not a second source of truth.
   const intakeAccess = resolveIntakeAccess({
     subscriptionStatus: subscription?.status ?? null,
     lifeAssessmentPurchasedAt: lifeAssessmentPurchase?.purchased_at ?? null,
+    lifeConciergePurchasedAt: lifeConciergePurchase?.purchased_at ?? null,
   });
 
   if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
@@ -172,7 +189,7 @@ export default async function Dashboard() {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {isAssessmentOnlyAccount && (
+          {showFoundingSubscriberUpsell && (
             <div className="rounded-2xl border border-copper/30 bg-navy p-6 text-cream sm:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-copper">
                 Become a Founding Subscriber
@@ -181,13 +198,12 @@ export default async function Dashboard() {
                 Lock in $249/month before public launch.
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-cream/70">
-                Your LIFE Assessment and Brief are a one-time diagnostic —
-                the Founding Subscription is the ongoing relationship:
-                monthly Botanical Track shipments, and Sage refining your
-                formula as your life changes. Reserve now and your rate is
-                locked at $249/month for your first six months, half the
-                $499/month we&apos;ll charge the public starting October
-                2026.
+                {hasAssessment
+                  ? "Your LIFE Assessment and Brief are a one-time diagnostic — the Founding Subscription is the ongoing relationship: monthly Botanical Track shipments, and Sage refining your formula as your life changes."
+                  : "Your LIFE Concierge enrollment gives you 1:1 practitioner sessions and Sage's ongoing guidance — the Founding Subscription is what adds monthly Botanical Track shipments to your protocol."}{" "}
+                Reserve now and your rate is locked at $249/month for your
+                first six months, half the $499/month we&apos;ll charge the
+                public starting October 2026.
               </p>
               <Link
                 href="/reserve"
@@ -195,6 +211,24 @@ export default async function Dashboard() {
               >
                 Reserve Your Founding Subscription
               </Link>
+            </div>
+          )}
+
+          {hasConcierge && (
+            <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
+              <p className="text-sm font-medium text-navy/50">Your LIFE Concierge</p>
+              <p className="mt-2 text-navy/70">
+                Your enrollment includes 3 private 30-minute sessions with a
+                dedicated wellness practitioner. To schedule (or reschedule)
+                a session, email{" "}
+                <a
+                  href="mailto:hello@yourlifeprotocol.com"
+                  className="font-semibold text-copper underline underline-offset-2"
+                >
+                  hello@yourlifeprotocol.com
+                </a>
+                .
+              </p>
             </div>
           )}
 
@@ -223,9 +257,13 @@ export default async function Dashboard() {
                     Download Your LIFE Brief (PDF)
                   </a>
                 </div>
-                {!intakeAccess.allowed && intakeAccess.reason === "assessment_window_expired" && (
+                {!intakeAccess.allowed &&
+                  (intakeAccess.reason === "assessment_window_expired" ||
+                    intakeAccess.reason === "concierge_window_expired") && (
                   <p className="mt-2 text-xs leading-relaxed text-navy/50">
-                    Your LIFE Assessment&apos;s 90-day retake window has closed.{" "}
+                    {intakeAccess.reason === "concierge_window_expired"
+                      ? "Your LIFE Concierge access window has closed."
+                      : "Your LIFE Assessment's 90-day retake window has closed."}{" "}
                     <Link href="/reserve" className="font-semibold text-copper underline underline-offset-2">
                       Reserve a Founding Subscription
                     </Link>{" "}

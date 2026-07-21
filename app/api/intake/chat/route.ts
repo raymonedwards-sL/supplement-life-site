@@ -70,27 +70,34 @@ export async function POST(request: NextRequest) {
 
   // Enforced server-side too, not just in the /intake page UI — a
   // refunded/canceled reservation always blocks access; a LIFE
-  // Assessment-only account only has access for its 90-day retake window
-  // (see lib/access/intake-access.ts for the full rule).
-  const [{ data: accessSubscription }, { data: lifeAssessmentPurchase }] = await Promise.all([
-    supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
-    supabase
-      .from("life_assessment_purchases")
-      .select("purchased_at")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-  ]);
+  // Assessment-only or LIFE Concierge-only account only has access for
+  // its retake window (see lib/access/intake-access.ts for the full rule).
+  const [{ data: accessSubscription }, { data: lifeAssessmentPurchase }, { data: lifeConciergePurchase }] =
+    await Promise.all([
+      supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
+      supabase
+        .from("life_assessment_purchases")
+        .select("purchased_at")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("life_concierge_purchases")
+        .select("purchased_at")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
 
   const access = resolveIntakeAccess({
     subscriptionStatus: accessSubscription?.status ?? null,
     lifeAssessmentPurchasedAt: lifeAssessmentPurchase?.purchased_at ?? null,
+    lifeConciergePurchasedAt: lifeConciergePurchase?.purchased_at ?? null,
   });
 
   if (!access.allowed) {
     const message =
       access.reason === "refunded_or_canceled"
         ? "This account's reservation is no longer active."
-        : "Your LIFE Assessment's 90-day access window has closed. Reserve a Founding Subscription to continue with Sage.";
+        : "Your access window has closed. Reserve a Founding Subscription to continue with Sage.";
     return NextResponse.json({ error: message }, { status: 403 });
   }
 

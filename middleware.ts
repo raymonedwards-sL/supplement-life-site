@@ -9,10 +9,10 @@ import {
 /**
  * Geo-restriction, layer 1 of 3 (see lib/geo/allowed-countries.ts for the
  * full picture). Supplement :: LIFE is only offered to US/CA/MX residents:
- *   - /reserve and /assessment render a hard "not available in your
- *     region" state instead of the reservation/assessment form.
- *   - /api/checkout and /api/checkout-assessment are rejected outright,
- *     in case the form page is bypassed.
+ *   - /reserve, /assessment, and /concierge render a hard "not available
+ *     in your region" state instead of the respective checkout form.
+ *   - /api/checkout, /api/checkout-assessment, and /api/checkout-concierge
+ *     are rejected outright, in case the form page is bypassed.
  * Both checks fail OPEN on an unresolvable IP or a lookup error/timeout —
  * layers 2 (attestation checkbox) and 3 (Stripe allowed_countries, where
  * applicable) remain as backstops either way.
@@ -27,14 +27,18 @@ export async function middleware(request: NextRequest) {
   const codeExchange = await exchangeStrayCode(request);
   if (codeExchange) return codeExchange;
 
-  if (pathname === "/api/checkout" || pathname === "/api/checkout-assessment") {
+  if (
+    pathname === "/api/checkout" ||
+    pathname === "/api/checkout-assessment" ||
+    pathname === "/api/checkout-concierge"
+  ) {
     const ip = getClientIp(request);
     const country = ip ? await lookupCountryForIp(ip) : null;
     if (!isAllowedCountry(country)) {
       return NextResponse.json(
         {
           error:
-            "The Founding Subscriber Program is currently only available to residents of the United States, Canada, and Mexico.",
+            "Supplement :: LIFE is currently only available to residents of the United States, Canada, and Mexico.",
         },
         { status: 403 }
       );
@@ -42,7 +46,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (
-    (pathname === "/reserve" || pathname === "/assessment") &&
+    (pathname === "/reserve" || pathname === "/assessment" || pathname === "/concierge") &&
     searchParams.get("region") !== "unsupported"
   ) {
     const ip = getClientIp(request);

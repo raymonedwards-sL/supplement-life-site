@@ -27,6 +27,14 @@ import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
  *      not a deposit toward the Founding Subscription. See
  *      supabase/migrations/0010_life_assessment_purchases.sql.
  *
+ * "life_concierge_purchase" (the $1,995 LIFE Concierge, added 2026-07-21):
+ *   1. Same account creation/reuse as above.
+ *   2. Records a `life_concierge_purchases` row. No customer-balance
+ *      credit and no `subscriptions` row — 3 practitioner sessions plus
+ *      Sage's intake/reformulation, but NOT any Botanical Track kits
+ *      (those only ship via the Founding Subscription). See
+ *      supabase/migrations/0013_life_concierge_purchases.sql.
+ *
  * charge.refunded — when a Founding deposit is fully refunded, flips the
  * matching `subscriptions` row to status "refunded". Portal access is then
  * blocked at the application layer (see app/intake/page.tsx,
@@ -90,6 +98,10 @@ export async function POST(request: NextRequest) {
 
   if (session.metadata?.type === "life_assessment_purchase") {
     return handleLifeAssessmentPurchase(session, request);
+  }
+
+  if (session.metadata?.type === "life_concierge_purchase") {
+    return handleLifeConciergePurchase(session, request);
   }
 
   if (session.metadata?.type !== "founding_reservation_deposit") {
@@ -226,6 +238,55 @@ async function handleLifeAssessmentPurchase(session: Stripe.Checkout.Session, re
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error("LIFE Assessment webhook processing failed:", err);
+    return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+  }
+}
+
+/**
+ * Handles the $1,995 LIFE Concierge product — same account creation/reuse
+ * as the other two products, but records a life_concierge_purchases row
+ * instead (no balance credit, no subscriptions row, no Botanical Track
+ * kits). See supabase/migrations/0013_life_concierge_purchases.sql.
+ */
+async function handleLifeConciergePurchase(session: Stripe.Checkout.Session, request: NextRequest) {
+  const email = session.customer_details?.email ?? session.customer_email;
+  const customerId =
+    typeof session.customer === "string" ? session.customer : session.customer?.id;
+
+  if (!email || !customerId) {
+    console.error("LIFE Concierge checkout completed without an email or customer id:", session.id);
+    return NextResponse.json(
+      { error: "Missing email or customer id on session." },
+      { status: 400 }
+    );
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
+    const userId = await getOrCreateUserForCheckout(supabaseAdmin, {
+      email,
+      reservationId: session.id,
+      siteUrl,
+      redirectNext: "/intake",
+    });
+
+    const amountPaidCents = session.amount_total ?? 0;
+    const { error: insertError } = await supabaseAdmin.from("life_concierge_purchases").insert({
+      user_id: userId,
+      stripe_customer_id: customerId,
+      stripe_checkout_session_id: session.id,
+      amount_paid_cents: amountPaidCents,
+    });
+    if (insertError) throw insertError;
+
+    // Same daily-email list as the other two products.
+    void addBeehiivSubscriber(email, { stripeCustomerId: customerId });
+
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    console.error("LIFE Concierge webhook processing failed:", err);
     return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
   }
 }

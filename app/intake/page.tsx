@@ -15,17 +15,24 @@ export default async function Intake() {
 
   let access: IntakeAccessResult | null = null;
   if (user) {
-    const [{ data: subscription }, { data: lifeAssessmentPurchase }] = await Promise.all([
-      supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
-      supabase
-        .from("life_assessment_purchases")
-        .select("purchased_at")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-    ]);
+    const [{ data: subscription }, { data: lifeAssessmentPurchase }, { data: lifeConciergePurchase }] =
+      await Promise.all([
+        supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("life_assessment_purchases")
+          .select("purchased_at")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("life_concierge_purchases")
+          .select("purchased_at")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ]);
     access = resolveIntakeAccess({
       subscriptionStatus: subscription?.status ?? null,
       lifeAssessmentPurchasedAt: lifeAssessmentPurchase?.purchased_at ?? null,
+      lifeConciergePurchasedAt: lifeConciergePurchase?.purchased_at ?? null,
     });
   }
 
@@ -84,7 +91,7 @@ export default async function Intake() {
           ) : access && !access.allowed && access.reason === "refunded_or_canceled" ? (
             <AccessRevoked />
           ) : access && !access.allowed ? (
-            <IntakeAccessLocked />
+            <IntakeAccessLocked reason={access.reason} />
           ) : (
             <IntakeChat />
           )}

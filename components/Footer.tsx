@@ -7,6 +7,7 @@ const columns = [
       { href: "/how-it-works", label: "How It Works" },
       { href: "/ingredients", label: "The Ingredient Science" },
       { href: "/reserve", label: "Founding Subscriber Program" },
+      { href: "/concierge", label: "LIFE Concierge" },
       { href: "/faq", label: "FAQ" },
     ],
   },
