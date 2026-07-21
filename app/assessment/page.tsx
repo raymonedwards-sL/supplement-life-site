@@ -244,8 +244,8 @@ function AssessmentForm() {
           </p>
           <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10">
             <Image
-              src="/lifestyle/Sage-recommends.jpeg"
-              alt="The botanical research and formulation practice behind Sage's recommendations"
+              src="/lifestyle/Sage-garden.jpeg"
+              alt="Sage harvesting vegetables and herbs in a garden — the hands-on botanical practice behind every recommendation"
               width={1376}
               height={768}
               className="h-full w-full object-cover"
