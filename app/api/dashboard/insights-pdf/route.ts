@@ -33,7 +33,7 @@ export async function GET() {
       supabase
         .from("profiles")
         .select(
-          "current_summary, updated_at, water_intake_recommendation, fasting_recommendation"
+          "current_summary, updated_at, water_intake_recommendation, fasting_recommendation, sms_opt_in"
         )
         .eq("user_id", user.id)
         .maybeSingle(),
@@ -67,6 +67,7 @@ export async function GET() {
     rationale: parseRationale(trackAssignment?.rationale),
     subscriptionStatus: subscription?.status ?? null,
     conversionDate: subscription?.conversion_date ?? null,
+    smsOptedIn: profile?.sms_opt_in ?? false,
   });
 
   return new NextResponse(Buffer.from(pdfBytes), {

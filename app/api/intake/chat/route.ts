@@ -267,6 +267,10 @@ export async function POST(request: NextRequest) {
               rationale: completion.rationale,
               subscriptionStatus: subscription?.status ?? null,
               conversionDate: subscription?.conversion_date ?? null,
+              // SMS opt-in only happens later from the dashboard (never at
+              // intake) — always false for this immediate post-completion
+              // email, so the callout below always shows the sign-up CTA.
+              smsOptedIn: false,
             });
             await sendLifeBriefEmail({ email: user.email!, pdfBytes });
           } catch (err) {

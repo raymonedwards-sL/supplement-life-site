@@ -5,6 +5,7 @@ import LoginPrompt from "@/components/LoginPrompt";
 import AccessRevoked from "@/components/AccessRevoked";
 import AccountSettings from "./AccountSettings";
 import BillingPortalButton from "./BillingPortalButton";
+import SmsOptIn from "./SmsOptIn";
 import { findTrack } from "@/lib/tracks";
 import { Container, Eyebrow } from "@/components/ui/Container";
 import {
@@ -54,7 +55,7 @@ export default async function Dashboard() {
     supabase
       .from("profiles")
       .select(
-        "current_summary, updated_at, water_intake_recommendation, fasting_recommendation"
+        "current_summary, updated_at, water_intake_recommendation, fasting_recommendation, phone_number, sms_opt_in"
       )
       .eq("user_id", user.id)
       .maybeSingle(),
@@ -345,6 +346,15 @@ export default async function Dashboard() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {(profile?.water_intake_recommendation || profile?.fasting_recommendation) && (
+            <div className="rounded-2xl border border-navy/10 border-t-2 border-t-copper bg-white/40 p-6 sm:col-span-2">
+              <SmsOptIn
+                initialPhoneNumber={profile?.phone_number ?? ""}
+                initialOptIn={profile?.sms_opt_in ?? false}
+              />
             </div>
           )}
 
