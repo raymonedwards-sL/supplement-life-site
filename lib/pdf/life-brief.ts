@@ -715,9 +715,12 @@ function drawFooters(doc: PDFDocument, font: PDFFont) {
       y += 10;
     }
 
+    // Sits in its own row above the (possibly 2-line) disclaimer rather
+    // than sharing a row with it — sharing a row let long wrapped
+    // disclaimer text visually collide with the page number.
     page.drawText(`Page ${i + 1} of ${pages.length}`, {
       x: PAGE_WIDTH - MARGIN_X - 60,
-      y: 40 + (lines.length - 1) * 10,
+      y: 40 + lines.length * 10 + 2,
       size: 7.5,
       font,
       color: MUTED,
