@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, FOUNDING_RESERVATION_DEPOSIT_CENTS } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { addBeehiivSubscriber } from "@/lib/beehiiv";
+import { addBeehiivSubscriber, extractFirstName } from "@/lib/beehiiv";
 import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
 
 /**
@@ -175,13 +175,27 @@ export async function POST(request: NextRequest) {
     if (upsertError) throw upsertError;
 
     // 4. Add the new Founding Subscriber to the beehiiv mailing list for
-    // the daily branded educational email. Deliberately NOT awaited into
-    // the try/catch above — a beehiiv outage or missing API key must
-    // never fail reservation provisioning (account creation, balance
-    // credit, subscription row) for a paying customer. addBeehiivSubscriber
-    // already fails soft internally and only logs; this just makes sure a
-    // slow beehiiv response can't add latency to the webhook response either.
-    void addBeehiivSubscriber(email, { stripeCustomerId: customerId });
+    // the daily branded educational email, enrolled into the Founding
+    // Subscriber Welcome Sequence automation (Add by API trigger, built
+    // 2026-07-22) and tagged with their first name (from the Reserve
+    // form's session.metadata.name) so the sequence's emails can greet them
+    // by name instead of "Hi there,". Requires a "First Name" custom field
+    // to already exist on the beehiiv publication (Settings > Custom
+    // Fields) — see extractFirstName's doc comment in lib/beehiiv.ts.
+    // Deliberately NOT awaited into the try/catch above — a beehiiv outage
+    // or missing API key must never fail reservation provisioning (account
+    // creation, balance credit, subscription row) for a paying customer.
+    // addBeehiivSubscriber already fails soft internally and only logs;
+    // this just makes sure a slow beehiiv response can't add latency to
+    // the webhook response either.
+    const firstName = extractFirstName(session.metadata?.name);
+    void addBeehiivSubscriber(email, {
+      stripeCustomerId: customerId,
+      ...(firstName ? { customFields: [{ name: "First Name", value: firstName }] } : {}),
+      ...(process.env.BEEHIIV_FOUNDING_WELCOME_AUTOMATION_ID
+        ? { automationIds: [process.env.BEEHIIV_FOUNDING_WELCOME_AUTOMATION_ID] }
+        : {}),
+    });
 
     return NextResponse.json({ received: true });
   } catch (err) {
@@ -232,8 +246,13 @@ async function handleLifeAssessmentPurchase(session: Stripe.Checkout.Session, re
 
     // Same daily-email list as Founding Subscribers — an assessment-only
     // customer is exactly the audience the daily digest is meant to warm
-    // up toward the $249/mo upsell.
-    void addBeehiivSubscriber(email, { stripeCustomerId: customerId });
+    // up toward the $249/mo upsell. No automationIds here — the Founding
+    // Subscriber Welcome Sequence is reserved for actual Founding deposits.
+    const firstName = extractFirstName(session.metadata?.name);
+    void addBeehiivSubscriber(email, {
+      stripeCustomerId: customerId,
+      ...(firstName ? { customFields: [{ name: "First Name", value: firstName }] } : {}),
+    });
 
     return NextResponse.json({ received: true });
   } catch (err) {
@@ -282,7 +301,11 @@ async function handleLifeConciergePurchase(session: Stripe.Checkout.Session, req
     if (insertError) throw insertError;
 
     // Same daily-email list as the other two products.
-    void addBeehiivSubscriber(email, { stripeCustomerId: customerId });
+    const firstName = extractFirstName(session.metadata?.name);
+    void addBeehiivSubscriber(email, {
+      stripeCustomerId: customerId,
+      ...(firstName ? { customFields: [{ name: "First Name", value: firstName }] } : {}),
+    });
 
     return NextResponse.json({ received: true });
   } catch (err) {

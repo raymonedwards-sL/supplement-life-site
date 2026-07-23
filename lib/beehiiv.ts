@@ -73,6 +73,20 @@ type AddSubscriberOptions = {
   automationIds?: string[];
 };
 
+/**
+ * Pulls a usable first name out of a full-name string captured at checkout
+ * (Stripe Checkout session metadata.name, from the Reserve/Assessment/
+ * Concierge forms — see the checkout route handlers under app/api/). Returns
+ * undefined for empty/whitespace-only input so callers can skip the
+ * customFields entry entirely rather than sending an empty "First Name"
+ * value to beehiiv.
+ */
+export function extractFirstName(fullName?: string | null): string | undefined {
+  const trimmed = fullName?.trim();
+  if (!trimmed) return undefined;
+  return trimmed.split(/\s+/)[0];
+}
+
 export async function addBeehiivSubscriber(
   email: string,
   options: AddSubscriberOptions = {}

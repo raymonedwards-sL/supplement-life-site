@@ -11,7 +11,7 @@
 
   /* Brand palette */
   --color-navy: #1B2A4A;
-  --color-copper: #B5732B;
+  --color-copper: #002B00;
   --color-cream: #F5EFE6;
   --color-ivory: #FFFCF6;
   --color-sage: #5F6F52;
@@ -35,7 +35,7 @@ h1, h2, h3, h4 {
 }
 
 ::selection {
-  background: rgba(181, 115, 43, 0.2);
+  background: rgba(0, 43, 0, 0.2);
 }
 
 /* Subtle focus ring for keyboard users, consistent across all interactive elements */
