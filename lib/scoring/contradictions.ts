@@ -19,6 +19,16 @@ export type ContradictionFlag = {
    * rather than just reduce confidence and prompt one follow-up. */
   hardError: boolean;
   message: string;
+  /** Ready-to-show, subscriber-facing phrasing of the clarifying
+   * follow-up question for this specific tension — undefined for
+   * hardError flags, which block completion instead of prompting a
+   * follow-up. Used as a guaranteed, deterministic fallback in
+   * app/api/intake/chat/route.ts if Sage's own attempts to ask this
+   * naturally don't verifiably ask a direct question (checked via
+   * lib/claude/intake.ts's judge call) — so the P2-2 "ask exactly one
+   * clarifying follow-up" requirement holds even when free-form
+   * generation doesn't reliably comply on every run. */
+  subscriberQuestion?: string;
 };
 
 export function checkContradictions(
@@ -36,6 +46,11 @@ export function checkContradictions(
         "post-exertion recovery in the same intake — internally inconsistent signal. " +
         "Confidence on both domains reduced; Sage should ask one clarifying follow-up " +
         "before finalizing scores.",
+      subscriberQuestion:
+        "That's an interesting combination — you mentioned feeling pretty wiped out by " +
+        "mid-afternoon most days, but also that your recovery after workouts is excellent " +
+        "and effortless. Those two don't always travel together. Can you help me understand " +
+        "how both of those are true for you?",
     });
   }
 
@@ -47,6 +62,10 @@ export function checkContradictions(
         "Pregnancy + hormonal contraceptive both disclosed — logically inconsistent. " +
         "Safety Gate resolves conservatively: pregnancy exclusions apply regardless " +
         "(Reset hard-excluded) until the user clarifies.",
+      subscriberQuestion:
+        "I want to double-check something before I go further — pregnancy and hormonal " +
+        "contraceptive use don't usually apply at the same time. Could you help me " +
+        "understand which one currently applies to you?",
     });
   }
 
@@ -58,6 +77,10 @@ export function checkContradictions(
         "Sleep & Nervous System Calm: rated sleep quality as excellent AND racing mind " +
         "as frequent — mild contradiction. Confidence reduced on this domain only; " +
         "not a hard block.",
+      subscriberQuestion:
+        "Another interesting combination — you described your sleep quality as excellent, " +
+        "but also mentioned your mind racing frequently at bedtime. Can you help me " +
+        "understand how those two fit together for you?",
     });
   }
 

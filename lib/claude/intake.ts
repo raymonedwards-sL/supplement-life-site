@@ -2,6 +2,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { TRACKS } from "@/lib/tracks";
 import { HERO_INGREDIENT_REFERENCE } from "@/lib/claude/ingredient-reference";
 import { SYSTEMS_FRAMEWORK_REFERENCE } from "@/lib/claude/systems-framework";
+import type { ContradictionFlag } from "@/lib/scoring/contradictions";
 
 /**
  * Conversational wellness intake — system prompt + tool schemas.
@@ -131,13 +132,16 @@ Never ask "on a scale of 1 to 5" out loud — have the natural conversation, the
 - routine_consistency: "very_consistent" | "somewhat_consistent" | "not_very_consistent" — how consistent they are with daily habits/routines generally
 - lifestyle_constraints: free text — travel, shift-work, or scheduling patterns worth knowing`;
 
-export function buildSystemPrompt(subscriberContext: string, activeContradictions: string[] = []): string {
+export function buildSystemPrompt(
+  subscriberContext: string,
+  activeContradictions: ContradictionFlag[] = []
+): string {
   const contradictionBlock =
     activeContradictions.length > 0
       ? `
 ## STOP — contradiction check overrides your normal turn-planning this turn (P2-2)
 Something in what's been shared so far doesn't fully line up. This section only ever appears once for a given tension (the server tracks that server-side), so there's no need to check whether you already asked — you have not, and this is a hard override on what your reply field contains this turn:
-${activeContradictions.map((m) => `- ${m}`).join("\n")}
+${activeContradictions.map((f) => `- ${f.message}`).join("\n")}
 
 Your reply must be ENTIRELY about surfacing this tension and asking the subscriber to reconcile it — not sleep, not anything else, even if you were about to ask about something else. Do not silently resolve it yourself and route to a different topic (e.g. deciding it must be a sleep issue and asking about sleep instead) — that is the exact failure mode this rule exists to prevent, and it doesn't matter how natural or clinically reasonable that pivot sounds. Follow this shape closely: name both things in plain language, then ask them directly how both can be true for them. Example, adapted to the real tension above: "That's actually an interesting combination — [thing A] alongside [thing B] isn't the pattern I'd usually expect together. Can you help me understand how those two fit together for you?" Nothing else goes in this turn's reply — no second question, no new topic, no pivot to a related-but-different area like sleep or stress. Ask once, then move on for good — even if the subscriber's answer doesn't fully resolve it, do not circle back to this again later in the conversation.
 `
@@ -456,3 +460,82 @@ export const INTAKE_RATIONALE_TOOL: Anthropic.Tool = {
     required: ["rationale", "ingredient_highlights"],
   },
 };
+
+/**
+ * P2-2 contradiction follow-up, reliability pass (2026-07-23). Live
+ * testing showed the "STOP" override block in buildSystemPrompt above
+ * doesn't reliably produce a direct clarifying question — Sage sometimes
+ * silently reasons past the tension and pivots to a different topic
+ * instead, especially competing against everything else in the full
+ * intake system prompt (catalog, Hero Ingredient Reference, Systems
+ * Framework, etc.). app/api/intake/chat/route.ts now verifies compliance
+ * with a judge call (below) and, if it fails, retries ONCE with this
+ * much smaller, single-purpose prompt — stripped of everything that
+ * might be competing for attention — before falling back to the
+ * deterministic ContradictionFlag.subscriberQuestion text as a last
+ * resort, so the requirement holds even on a run where free-form
+ * generation doesn't comply.
+ */
+export function buildContradictionOnlySystemPrompt(
+  subscriberContext: string,
+  activeContradictions: ContradictionFlag[]
+): string {
+  return `Your name is Sage, Your LIFE Guide. You are mid-conversation with a subscriber during their wellness intake (see the transcript below for what's been said so far). Something they've told you doesn't fully add up:
+${activeContradictions.map((f) => `- ${f.message}`).join("\n")}
+
+Your ONLY job this turn is to ask them, directly and warmly, to help you understand how both things can be true. Name both sides of the tension in plain, non-clinical language, then ask a real question about it — do not resolve it yourself, do not pivot to a different topic, do not ask a second question about anything else. Example shape: "That's an interesting combination — [thing A] alongside [thing B] isn't what I'd usually expect together. Can you help me understand how those two fit together for you?"
+
+## Voice
+Warm, precise, calm practitioner — match the tone already established in the transcript below. No exclamation points, no hype language.
+
+## Subscriber profile
+${subscriberContext}
+
+Respond by calling the intake_turn tool exactly once. Set log_entry to null and safety_flag to null — the previous answer was already logged in an earlier turn. Set completion to null — do not finish the intake this turn. reply must contain ONLY the clarifying question described above.`;
+}
+
+export const CONTRADICTION_JUDGE_TOOL: Anthropic.Tool = {
+  name: "judge_contradiction_followup",
+  description:
+    "Judge whether a reply directly asks the subscriber a question surfacing each listed tension.",
+  input_schema: {
+    type: "object",
+    properties: {
+      results: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            index: { type: "number", description: "0-based index matching the tension list order." },
+            asked_directly: {
+              type: "boolean",
+              description:
+                "true ONLY if the reply contains an actual question addressed to the subscriber asking them to reconcile or explain this specific tension. False if the reply merely references both facts while reasoning toward a different topic (e.g. silently deciding the likely cause and asking about something else instead), or ignores the tension entirely.",
+            },
+          },
+          required: ["index", "asked_directly"],
+        },
+      },
+    },
+    required: ["results"],
+  },
+};
+
+export function buildContradictionJudgePrompt(activeContradictions: ContradictionFlag[], reply: string): string {
+  return `You are a strict verifier, not a conversational assistant. Below are one or more "tensions" — internally inconsistent pairs of answers from a wellness intake — and a reply a conversational agent just gave. For EACH tension, by index, judge whether the reply contains an actual question addressed directly to the subscriber asking them to reconcile or explain that specific tension.
+
+A tension only counts as "asked_directly: true" if the reply does ALL of:
+- Names or clearly references both sides of that specific tension
+- Contains an actual question mark posed TO the subscriber about it
+- Does not merely use the tension as internal reasoning to justify pivoting to an unrelated question
+
+Tensions:
+${activeContradictions.map((f, i) => `[${i}] ${f.message}`).join("\n")}
+
+Reply to judge:
+"""
+${reply}
+"""
+
+Call judge_contradiction_followup exactly once with one result per tension index above.`;
+}

@@ -5,8 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import {
   buildSystemPrompt,
   buildRationaleSystemPrompt,
+  buildContradictionOnlySystemPrompt,
+  buildContradictionJudgePrompt,
   INTAKE_TURN_TOOL,
   INTAKE_RATIONALE_TOOL,
+  CONTRADICTION_JUDGE_TOOL,
   type EngineSelectedTrack,
 } from "@/lib/claude/intake";
 import {
@@ -14,7 +17,7 @@ import {
   isCuriositySignal,
   LIFESTYLE_FIELD_COLUMNS,
 } from "@/lib/claude/subscriber-context";
-import { runAssessmentEngine, type StructuredAnswer } from "@/lib/scoring";
+import { runAssessmentEngine, type StructuredAnswer, type ContradictionFlag } from "@/lib/scoring";
 import { findTrack } from "@/lib/tracks";
 import { buildLifeBriefPdf } from "@/lib/pdf/life-brief";
 import { sendLifeBriefEmail } from "@/lib/email/send-life-brief";
@@ -79,6 +82,10 @@ function sanitizeModelText(text: string): string {
  * excluded from what reaches the scoring engine. */
 const CONTRADICTION_SURFACED_FIELD = "_contradiction_surfaced";
 
+/** Sage-facing categories only — 'system' is server-authored bookkeeping
+ * and never a value Sage's own log_entry.category should take. */
+const VALID_LOG_CATEGORIES = new Set(["demographics", "lifestyle", "concerns", "goals"]);
+
 /** intake_responses.structured_value is an array per row (one turn can log
  * several facts) — flatten a set of rows into one StructuredAnswer[] for
  * the engine. Shared by the mid-conversation contradiction check and the
@@ -93,6 +100,79 @@ function flattenStructuredAnswers(rows: { structured_value: unknown }[] | null):
       );
     })
     .filter((v) => v.field !== CONTRADICTION_SURFACED_FIELD);
+}
+
+/**
+ * Verifies (via a cheap judge call — see CONTRADICTION_JUDGE_TOOL) that
+ * `reply` actually asks a direct clarifying question about every tension
+ * in `contradictions`, rather than trusting the main call's "STOP"
+ * instruction to always work. Live testing showed it doesn't reliably —
+ * Sage sometimes silently reasons past the tension and pivots to a
+ * different topic instead, especially competing against everything else
+ * in the full intake system prompt. If verification fails, retries once
+ * with a minimal, single-purpose prompt (buildContradictionOnlySystemPrompt)
+ * stripped of that competing context; if THAT also fails, falls back to
+ * the deterministic ContradictionFlag.subscriberQuestion text so the
+ * requirement holds even on a run where free-form generation never
+ * complies. Returns the reply text to actually show the subscriber.
+ */
+async function ensureContradictionFollowUp(
+  reply: string,
+  contradictions: ContradictionFlag[],
+  subscriberContextText: string,
+  anthropicMessages: Anthropic.MessageParam[]
+): Promise<string> {
+  const judge = async (candidateReply: string): Promise<boolean> => {
+    try {
+      const judgeResponse = await anthropic.messages.create({
+        model: MODEL,
+        max_tokens: 300,
+        system: "You are a strict, literal verifier. Follow the instructions exactly.",
+        tools: [CONTRADICTION_JUDGE_TOOL],
+        tool_choice: { type: "tool", name: "judge_contradiction_followup" },
+        messages: [{ role: "user", content: buildContradictionJudgePrompt(contradictions, candidateReply) }],
+      });
+      const judgeToolUse = judgeResponse.content.find(
+        (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+      );
+      const results =
+        (judgeToolUse?.input as { results?: { index: number; asked_directly: boolean }[] } | undefined)
+          ?.results ?? [];
+      return contradictions.every((_, i) => results.find((r) => r.index === i)?.asked_directly === true);
+    } catch (err) {
+      console.error("Contradiction judge call failed, treating as not satisfied:", err);
+      return false;
+    }
+  };
+
+  if (await judge(reply)) return reply;
+
+  console.warn(
+    "Contradiction follow-up: initial reply didn't verifiably surface the tension, retrying with a focused prompt."
+  );
+  try {
+    const retryResponse = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 600,
+      system: buildContradictionOnlySystemPrompt(subscriberContextText, contradictions),
+      tools: [INTAKE_TURN_TOOL],
+      tool_choice: { type: "tool", name: "intake_turn" },
+      messages: anthropicMessages,
+    });
+    const retryToolUse = retryResponse.content.find(
+      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+    );
+    const retryReply = (retryToolUse?.input as TurnInput | undefined)?.reply;
+    if (retryReply && (await judge(retryReply))) return retryReply;
+  } catch (err) {
+    console.error("Contradiction follow-up retry call failed:", err);
+  }
+
+  console.warn("Contradiction follow-up: retry also failed verification, using deterministic fallback text.");
+  return contradictions
+    .map((f) => f.subscriberQuestion)
+    .filter((q): q is string => Boolean(q))
+    .join(" ");
 }
 
 export async function POST(request: NextRequest) {
@@ -204,7 +284,7 @@ export async function POST(request: NextRequest) {
     // (see 0016_intake_responses_system_category.sql) BEFORE calling
     // Claude, so it can never be selected again for this conversation_id
     // regardless of how Claude's reply turns out.
-    let activeContradictions: string[] = [];
+    let activeContradictions: ContradictionFlag[] = [];
     if (!isNewConversation) {
       const [{ data: soFarRows }, { data: soFarFlags }] = await Promise.all([
         supabase
@@ -230,18 +310,17 @@ export async function POST(request: NextRequest) {
       // the input.completion branch below.
       const newContradictions = midCheck.contradictionFlags
         .filter((f) => !f.hardError)
-        .map((f) => f.message)
-        .filter((message) => !alreadySurfaced.has(message));
+        .filter((f) => !alreadySurfaced.has(f.message));
 
       if (newContradictions.length > 0) {
         const { error: markerError } = await supabase.from("intake_responses").insert(
-          newContradictions.map((message) => ({
+          newContradictions.map((f) => ({
             user_id: user.id,
             conversation_id: conversationId,
             category: "system",
             question: "",
             answer: "",
-            structured_value: [{ field: CONTRADICTION_SURFACED_FIELD, value: message }],
+            structured_value: [{ field: CONTRADICTION_SURFACED_FIELD, value: f.message }],
           }))
         );
         if (markerError) console.error("Failed to record contradiction-surfaced marker:", markerError);
@@ -263,14 +342,14 @@ export async function POST(request: NextRequest) {
     // call sites deserves its own tested pass.
     const response = await anthropic.messages.create({
       model: MODEL,
-      // 1536 was found (via live testing on a long, 9+ turn conversation)
-      // to sometimes truncate the intake_turn tool_use JSON mid-completion
-      // — Claude's own reply/summary/daily_practices prose can run longer
-      // than that on a conversation with a lot of accumulated context,
-      // and a truncated tool call means completion.daily_practices comes
-      // back undefined, crashing the persistence step below. 2048 gives
-      // real headroom over what a completion turn actually needs.
-      max_tokens: 2048,
+      // Raised twice now via live testing on long conversations (1536,
+      // then 2048, both still observed truncating the intake_turn
+      // tool_use JSON mid-completion on a 10+ turn conversation with a
+      // lot of accumulated context). There's no length this can't
+      // eventually hit on an unusually long conversation, so 4096 is
+      // generous headroom, not a guarantee — see the completion-shape
+      // validation right after this call for the actual backstop.
+      max_tokens: 4096,
       system: buildSystemPrompt(subscriberContext.text, activeContradictions),
       tools: [INTAKE_TURN_TOOL],
       tool_choice: { type: "tool", name: "intake_turn" },
@@ -286,7 +365,76 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
     }
 
-    const input = toolUse.input as TurnInput;
+    let input = toolUse.input as TurnInput;
+
+    // Defense in depth against tool_use truncation at the max_tokens cap
+    // — observed live on long conversations even after raising the
+    // budget twice (see the comment above). A truncated completion
+    // object is missing daily_practices, which would otherwise crash the
+    // persistence step below with a 500. No max_tokens value can fully
+    // rule this out on an arbitrarily long conversation, so treat a
+    // malformed completion the same as "not finished yet" instead — the
+    // subscriber just gets one more exchange, a much better failure mode
+    // than a hard error.
+    if (
+      input.completion &&
+      (!input.completion.summary ||
+        !input.completion.daily_practices?.water_intake ||
+        !input.completion.daily_practices?.fasting)
+    ) {
+      console.error(
+        `Intake chat: completion object was truncated/malformed (stop_reason: ${response.stop_reason}) — treating as incomplete this turn.`,
+        input.completion
+      );
+      input = {
+        ...input,
+        completion: null,
+        reply:
+          input.reply ||
+          "Sorry, give me just one more moment to finish gathering what I need before I put your profile together.",
+      };
+    }
+
+    // Same defense-in-depth reasoning for log_entry — live testing turned
+    // up a response where stop_reason was "tool_use" (i.e. NOT truncated
+    // by max_tokens) but the tool call itself was still malformed:
+    // category came back null and structured_value wasn't an array,
+    // which crashed the lifestyle-persist loop below with a TypeError.
+    // Not every malformed tool call is a length problem, so this check
+    // is independent of the completion one above. Dropping one turn's
+    // structured logging is a far better failure mode than a 500.
+    if (
+      input.log_entry &&
+      (!VALID_LOG_CATEGORIES.has(input.log_entry.category) ||
+        typeof input.log_entry.question !== "string" ||
+        typeof input.log_entry.answer !== "string" ||
+        !Array.isArray(input.log_entry.structured_value))
+    ) {
+      console.error(
+        `Intake chat: log_entry was malformed (stop_reason: ${response.stop_reason}) — dropping this turn's structured logging rather than crashing.`,
+        input.log_entry
+      );
+      input = { ...input, log_entry: null };
+    }
+
+    // Verify the "STOP — contradiction check" instruction actually landed
+    // (see ensureContradictionFollowUp above) — never trusted blindly,
+    // since live testing showed it doesn't always. If the reply gets
+    // replaced, force completion to null too: presenting a completion
+    // payload alongside a swapped-in clarifying question would mean the
+    // client jumps straight to the summary card and the question never
+    // gets shown at all (see IntakeChat.tsx: done ? summary : reply).
+    if (activeContradictions.length > 0) {
+      const verifiedReply = await ensureContradictionFollowUp(
+        input.reply,
+        activeContradictions,
+        subscriberContext.text,
+        anthropicMessages
+      );
+      if (verifiedReply !== input.reply) {
+        input = { ...input, reply: verifiedReply, completion: null };
+      }
+    }
 
     if (input.log_entry) {
       const { error } = await supabase.from("intake_responses").insert({
