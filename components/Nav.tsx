@@ -103,7 +103,7 @@ export default function Nav() {
           <Link
             href="/reserve"
             onClick={() => setOpen(false)}
-            className="mt-2 rounded-full bg-copper px-5 py-2.5 text-center font-semibold text-cream"
+            className="mt-2 rounded-full bg-copper px-5 py-2.5 text-center font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)]"
           >
             Reserve Yours
           </Link>

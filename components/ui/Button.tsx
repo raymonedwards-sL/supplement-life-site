@@ -7,8 +7,14 @@ type Size = "md" | "lg";
 const base =
   "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
+// The primary CTA (hunter-green pill) is dark enough to nearly disappear
+// against the dark navy nav bar, so it gets a light "ivory" ring — same
+// shape as the pill, sitting just behind it — to keep it eye-catching on
+// both dark and light backgrounds. Ring color is the existing --color-ivory
+// brand token, not a new ad hoc hex.
 const variants: Record<Variant, string> = {
-  primary: "bg-copper text-cream hover:bg-copper/90",
+  primary:
+    "bg-copper text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)]",
   secondary: "border border-navy/20 text-navy hover:bg-navy/5",
   ghost: "text-copper hover:text-copper/80",
 };
