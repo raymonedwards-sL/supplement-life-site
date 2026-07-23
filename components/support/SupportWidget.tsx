@@ -138,7 +138,7 @@ export default function SupportWidget() {
               type="submit"
               disabled={loading || !input.trim()}
               aria-label="Send"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-copper text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-copper text-cream shadow-[0_0_0_3px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_4px_var(--color-ivory)] disabled:opacity-60"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -167,7 +167,7 @@ export default function SupportWidget() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Close support chat" : "Open support chat"}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-copper text-cream shadow-lg transition-transform hover:scale-105"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-copper text-cream shadow-[0_0_0_5px_var(--color-ivory),0_10px_15px_-3px_rgb(0_0_0_/_0.1),0_4px_6px_-4px_rgb(0_0_0_/_0.1)] transition-transform hover:scale-105"
       >
         {open ? (
           <svg

@@ -263,7 +263,7 @@ export default function AccountMenu() {
               <button
                 type="submit"
                 disabled={sending}
-                className="rounded-full bg-copper px-4 py-2 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+                className="rounded-full bg-copper px-4 py-2 text-sm font-semibold text-cream shadow-[0_0_0_4px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_6px_var(--color-ivory)] disabled:opacity-60"
               >
                 {sending
                   ? password

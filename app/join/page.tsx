@@ -162,7 +162,7 @@ export default function JoinTheTribe() {
           <a
             href={GUIDE_PDF_PATH}
             download
-            className="mt-6 inline-block rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
+            className="mt-6 inline-block rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)]"
           >
             Download &ldquo;7 Signs Your Body Is Asking for a Reset After 35&rdquo; &rarr;
           </a>
@@ -292,7 +292,7 @@ export default function JoinTheTribe() {
                 type="button"
                 onClick={() => setStep("email")}
                 disabled={challenges.length === 0}
-                className="mt-8 w-full max-w-md rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="mt-8 w-full max-w-md rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Continue{challenges.length > 0 ? ` (${challenges.length} selected)` : ""}
               </button>
@@ -351,7 +351,7 @@ export default function JoinTheTribe() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+                  className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
                 >
                   {loading ? "Joining…" : "Join Free"}
                 </button>
@@ -470,7 +470,7 @@ export default function JoinTheTribe() {
               onClick={() => {
                 formRef.current?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="w-full rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 sm:w-auto"
+              className="w-full rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] sm:w-auto"
             >
               Join Free
             </button>

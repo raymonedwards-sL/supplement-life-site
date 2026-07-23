@@ -176,7 +176,7 @@ export default function LoginPrompt({ redirectPath }: { redirectPath: string }) 
         <button
           type="submit"
           disabled={loading}
-          className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+          className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
         >
           {loading
             ? password

@@ -216,7 +216,7 @@ function AssessmentForm() {
               <button
                 type="submit"
                 disabled={loading || !residencyConfirmed}
-                className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90 disabled:opacity-60"
+                className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
               >
                 {loading ? "Redirecting to checkout…" : "Take the LIFE Assessment — $797"}
               </button>

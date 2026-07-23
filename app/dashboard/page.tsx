@@ -208,7 +208,7 @@ export default async function Dashboard() {
               </p>
               <Link
                 href="/reserve"
-                className="mt-4 inline-block rounded-full bg-copper px-5 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
+                className="mt-4 inline-block rounded-full bg-copper px-5 py-2.5 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)]"
               >
                 Reserve Your Founding Subscription
               </Link>

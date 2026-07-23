@@ -177,7 +177,7 @@ export default function Press() {
           </p>
           <a
             href="mailto:hello@yourlifeprotocol.com?subject=Press%20inquiry"
-            className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
+            className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)]"
           >
             hello@yourlifeprotocol.com
           </a>
