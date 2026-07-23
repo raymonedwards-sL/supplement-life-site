@@ -73,6 +73,28 @@ function sanitizeModelText(text: string): string {
   return text.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
 }
 
+/** Server-authored bookkeeping field marking a contradiction as already
+ * surfaced to the subscriber this conversation (see
+ * supabase/migrations/0016_intake_responses_system_category.sql) —
+ * excluded from what reaches the scoring engine. */
+const CONTRADICTION_SURFACED_FIELD = "_contradiction_surfaced";
+
+/** intake_responses.structured_value is an array per row (one turn can log
+ * several facts) — flatten a set of rows into one StructuredAnswer[] for
+ * the engine. Shared by the mid-conversation contradiction check and the
+ * completion-time scoring pass below. Drops the contradiction-surfaced
+ * bookkeeping marker, which isn't a real answer field. */
+function flattenStructuredAnswers(rows: { structured_value: unknown }[] | null): StructuredAnswer[] {
+  return (rows ?? [])
+    .flatMap((r) => {
+      const entries = Array.isArray(r.structured_value) ? r.structured_value : [];
+      return (entries as { field?: string; value?: unknown }[]).filter(
+        (v): v is { field: string; value: unknown } => Boolean(v) && typeof v.field === "string"
+      );
+    })
+    .filter((v) => v.field !== CONTRADICTION_SURFACED_FIELD);
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
@@ -162,6 +184,71 @@ export async function POST(request: NextRequest) {
       if (convCountError) console.error("Failed to increment conversation_count:", convCountError);
     }
 
+    // P2-2 adaptive branching: "if a contradiction rule fires and is NOT a
+    // hard data error, insert exactly one clarifying follow-up question
+    // before finalizing the affected domain's score." Checked BEFORE
+    // every turn's Claude call (not just at completion) using whatever
+    // this conversation has logged so far — the earliest a soft
+    // contradiction can be surfaced is the turn right after both
+    // conflicting answers exist, since this turn's own answer hasn't been
+    // logged yet when this check runs. Cheap (pure computation over
+    // lightweight queries, no extra LLM cost) and skipped on turn one,
+    // when there's nothing to check yet.
+    //
+    // "Ask exactly once" is enforced server-side, not by asking Claude to
+    // notice its own prior message in the transcript — live testing
+    // showed that self-check is unreliable (Sage re-asked the same
+    // clarifying question three turns running when the subscriber didn't
+    // fully resolve it). Instead: once a contradiction is about to be
+    // surfaced, immediately write a 'system'-category marker row for it
+    // (see 0016_intake_responses_system_category.sql) BEFORE calling
+    // Claude, so it can never be selected again for this conversation_id
+    // regardless of how Claude's reply turns out.
+    let activeContradictions: string[] = [];
+    if (!isNewConversation) {
+      const [{ data: soFarRows }, { data: soFarFlags }] = await Promise.all([
+        supabase
+          .from("intake_responses")
+          .select("category, structured_value")
+          .eq("user_id", user.id)
+          .eq("conversation_id", conversationId),
+        supabase.from("active_safety_flags").select("flag_type, value").eq("user_id", user.id),
+      ]);
+
+      const alreadySurfaced = new Set(
+        (soFarRows ?? [])
+          .filter((r) => r.category === "system")
+          .flatMap((r) => (Array.isArray(r.structured_value) ? r.structured_value : []))
+          .filter((v: { field?: string }) => v?.field === CONTRADICTION_SURFACED_FIELD)
+          .map((v: { value?: unknown }) => v.value)
+      );
+
+      const soFarAnswers = flattenStructuredAnswers(soFarRows);
+      const midCheck = runAssessmentEngine(soFarAnswers, soFarFlags ?? []);
+      // Hard-error contradictions (e.g. impossible age/demographic combo)
+      // stay a completion-time block, not a mid-conversation nudge — see
+      // the input.completion branch below.
+      const newContradictions = midCheck.contradictionFlags
+        .filter((f) => !f.hardError)
+        .map((f) => f.message)
+        .filter((message) => !alreadySurfaced.has(message));
+
+      if (newContradictions.length > 0) {
+        const { error: markerError } = await supabase.from("intake_responses").insert(
+          newContradictions.map((message) => ({
+            user_id: user.id,
+            conversation_id: conversationId,
+            category: "system",
+            question: "",
+            answer: "",
+            structured_value: [{ field: CONTRADICTION_SURFACED_FIELD, value: message }],
+          }))
+        );
+        if (markerError) console.error("Failed to record contradiction-surfaced marker:", markerError);
+        activeContradictions = newContradictions;
+      }
+    }
+
     // NOTE: buildSystemPrompt() now includes the full Hero Ingredient
     // Reference (lib/claude/ingredient-reference.ts) and the Systems
     // Framework, plus the subscriber-specific context block above, so it
@@ -176,8 +263,15 @@ export async function POST(request: NextRequest) {
     // call sites deserves its own tested pass.
     const response = await anthropic.messages.create({
       model: MODEL,
-      max_tokens: 1536,
-      system: buildSystemPrompt(subscriberContext.text),
+      // 1536 was found (via live testing on a long, 9+ turn conversation)
+      // to sometimes truncate the intake_turn tool_use JSON mid-completion
+      // — Claude's own reply/summary/daily_practices prose can run longer
+      // than that on a conversation with a lot of accumulated context,
+      // and a truncated tool call means completion.daily_practices comes
+      // back undefined, crashing the persistence step below. 2048 gives
+      // real headroom over what a completion turn actually needs.
+      max_tokens: 2048,
+      system: buildSystemPrompt(subscriberContext.text, activeContradictions),
       tools: [INTAKE_TURN_TOOL],
       tool_choice: { type: "tool", name: "intake_turn" },
       messages: anthropicMessages,
@@ -263,12 +357,7 @@ export async function POST(request: NextRequest) {
         supabase.from("active_safety_flags").select("flag_type, value").eq("user_id", user.id),
       ]);
 
-      const structuredAnswers: StructuredAnswer[] = (conversationRows ?? []).flatMap((r) => {
-        const entries = Array.isArray(r.structured_value) ? r.structured_value : [];
-        return (entries as { field?: string; value?: unknown }[]).filter(
-          (v): v is { field: string; value: unknown } => Boolean(v) && typeof v.field === "string"
-        );
-      });
+      const structuredAnswers = flattenStructuredAnswers(conversationRows);
 
       const engine = runAssessmentEngine(structuredAnswers, activeFlags ?? []);
 
@@ -324,7 +413,10 @@ export async function POST(request: NextRequest) {
       if (selectedTracks.length > 0) {
         const rationaleResponse = await anthropic.messages.create({
           model: MODEL,
-          max_tokens: 1024,
+          // Same truncation-headroom reasoning as the intake_turn call
+          // above — 2-4 sentences of rationale per track (up to 3 tracks)
+          // plus ingredient highlights can run past 1024 on a verbose turn.
+          max_tokens: 1536,
           system: buildRationaleSystemPrompt(subscriberContext.text, completion.summary, selectedTracks),
           tools: [INTAKE_RATIONALE_TOOL],
           tool_choice: { type: "tool", name: "intake_rationale" },
