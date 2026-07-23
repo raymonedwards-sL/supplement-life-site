@@ -1,17 +1,27 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
-import { buildSystemPrompt, INTAKE_TURN_TOOL } from "@/lib/claude/intake";
+import {
+  buildSystemPrompt,
+  buildRationaleSystemPrompt,
+  INTAKE_TURN_TOOL,
+  INTAKE_RATIONALE_TOOL,
+  type EngineSelectedTrack,
+} from "@/lib/claude/intake";
 import {
   buildSubscriberContext,
   isCuriositySignal,
   LIFESTYLE_FIELD_COLUMNS,
 } from "@/lib/claude/subscriber-context";
+import { runAssessmentEngine, type StructuredAnswer } from "@/lib/scoring";
+import { findTrack } from "@/lib/tracks";
 import { buildLifeBriefPdf } from "@/lib/pdf/life-brief";
 import { sendLifeBriefEmail } from "@/lib/email/send-life-brief";
 import { resolveIntakeAccess } from "@/lib/access/intake-access";
 
 const MODEL = "claude-sonnet-5";
+const ROLE_LABELS: EngineSelectedTrack["role"][] = ["Primary", "Secondary", "Tertiary"];
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -29,13 +39,18 @@ type TurnInput = {
     note?: string;
   } | null;
   reply: string;
+  // Phase 1 completion: Sage signals the conversation is done. Track
+  // selection is NOT part of this anymore — see lib/scoring/engine.ts and
+  // the phase-2 rationale call below.
   completion: {
     summary: string;
-    recommended_track_ids: string[];
-    rationale: { track_id: string; reason: string }[];
-    ingredient_highlights: { ingredient: string; role: string }[];
     daily_practices: { water_intake: string; fasting: string };
   } | null;
+};
+
+type RationaleInput = {
+  rationale: { track_id: string; reason: string }[];
+  ingredient_highlights: { ingredient: string; role: string }[];
 };
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -101,7 +116,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 403 });
   }
 
-  const { messages }: { messages: ChatMessage[] } = await request.json();
+  const {
+    messages,
+    conversationId: incomingConversationId,
+  }: { messages: ChatMessage[]; conversationId?: string } = await request.json();
+
+  // Generated once per browser session by the client (see IntakeChat.tsx)
+  // and echoed back on every turn — scopes intake_responses rows to "this
+  // sitting" so the scoring engine can read back exactly this
+  // conversation's structured answers at completion time, not a
+  // subscriber's entire history. Always returned in the response so the
+  // client can capture it after turn one.
+  const conversationId = incomingConversationId ?? randomUUID();
 
   const anthropicMessages: Anthropic.MessageParam[] = messages.map((m) => ({
     role: m.role,
@@ -171,6 +197,7 @@ export async function POST(request: NextRequest) {
     if (input.log_entry) {
       const { error } = await supabase.from("intake_responses").insert({
         user_id: user.id,
+        conversation_id: conversationId,
         category: input.log_entry.category,
         question: input.log_entry.question,
         answer: input.log_entry.answer,
@@ -215,6 +242,40 @@ export async function POST(request: NextRequest) {
     if (input.completion) {
       const completion = input.completion;
 
+      // Pull back exactly this conversation's structured answers (scoped
+      // by conversation_id, not this subscriber's whole history) plus
+      // their currently-active permanent safety flags, and hand both to
+      // the deterministic engine — this is the actual decision layer now,
+      // not Sage's own judgment. See lib/scoring/engine.ts.
+      const [{ data: conversationRows }, { data: activeFlags }] = await Promise.all([
+        supabase
+          .from("intake_responses")
+          .select("structured_value")
+          .eq("user_id", user.id)
+          .eq("conversation_id", conversationId),
+        supabase.from("active_safety_flags").select("flag_type, value").eq("user_id", user.id),
+      ]);
+
+      const structuredAnswers: StructuredAnswer[] = (conversationRows ?? [])
+        .map((r) => r.structured_value as { field?: string; value?: unknown } | null)
+        .filter(
+          (v): v is { field: string; value: unknown } =>
+            Boolean(v) && typeof v!.field === "string"
+        );
+
+      const engine = runAssessmentEngine(structuredAnswers, activeFlags ?? []);
+
+      if (engine.hardBlock) {
+        const flag = engine.contradictionFlags.find((f) => f.hardError);
+        console.warn("Intake chat: hard-block contradiction, prompting re-entry:", flag?.message);
+        return NextResponse.json({
+          done: false,
+          conversationId,
+          reply:
+            "Before I put your profile together — a couple of the details you've shared don't quite line up. Could you confirm your age for me again?",
+        });
+      }
+
       const { error: profileError } = await supabase.from("profiles").upsert(
         {
           user_id: user.id,
@@ -230,25 +291,88 @@ export async function POST(request: NextRequest) {
       );
       if (profileError) console.error("Failed to save profile:", profileError);
 
+      // Build the engine's selected tracks (already ranked, primary
+      // first) into the shape the phase-2 rationale prompt needs.
+      const selectedTracks: EngineSelectedTrack[] = engine.recommendedTrackIds.map((trackId, i) => {
+        const track = findTrack(trackId);
+        const trackResult = engine.tracks.find((t) => t.trackId === trackId);
+        const domainResult = engine.domains.find((d) => d.trackId === trackId);
+        return {
+          trackId,
+          trackName: track?.name ?? trackId,
+          role: ROLE_LABELS[i] ?? "Tertiary",
+          domainOpportunityScore: domainResult?.opportunityScore ?? null,
+          trackFitScore: trackResult?.trackFitScore ?? null,
+          cautions: trackResult?.reasons ?? [],
+        };
+      });
+
+      // Phase 2: a second, narrower Claude call — the engine has already
+      // decided WHICH tracks; Sage only writes the rationale prose for
+      // them. Skipped entirely if the engine couldn't recommend anything
+      // (e.g. every track got safety-gate-excluded).
+      let rationale: RationaleInput["rationale"] = [];
+      let ingredientHighlights: RationaleInput["ingredient_highlights"] = [];
+
+      if (selectedTracks.length > 0) {
+        const rationaleResponse = await anthropic.messages.create({
+          model: MODEL,
+          max_tokens: 1024,
+          system: buildRationaleSystemPrompt(subscriberContext.text, completion.summary, selectedTracks),
+          tools: [INTAKE_RATIONALE_TOOL],
+          tool_choice: { type: "tool", name: "intake_rationale" },
+          messages: [
+            ...anthropicMessages,
+            {
+              role: "user",
+              content: "The engine has selected your tracks (see system prompt). Write the rationale and ingredient highlights now.",
+            },
+          ],
+        });
+
+        const rationaleToolUse = rationaleResponse.content.find(
+          (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+        );
+
+        if (rationaleToolUse) {
+          const rationaleInput = rationaleToolUse.input as RationaleInput;
+          rationale = rationaleInput.rationale;
+          ingredientHighlights = rationaleInput.ingredient_highlights;
+        } else {
+          console.error("Intake chat: no tool_use block in rationale response", rationaleResponse);
+        }
+      }
+
       const { error: trackError } = await supabase.from("track_assignments").insert({
         user_id: user.id,
-        tracks: completion.recommended_track_ids,
+        conversation_id: conversationId,
+        tracks: engine.recommendedTrackIds,
         // rationale is a plain `text` column — JSON-encode the per-track
         // array into it rather than migrating the column type. See
         // lib/rationale.ts for the corresponding parser used on read.
-        rationale: JSON.stringify(completion.rationale),
+        rationale: JSON.stringify(rationale),
+        // Real jsonb/numeric columns (0015_assessment_scoring_engine.sql)
+        // — the audit trail behind this recommendation.
+        domain_scores: engine.domains,
+        safety_gate: engine.safetyGate,
+        track_fit_scores: engine.tracks,
+        confidence_score: engine.confidenceScore,
+        contradiction_flags: engine.contradictionFlags,
       });
       if (trackError) console.error("Failed to save track assignment:", trackError);
 
+      const finalCompletion = {
+        summary: completion.summary,
+        recommended_track_ids: engine.recommendedTrackIds,
+        rationale,
+        ingredient_highlights: ingredientHighlights,
+        daily_practices: completion.daily_practices,
+      };
+
       // Email "Your LIFE Brief" immediately on completion — the
       // "she receives the Brief immediately" moment from the LIFE
-      // Assessment funnel. Built straight from this turn's completion
-      // data (no extra profile/track re-fetch needed) plus one light
-      // subscription-status lookup so the Brief's status section is
-      // accurate for both a $249 Founding Subscriber and an
-      // assessment-only ($797) customer with no subscriptions row at all.
-      // Fire-and-forget: a PDF-build or Resend hiccup must never fail
-      // intake completion for the subscriber.
+      // Assessment funnel. Fire-and-forget: a PDF-build or Resend hiccup
+      // must never fail intake completion for the subscriber.
       if (user.email) {
         void (async () => {
           try {
@@ -260,11 +384,11 @@ export async function POST(request: NextRequest) {
 
             const pdfBytes = await buildLifeBriefPdf({
               email: user.email!,
-              currentSummary: completion.summary,
-              waterIntakeRecommendation: completion.daily_practices.water_intake,
-              fastingRecommendation: completion.daily_practices.fasting,
-              trackIds: completion.recommended_track_ids,
-              rationale: completion.rationale,
+              currentSummary: finalCompletion.summary,
+              waterIntakeRecommendation: finalCompletion.daily_practices.water_intake,
+              fastingRecommendation: finalCompletion.daily_practices.fasting,
+              trackIds: finalCompletion.recommended_track_ids,
+              rationale: finalCompletion.rationale,
               subscriptionStatus: subscription?.status ?? null,
               conversionDate: subscription?.conversion_date ?? null,
               // SMS opt-in only happens later from the dashboard (never at
@@ -279,10 +403,10 @@ export async function POST(request: NextRequest) {
         })();
       }
 
-      return NextResponse.json({ done: true, summary: completion });
+      return NextResponse.json({ done: true, conversationId, summary: finalCompletion });
     }
 
-    return NextResponse.json({ done: false, reply: sanitizeModelText(input.reply) });
+    return NextResponse.json({ done: false, conversationId, reply: sanitizeModelText(input.reply) });
   } catch (error) {
     console.error("Intake chat failed:", error);
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });

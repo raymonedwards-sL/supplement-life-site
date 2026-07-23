@@ -25,6 +25,12 @@ export default function IntakeChat() {
   const [summary, setSummary] = useState<Completion | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
+  // Scopes this sitting's structured answers server-side (see
+  // app/api/intake/chat/route.ts) so the scoring engine can tell this
+  // conversation's answers apart from a subscriber's whole history.
+  // Captured from the server's first response, echoed back on every
+  // subsequent turn.
+  const conversationId = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (started.current) return;
@@ -52,7 +58,7 @@ export default function IntakeChat() {
       const res = await fetch("/api/intake/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, conversationId: conversationId.current }),
       });
 
       const data = await res.json();
@@ -60,6 +66,8 @@ export default function IntakeChat() {
       if (!res.ok) {
         throw new Error(data.error ?? "Something went wrong.");
       }
+
+      if (data.conversationId) conversationId.current = data.conversationId;
 
       if (data.done) {
         setSummary(data.summary);
