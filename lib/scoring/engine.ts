@@ -103,6 +103,7 @@ export function runAssessmentEngine(
 
   const safetyIntake: SafetyGateIntake = {
     age: demographics.age,
+    sex: demographics.sex,
     pregnant: hasPregnancyNursingFlag || toBoolean(answerMap.get("pregnant")),
     nursing: hasPregnancyNursingFlag || toBoolean(answerMap.get("nursing")),
     hormonal_contraceptive: toBoolean(answerMap.get("hormonal_contraceptive")),

@@ -13,6 +13,7 @@ import { TRACKS } from "@/lib/tracks";
 
 export type SafetyGateIntake = {
   age?: number;
+  sex?: "male" | "female" | "other" | "prefer_not_to_say";
   pregnant?: boolean;
   nursing?: boolean;
   hormonal_contraceptive?: boolean;
@@ -56,6 +57,21 @@ export function safetyGate(intake: SafetyGateIntake): Record<string, SafetyGateR
   if ((intake.age ?? 99) < 18) {
     for (const t of TRACKS) exclude(t.id, "Under 18 — hard exclude, no protocol generated.");
     return toResult(eligible, reasons);
+  }
+
+  // Sex-inapplicable tracks are hard-excluded, not just left at a neutral
+  // Track-Fit baseline — otherwise a track built for the opposite sex can
+  // still tie into a recommendation slot when its own domain was never
+  // asked about (domain "not shown for this sex" and domain "shown but
+  // unanswered" would otherwise both fall back to the same neutral 50
+  // Opportunity Score in engine.ts). Only fires when sex is disclosed AND
+  // is definitively the opposite one — "other"/"prefer_not_to_say"/
+  // undisclosed leaves both tracks eligible rather than guessing.
+  if (intake.sex === "male") {
+    exclude("womens-rhythm", "Subscriber identified as male — Women's Hormonal Rhythm track is not applicable.");
+  }
+  if (intake.sex === "female") {
+    exclude("mens-rhythm", "Subscriber identified as female — Men's Vitality & Rhythm track is not applicable.");
   }
 
   if (intake.pregnant || intake.nursing) {

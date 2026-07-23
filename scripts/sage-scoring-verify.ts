@@ -167,6 +167,39 @@ console.log("=".repeat(78));
   check("Scenario C: pm-calm still eligible (no Callaloo)", stillEligible.includes("pm-calm"), true);
 }
 
+// Scenario D2: sex-inapplicable tracks must be hard-excluded, not just left
+// at a neutral Track-Fit baseline — regression check for the bug found via
+// a live e2e run where mens-rhythm still tied into contention for a female
+// subscriber because its domain was never asked about (same neutral-50
+// fallback as "shown but unanswered").
+{
+  const female = runAssessmentEngine([{ field: "age", value: 30 }, { field: "sex", value: "female" }], []);
+  check(
+    "Scenario D2: mens-rhythm excluded for a female subscriber",
+    female.tracks.find((t) => t.trackId === "mens-rhythm")?.eligible,
+    false
+  );
+  check(
+    "Scenario D2: mens-rhythm never in recommendations for a female subscriber",
+    female.recommendedTrackIds.includes("mens-rhythm"),
+    false
+  );
+
+  const male = runAssessmentEngine([{ field: "age", value: 30 }, { field: "sex", value: "male" }], []);
+  check(
+    "Scenario D2: womens-rhythm excluded for a male subscriber",
+    male.tracks.find((t) => t.trackId === "womens-rhythm")?.eligible,
+    false
+  );
+
+  const undisclosed = runAssessmentEngine([{ field: "age", value: 30 }], []);
+  check(
+    "Scenario D2: both rhythm tracks stay eligible when sex is undisclosed",
+    undisclosed.tracks.filter((t) => t.trackId === "mens-rhythm" || t.trackId === "womens-rhythm").every((t) => t.eligible),
+    true
+  );
+}
+
 // Scenario D: under 18 — hard exclude from every track, no recommendations.
 {
   const answers = [{ field: "age", value: 15 }];

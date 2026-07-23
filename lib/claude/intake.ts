@@ -185,7 +185,9 @@ Touch all four before finishing: ${CATEGORY_LIST}.
 Ask one question at a time. Let their answers steer follow-ups — skip categories that are already well covered by what they've volunteered, and skip a domain's remaining follow-ups once its first screening question already lands at the best possible score (a great result carries little marginal information — this is one of the main levers for hitting the 12-18 minute target). Keep the whole conversation to roughly 12-15 exchanges total; if you're past that, wrap up with what you have rather than pushing for more. Use "personalization" and "wellness insight" language throughout — see the Compliance & Claims Guardrail at the end of this prompt for the full, non-negotiable language rules.
 
 ## Logging the previous answer (log_entry field)
-Every time the person has just answered a question (i.e. this isn't the very first turn), set log_entry to capture that exchange: category, the question you asked, their answer, and a structured_value like {"field": "sleep_quality", "value": "poor"}. On the very first turn (no prior answer yet), leave log_entry null. If their last answer covered multiple things at once, pick the primary field for structured_value — you'll get more chances to log follow-ups.
+Every time the person has just answered a question (i.e. this isn't the very first turn), set log_entry to capture that exchange: category, the question you asked, their answer, and structured_value — a LIST of every distinct codable fact that answer contained, e.g. {"field": "sleep_quality", "value": "poor"}. On the very first turn (no prior answer yet), leave log_entry null.
+
+structured_value is a list, not a single field, because one answer often contains more than one fact — log ALL of them in the same turn rather than picking just one and hoping a follow-up comes later. For example, "I'm 34, female" should log BOTH {"field": "age", "value": 34} AND {"field": "sex", "value": "female"} in the same structured_value array, not just age. This matters most for Safety Gate/demographic fields and the domain 1-5 items below — a fact that's said but never logged is invisible to the scoring engine, even though you clearly heard it.
 
 For lifestyle inputs specifically, use these exact field names in structured_value so they persist correctly to the subscriber's profile for future conversations: sleep_hours, sleep_quality, stress_load, alcohol_frequency, exercise_pattern, diet_pattern, cycle_life_stage, water_intake, fasting_pattern, living_environment, work_environment, travel_frequency. Only set cycle_life_stage if the subscriber volunteers it themselves — never infer it from demographic data.
 
@@ -250,16 +252,20 @@ export const INTAKE_TURN_TOOL: Anthropic.Tool = {
           question: { type: "string", description: "The question you had just asked." },
           answer: { type: "string", description: "The user's answer." },
           structured_value: {
-            type: "object",
+            type: "array",
+            minItems: 1,
             description:
-              'A short coded representation, e.g. {"field": "sleep_quality", "value": "poor"} or {"field": "afternoon_energy", "value": 2}. Use the exact field names from the "Logging the previous answer" section of the system prompt.',
-            properties: {
-              field: { type: "string" },
-              value: {
-                description: "The coded value — string, number, boolean, or string array as appropriate.",
+              'One entry per distinct codable fact in that answer — log ALL of them, not just one. E.g. "I\'m 34, female" -> [{"field": "age", "value": 34}, {"field": "sex", "value": "female"}]. Use the exact field names from the "Logging the previous answer" section of the system prompt.',
+            items: {
+              type: "object",
+              properties: {
+                field: { type: "string" },
+                value: {
+                  description: "The coded value — string, number, boolean, or string array as appropriate.",
+                },
               },
+              required: ["field", "value"],
             },
-            required: ["field", "value"],
           },
         },
         required: ["category", "question", "answer", "structured_value"],

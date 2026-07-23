@@ -30,7 +30,7 @@ type TurnInput = {
     category: string;
     question: string;
     answer: string;
-    structured_value: { field: string; value: unknown };
+    structured_value: { field: string; value: unknown }[];
   } | null;
   safety_flag: {
     flag_type: "medication" | "allergy" | "pregnancy_nursing" | "health_condition";
@@ -207,13 +207,20 @@ export async function POST(request: NextRequest) {
 
       // Opportunistically persist lifestyle inputs to the rolled-up
       // profile (Stage 2 schema) so they're available as Tier context in
-      // future conversations — a partial upsert only touches the one
-      // column named here, so this never clobbers other profile fields.
-      const column = LIFESTYLE_FIELD_COLUMNS[input.log_entry.structured_value.field];
-      if (column) {
+      // future conversations — one combined upsert covering every
+      // lifestyle field this turn logged (structured_value is a list,
+      // since one answer often codes more than one fact), so this never
+      // clobbers other profile fields and never needs more than one
+      // round trip per turn.
+      const lifestyleUpdates: Record<string, unknown> = {};
+      for (const entry of input.log_entry.structured_value) {
+        const column = LIFESTYLE_FIELD_COLUMNS[entry.field];
+        if (column) lifestyleUpdates[column] = entry.value;
+      }
+      if (Object.keys(lifestyleUpdates).length > 0) {
         const { error: lifestyleError } = await supabase
           .from("profiles")
-          .upsert({ user_id: user.id, [column]: input.log_entry.structured_value.value }, { onConflict: "user_id" });
+          .upsert({ user_id: user.id, ...lifestyleUpdates }, { onConflict: "user_id" });
         if (lifestyleError) console.error("Failed to persist lifestyle field:", lifestyleError);
       }
 
@@ -256,12 +263,12 @@ export async function POST(request: NextRequest) {
         supabase.from("active_safety_flags").select("flag_type, value").eq("user_id", user.id),
       ]);
 
-      const structuredAnswers: StructuredAnswer[] = (conversationRows ?? [])
-        .map((r) => r.structured_value as { field?: string; value?: unknown } | null)
-        .filter(
-          (v): v is { field: string; value: unknown } =>
-            Boolean(v) && typeof v!.field === "string"
+      const structuredAnswers: StructuredAnswer[] = (conversationRows ?? []).flatMap((r) => {
+        const entries = Array.isArray(r.structured_value) ? r.structured_value : [];
+        return (entries as { field?: string; value?: unknown }[]).filter(
+          (v): v is { field: string; value: unknown } => Boolean(v) && typeof v.field === "string"
         );
+      });
 
       const engine = runAssessmentEngine(structuredAnswers, activeFlags ?? []);
 
