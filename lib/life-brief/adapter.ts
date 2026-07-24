@@ -208,6 +208,113 @@ function ingredientMatchesCaution(ingredientName: string, caution: string): bool
   return caution.toLowerCase().includes(cleaned);
 }
 
+/**
+ * Sentence-variety pools (added 2026-07-25, founder feedback: repeating
+ * the exact same sentence frame across a report's 3 strengths, 3
+ * frictions, and every reported/observed/monitoring line read as
+ * "glitched" / auto-generated, not like a considered report). Each pool
+ * has 3 distinct phrasings of the same underlying fact — deterministic
+ * by list position (not random), so the report reads the same on every
+ * reload rather than reshuffling. Nothing here changes what's being
+ * said, only how many different ways it's said across one report.
+ */
+const STRENGTH_TEMPLATES: ((label: string) => string)[] = [
+  (label) => `${label} is already a strong point for you — one of your steadier areas right now.`,
+  (label) => `You're holding up well in ${label.toLowerCase()}, comparatively speaking.`,
+  (label) => `${label} isn't where your attention is needed most — it's already working in your favor.`,
+];
+
+const FRICTION_TEMPLATES: ((label: string) => string)[] = [
+  (label) => `${label} is where Sage sees the most room to improve right now.`,
+  (label) => `${label} stands out as a current friction point worth addressing.`,
+  (label) => `${label} is the area asking for the most attention at the moment.`,
+];
+
+const REPORTED_TEMPLATES: ((label: string) => string)[] = [
+  (label) => `You shared details about ${label.toLowerCase()} during your intake.`,
+  (label) => `${label} came up directly in what you told Sage.`,
+  (label) => `Sage noted what you shared about ${label.toLowerCase()}.`,
+];
+
+/**
+ * Real-world-implication context per domain (added 2026-07-25, founder
+ * feedback: "What Sage Observed" should help the subscriber mentally map
+ * a domain label to daily-life terms — diet, environment, activity,
+ * consumption — not just restate that it was "confirmed"). This is
+ * general education about what each domain typically connects to in
+ * daily life, not a specific claim about this subscriber's own habits —
+ * the per-subscriber specifics (their actual travel pattern, their
+ * actual bloat trigger, etc.) already live in the real rationale text
+ * surfaced in TrackCard's "Why Sage chose this" (splitRationaleIntoReasons
+ * above). Keyed by Domain.key (lib/scoring/domains.ts) so it stays in
+ * sync with the same 9 domains used everywhere else in the engine.
+ */
+const DOMAIN_REAL_WORLD_CONTEXT: Record<string, string> = {
+  cellular_energy:
+    "day to day, this tends to track with how well recovery days, protein and hydration intake, and sleep quality are keeping pace with your activity level.",
+  sleep_calm:
+    "day to day, this tends to track with caffeine timing, screen exposure before bed, and how much room your evenings leave for your nervous system to downshift.",
+  digestive_comfort:
+    "day to day, this tends to track with fiber and water intake, meal timing, and how travel or schedule changes disrupt a normal digestive rhythm.",
+  vitality_stamina:
+    "day to day, this tends to track with activity load, recovery time between workouts, and how consistent your sleep and hydration are.",
+  immune_resilience:
+    "day to day, this tends to track with sleep consistency, stress load, and exposure through travel or shared workspaces.",
+  morning_reset:
+    "day to day, this tends to track with blood-sugar swings, caffeine and sugar intake, and how consistent your wake times and sleep quality are.",
+  womens_rhythm:
+    "day to day, this tends to track with stress load, sleep, and how nutrition and activity shift across your cycle.",
+  mens_rhythm:
+    "day to day, this tends to track with sleep quality, stress load, and the balance between activity and recovery.",
+  cognitive_focus:
+    "day to day, this tends to track with sleep quality, caffeine timing, and how mentally demanding your environment is on a given day.",
+};
+
+/** Combines the intake-confirmation clause with the domain's real-world
+ * context above into one sentence, rather than two separate templated
+ * fragments — falls back to a plain confirmation if a domain key isn't
+ * in the map (keeps this forward-compatible with any future domain
+ * added to lib/scoring/domains.ts without this file needing to know
+ * about it first). */
+function observedSentence(label: string, domainKey: string): string {
+  const context = DOMAIN_REAL_WORLD_CONTEXT[domainKey];
+  if (!context) return `${label} — confirmed by what you shared during your intake.`;
+  return `${label} — confirmed by what you shared during your intake. In daily life, ${context}`;
+}
+
+/** Turns a freeform snake_case tag (e.g. one Sage logged from
+ * conversation, like "frequent_business_travel_between_nyc_dc_and_ca")
+ * into readable text for display — underscores to spaces, short
+ * all-lowercase tokens (nyc, dc, ca, us, uk...) upper-cased as likely
+ * acronyms. Founder feedback 2026-07-25: the raw tag was rendering
+ * verbatim in DailyRhythm's lifestyleCompatibilityNote, which reads as
+ * an obvious auto-generated artifact, not professional report copy. */
+function humanizeFreeformTag(value: string): string {
+  return value
+    .split("_")
+    .map((word) => (word.length <= 3 && /^[a-z]+$/.test(word) ? word.toUpperCase() : word))
+    .join(" ");
+}
+
+const MONITORING_TEMPLATES: ((label: string) => string)[] = [
+  (label) => `${label} — Sage will keep an eye on this as you check in.`,
+  (label) => `${label} is still being tracked; more signal will come with future check-ins.`,
+  (label) => `${label} — Sage wants a bit more data here before drawing firm conclusions.`,
+];
+
+const BENCHMARK_STABLE_TEMPLATES: string[] = [
+  "Continued improvement from your own baseline",
+  "Steady, incremental progress from here",
+  "Small, sustainable gains from your starting point",
+];
+
+/** Cycle through a pool by position rather than repeating pool[0] every
+ * time — the whole point is that adjacent items in the same list read
+ * differently even though they share a underlying sentence intent. */
+function fromPool<T>(pool: ((arg: T) => string)[], index: number, arg: T): string {
+  return pool[index % pool.length](arg);
+}
+
 // ---------------------------------------------------------------------------
 // P3-1 — Life Revelation
 // ---------------------------------------------------------------------------
@@ -254,6 +361,7 @@ function buildSelfBaselineBenchmarks(
   if (oldestRow.assigned_at === newestRow.assigned_at) return [];
 
   const benchmarks: BenchmarkMetric[] = [];
+  let stableIndex = 0;
   for (const newDomain of scoredDomains(newestRow.domain_scores)) {
     const oldDomain = scoredDomains(oldestRow.domain_scores).find((d) => d.key === newDomain.key);
     if (!oldDomain) continue;
@@ -265,11 +373,27 @@ function buildSelfBaselineBenchmarks(
     const personalBaseline = 100 - oldDomain.opportunityScore;
     const delta = current - personalBaseline;
 
+    // Three real outcomes here, not one — improved, dipped, or holding
+    // steady — so the target line should say which one actually
+    // happened instead of collapsing "holding steady" and "hasn't been
+    // re-measured yet" into the same repeated sentence across every row.
+    let thirtyDayTarget: string;
+    if (current >= 90) {
+      thirtyDayTarget = "Maintain this level";
+    } else if (delta > 5) {
+      thirtyDayTarget = "Building on the progress you've already made";
+    } else if (delta < -5) {
+      thirtyDayTarget = "Refocus here — this dipped since your last check-in";
+    } else {
+      thirtyDayTarget = BENCHMARK_STABLE_TEMPLATES[stableIndex % BENCHMARK_STABLE_TEMPLATES.length];
+      stableIndex += 1;
+    }
+
     benchmarks.push({
       metric: newDomain.label,
       current,
       personalBaseline,
-      thirtyDayTarget: current >= 90 ? "Maintain this level" : "Continued improvement from your own baseline",
+      thirtyDayTarget,
       ninetyDayDirection: delta > 5 ? "up" : delta < -5 ? "down" : "stable",
       // publicReferenceNote/Source intentionally omitted — self-baseline
       // only, no external/cohort reference for v1.
@@ -289,8 +413,11 @@ export function buildLifeIndexProps(
   const frictions = ranked.slice(0, 3);
   const strengths = [...ranked].sort((a, b) => a.opportunityScore - b.opportunityScore).slice(0, 3);
 
-  const pad = (items: (EngineDomainResult & { opportunityScore: number })[], template: (d: EngineDomainResult) => string) =>
-    [0, 1, 2].map((i) => (items[i] ? template(items[i]) : "Sage is still gathering signal here.")) as [
+  const pad = (
+    items: (EngineDomainResult & { opportunityScore: number })[],
+    pool: ((label: string) => string)[]
+  ) =>
+    [0, 1, 2].map((i) => (items[i] ? fromPool(pool, i, items[i].label) : "Sage is still gathering signal here.")) as [
       string,
       string,
       string,
@@ -299,8 +426,8 @@ export function buildLifeIndexProps(
   return {
     vitalityIndex: computeVitalityIndexV1(ctx.domainScores, ctx.safetyGate),
     vitalityIndexDisclaimer: VITALITY_INDEX_DISCLAIMER,
-    topStrengths: pad(strengths, (d) => `${d.label} is an area you're already doing comparatively well in`),
-    topFrictions: pad(frictions, (d) => `${d.label} shows up as a current opportunity`),
+    topStrengths: pad(strengths, STRENGTH_TEMPLATES),
+    topFrictions: pad(frictions, FRICTION_TEMPLATES),
     trackMatches: {
       primary: ctx.trackIds[0],
       secondary: ctx.trackIds[1],
@@ -324,10 +451,10 @@ export function buildPatternMapProps(ctx: LifeBriefContext): PatternMapProps | n
 
   const reported = ctx.domainScores
     .filter((d) => d.itemsAnswered > 0)
-    .map((d) => `You told Sage about ${d.label.toLowerCase()}.`);
+    .map((d, i) => fromPool(REPORTED_TEMPLATES, i, d.label));
   const monitoring = ctx.domainScores
     .filter((d) => d.itemsAnswered > 0 && d.itemsAnswered < d.itemsTotal)
-    .map((d) => `${d.label} — Sage will keep tracking this as you check in.`);
+    .map((d, i) => fromPool(MONITORING_TEMPLATES, i, d.label));
   const uncertain = ctx.contradictionFlags.filter((f) => !f.hardError).map((f) => f.message);
 
   // chain/observed classification rule (decision 2026-07-24, see the
@@ -341,7 +468,7 @@ export function buildPatternMapProps(ctx: LifeBriefContext): PatternMapProps | n
     .filter((d) => d.itemsAnswered > 0)
     .sort((a, b) => b.opportunityScore - a.opportunityScore);
   const chain = groundTruthDomains.map((d) => d.label);
-  const observed = groundTruthDomains.map((d) => `${d.label} — confirmed by what you shared during your intake.`);
+  const observed = groundTruthDomains.map((d) => observedSentence(d.label, d.key));
 
   return {
     chain,
@@ -449,7 +576,9 @@ export function buildDailyRhythmProps(ctx: LifeBriefContext): DailyRhythmProps {
   const amTrack = tracks.find((t) => /\bAM\b/i.test(t.format));
   const pmTrack = tracks.find((t) => /\bPM\b/i.test(t.format));
 
-  const lifestyleParts = [ctx.profile?.work_environment, ctx.profile?.travel_frequency].filter(Boolean);
+  const lifestyleParts = [ctx.profile?.work_environment, ctx.profile?.travel_frequency]
+    .filter((v): v is string => Boolean(v))
+    .map(humanizeFreeformTag);
 
   return {
     blocks: [
@@ -548,7 +677,7 @@ export function buildShareCardProps(ctx: LifeBriefContext): ShareCardProps | nul
   // context object, so sensitive fields can never leak in here.
   return {
     lifePattern: top.label,
-    topStrength: `${topStrength} is an area you're already doing comparatively well in`,
+    topStrength: STRENGTH_TEMPLATES[0](topStrength),
     currentOpportunity: top.label,
     ninetyDayIntention: `Noticeable, sustainable improvement in ${top.label.toLowerCase()}.`,
   };

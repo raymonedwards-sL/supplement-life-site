@@ -18,15 +18,15 @@ function BenchmarkBar({ metric }: { metric: BenchmarkMetric }) {
           {DIRECTION_GLYPH[metric.ninetyDayDirection]} 90-day target
         </span>
       </div>
-      <div className="mt-1.5 flex flex-wrap gap-x-6 gap-y-1 text-xs text-navy/60">
+      <div className="mt-1.5 flex flex-wrap gap-x-6 gap-y-1 text-sm text-navy/70">
         <span>
-          Current: <span className="font-semibold text-navy/80">{metric.current}</span>
+          Current: <span className="font-bold text-navy/95">{metric.current}</span>
         </span>
         <span>
-          Your baseline: <span className="font-semibold text-navy/80">{metric.personalBaseline}</span>
+          Your baseline: <span className="font-bold text-navy/95">{metric.personalBaseline}</span>
         </span>
         <span>
-          30-day target: <span className="font-semibold text-navy/80">{metric.thirtyDayTarget}</span>
+          30-day target: <span className="font-bold text-navy/95">{metric.thirtyDayTarget}</span>
         </span>
       </div>
       {metric.publicReferenceNote && (
@@ -59,7 +59,7 @@ export function LifeIndex({
     <div className="rounded-2xl border border-navy/10 bg-white/70 p-6 sm:p-8">
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-[auto_1fr] sm:items-start">
         <div className="text-center sm:text-left">
-          <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Your LIFE Index</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Your LIFE Index</p>
           {vitalityIndex != null ? (
             <>
               <p className="mt-1 font-serif text-6xl text-copper">{vitalityIndex}</p>
@@ -70,28 +70,28 @@ export function LifeIndex({
               Still building your picture
             </p>
           )}
-          <p className="mt-2 max-w-[14rem] text-xs leading-relaxed text-navy/50">{vitalityIndexDisclaimer}</p>
-          <p className="mt-4 text-xs text-navy/50">
-            Sage confidence: <span className="font-semibold text-navy/80">{sageConfidence}/100</span>
+          <p className="mt-2 max-w-[14rem] text-xs leading-relaxed text-navy/60">{vitalityIndexDisclaimer}</p>
+          <p className="mt-4 text-xs text-navy/60">
+            Sage confidence: <span className="font-bold text-navy/90">{sageConfidence}/100</span>
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Top strengths</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Top strengths</p>
             <ul className="mt-2 flex flex-col gap-1.5">
               {topStrengths.map((s, i) => (
-                <li key={i} className="text-sm leading-relaxed text-navy/75">
+                <li key={i} className="text-[15px] font-medium leading-relaxed text-navy/90">
                   {s}
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Top frictions</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Top frictions</p>
             <ul className="mt-2 flex flex-col gap-1.5">
               {topFrictions.map((f, i) => (
-                <li key={i} className="text-sm leading-relaxed text-navy/75">
+                <li key={i} className="text-[15px] font-medium leading-relaxed text-navy/90">
                   {f}
                 </li>
               ))}
@@ -101,8 +101,8 @@ export function LifeIndex({
       </div>
 
       <div className="mt-6 rounded-xl bg-navy/5 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Your Track Matches</p>
-        <p className="mt-1.5 text-sm text-navy/75">
+        <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Your Track Matches</p>
+        <p className="mt-1.5 text-[15px] font-medium text-navy/90">
           {[primaryTrack, secondaryTrack, tertiaryTrack]
             .filter((t): t is NonNullable<typeof t> => Boolean(t))
             .map((t) => t.name)
@@ -111,13 +111,13 @@ export function LifeIndex({
       </div>
 
       <div className="mt-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Where momentum comes from</p>
-        <p className="mt-1.5 text-sm leading-relaxed text-navy/75">{momentumBehavior}</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Where momentum comes from</p>
+        <p className="mt-1.5 text-[15px] font-medium leading-relaxed text-navy/90">{momentumBehavior}</p>
       </div>
 
       {benchmarks.length > 0 && (
         <div className="mt-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Benchmarks</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Benchmarks</p>
           <div className="mt-1">
             {benchmarks.map((b, i) => (
               <BenchmarkBar key={i} metric={b} />

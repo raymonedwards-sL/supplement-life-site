@@ -17,15 +17,15 @@ export function ShareCard({ lifePattern, topStrength, currentOpportunity, ninety
       <div className="mt-5 flex flex-col gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-navy/40">Top Strength</p>
-          <p className="mt-0.5 text-sm text-navy/75">{topStrength}</p>
+          <p className="mt-0.5 text-[15px] font-medium text-navy/90">{topStrength}</p>
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-navy/40">Current Opportunity</p>
-          <p className="mt-0.5 text-sm text-navy/75">{currentOpportunity}</p>
+          <p className="mt-0.5 text-[15px] font-medium text-navy/90">{currentOpportunity}</p>
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-navy/40">90-Day Intention</p>
-          <p className="mt-0.5 text-sm text-navy/75">{ninetyDayIntention}</p>
+          <p className="mt-0.5 text-[15px] font-medium text-navy/90">{ninetyDayIntention}</p>
         </div>
       </div>
 

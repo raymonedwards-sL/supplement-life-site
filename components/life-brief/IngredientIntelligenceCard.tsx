@@ -31,24 +31,24 @@ export function IngredientIntelligenceCard({
         {botanicalName && <p className="text-xs italic text-navy/50">{botanicalName}</p>}
       </div>
 
-      <p className="mt-3 text-sm leading-relaxed text-navy/70">{traditionalUseContext}</p>
+      <p className="mt-3 text-sm leading-relaxed text-navy/85">{traditionalUseContext}</p>
 
-      <p className="mt-2 text-sm leading-relaxed text-navy/70">
-        <span className="font-semibold text-navy">Role in your formula: </span>
+      <p className="mt-2 text-sm leading-relaxed text-navy/85">
+        <span className="font-bold text-navy">Role in your formula: </span>
         {formulationRole}
       </p>
 
-      <p className="mt-2 text-xs text-navy/50">{formAndAmount}</p>
+      <p className="mt-2 text-xs text-navy/60">{formAndAmount}</p>
 
       {complementaryIngredients.length > 0 && (
-        <p className="mt-3 text-xs text-navy/50">
+        <p className="mt-3 text-xs text-navy/60">
           <span className="font-semibold">Works alongside: </span>
           {complementaryIngredients.join(", ")}
         </p>
       )}
 
       {safetyAndInteractionNotes.length > 0 && (
-        <p className="mt-2 text-xs leading-relaxed text-navy/50">
+        <p className="mt-2 text-xs leading-relaxed text-navy/60">
           <span className="font-semibold">Safety notes: </span>
           {safetyAndInteractionNotes.join(" ")}
         </p>

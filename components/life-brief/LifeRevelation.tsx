@@ -19,7 +19,7 @@ export function LifeRevelation({
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-copper">Your LIFE Revelation</p>
           <h2 className="mt-3 font-serif text-3xl text-navy sm:text-4xl">{dominantPattern}</h2>
-          <p className="mt-4 border-l-4 border-copper/30 pl-5 text-lg leading-relaxed text-navy/80">
+          <p className="mt-4 border-l-4 border-copper/30 pl-5 text-lg leading-relaxed text-navy/90">
             {sageInterpretation}
           </p>
 
@@ -27,13 +27,13 @@ export function LifeRevelation({
             {supportingSignals.map((signal, i) => (
               <div key={i} className="flex items-start gap-3">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-copper" />
-                <p className="text-sm leading-relaxed text-navy/70">{signal}</p>
+                <p className="text-[15px] font-medium leading-relaxed text-navy/85">{signal}</p>
               </div>
             ))}
           </div>
 
-          <p className="mt-6 text-sm text-navy/60">
-            Top opportunity: <span className="font-semibold text-navy">{topOpportunity}</span>
+          <p className="mt-6 text-sm text-navy/70">
+            Top opportunity: <span className="font-bold text-navy">{topOpportunity}</span>
           </p>
 
           <p className="mt-8 font-serif text-xl text-navy">{ninetyDayCta}</p>
