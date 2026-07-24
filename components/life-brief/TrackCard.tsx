@@ -54,7 +54,7 @@ export function TrackCard({
               {whySelected.map((reason, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-[15px] font-medium leading-relaxed text-navy/90">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-copper" />
-                  {boldBotanicals(reason)}
+                  <span>{boldBotanicals(reason)}</span>
                 </li>
               ))}
             </ul>
