@@ -20,6 +20,7 @@
  */
 import { findTrack } from "@/lib/tracks";
 import { parseRationale } from "@/lib/rationale";
+import { getIngredientEducation } from "@/lib/ingredient-education";
 import type {
   EngineDomainResult,
   ContradictionFlag,
@@ -407,23 +408,36 @@ export function buildIngredientIntelligenceProps(ctx: LifeBriefContext): Ingredi
     }
   }
 
-  return Array.from(byIngredient.entries()).map(([ingredientName, { trackNames, cautions }]) => ({
-    ingredientName,
-    // botanicalName/traditionalUseContext/formAndAmount/complementaryIngredients
-    // have no data source at all today (see the GAP comments in
-    // types.ts) — honest placeholders, not invented content.
-    traditionalUseContext: "Detailed ingredient education for this item is coming soon.",
-    formulationRole: `Included in your ${trackNames.join(" and ")} formula.`,
-    formAndAmount: "Exact amount pending Claims/Evidence Library sign-off.",
-    evidenceClassification: "blocked",
-    // No substantive traditional-use/efficacy claim is made above, so
-    // this placeholder note is honest — it's not standing in for a real
-    // citation of a real claim. Required, non-empty per content policy
-    // (see memory feedback_ingredient_claims_language).
-    citations: ["Citation pending Claims/Evidence Library review."],
-    complementaryIngredients: [],
-    safetyAndInteractionNotes: Array.from(cautions),
-  }));
+  return Array.from(byIngredient.entries()).map(([ingredientName, { trackNames, cautions }]) => {
+    // traditionalUseContext DOES have a real source, unlike
+    // botanicalName/formAndAmount/complementaryIngredients (still GAP —
+    // see types.ts): lib/ingredient-education.ts holds the same
+    // subscriber-safe, compliance-reviewed summary copy already shipping
+    // on the dashboard's "Your Botanical Compounds" section and the
+    // post-intake Wellness Profile Summary. Reusing it here instead of a
+    // "coming soon" placeholder was an explicit founder decision (chat,
+    // 2026-07-24) — the LIFE Brief should carry the same ingredient
+    // insight subscribers already see elsewhere in the product.
+    const education = getIngredientEducation(ingredientName);
+
+    return {
+      ingredientName,
+      traditionalUseContext:
+        education?.summary ?? "Detailed ingredient education for this item is coming soon.",
+      formulationRole: `Included in your ${trackNames.join(" and ")} formula.`,
+      formAndAmount: "Exact amount pending Claims/Evidence Library sign-off.",
+      evidenceClassification: "blocked",
+      // Citation disclosure stays even though traditionalUseContext is now
+      // real content — the underlying academic citations backing these
+      // summaries are still pending Claims/Evidence Library sign-off
+      // (P1-3), so this remains honest, not a downgrade. Required,
+      // non-empty per content policy (see memory
+      // feedback_ingredient_claims_language).
+      citations: ["Citation pending Claims/Evidence Library review."],
+      complementaryIngredients: [],
+      safetyAndInteractionNotes: Array.from(cautions),
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
