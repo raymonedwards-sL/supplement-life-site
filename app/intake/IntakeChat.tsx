@@ -24,6 +24,7 @@ export default function IntakeChat() {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<Completion | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const started = useRef(false);
   // Scopes this sitting's structured answers server-side (see
   // app/api/intake/chat/route.ts) so the scoring engine can tell this
@@ -81,14 +82,37 @@ export default function IntakeChat() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // Auto-grow the textarea with its content (up to a capped height, after
+  // which it scrolls internally) instead of the old single-line <input>
+  // that silently truncated anything longer than the visible width.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [input]);
+
+  function submitMessage() {
     if (!input.trim() || loading) return;
 
     const next: ChatMessage[] = [...messages, { role: "user", content: input.trim() }];
     setMessages(next);
     setInput("");
     void send(next);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    submitMessage();
+  }
+
+  // Enter sends the message (matching the old input's behavior);
+  // Shift+Enter inserts a newline, since the box can now hold multiple lines.
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submitMessage();
+    }
   }
 
   if (summary) {
@@ -165,14 +189,16 @@ export default function IntakeChat() {
 
       {error && <p className="px-6 text-sm text-red-600">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="flex gap-3 border-t border-navy/10 p-4">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="flex items-end gap-3 border-t border-navy/10 p-4">
+        <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Type your answer…"
           disabled={loading}
-          className="flex-1 rounded-full border border-navy/20 bg-white px-5 py-3 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none disabled:opacity-60"
+          rows={1}
+          className="max-h-40 flex-1 resize-none overflow-y-auto rounded-3xl border border-navy/20 bg-white px-5 py-3 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none disabled:opacity-60"
         />
         <button
           type="submit"
