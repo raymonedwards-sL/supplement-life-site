@@ -23,6 +23,13 @@ export default function IntakeChat() {
   const [loading, setLoading] = useState(true); // true on mount to fetch the opener
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<Completion | null>(null);
+  // Sage's own closing words for this completion — shown as a lead-in on
+  // SummaryCard so the conversation doesn't trail into ambiguity (see
+  // SAGE_Intake_Completion_Handoff_Spec.md). Set alongside `summary`
+  // whether the completion just happened live or was reconstructed from
+  // a reload.
+  const [closingMessage, setClosingMessage] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const started = useRef(false);
@@ -53,6 +60,18 @@ export default function IntakeChat() {
     try {
       const res = await fetch("/api/intake/chat/history");
       const data = await res.json();
+
+      // Completed sitting (SAGE_Intake_Completion_Handoff_Spec.md,
+      // 2026-07-24) — reload right after finishing shows the same closing
+      // message + CTA instead of silently starting a new conversation.
+      if (res.ok && data.completedConversation) {
+        setSummary(data.completedConversation.summary);
+        setClosingMessage(data.completedConversation.closingMessage ?? null);
+        setEmail(data.completedConversation.email ?? null);
+        setLoading(false);
+        return;
+      }
+
       const history: ChatMessage[] = Array.isArray(data.messages) ? data.messages : [];
 
       if (res.ok && data.conversationId && history.length > 0) {
@@ -116,6 +135,8 @@ export default function IntakeChat() {
 
       if (data.done) {
         setSummary(data.summary);
+        setClosingMessage(data.closingMessage ?? null);
+        setEmail(data.email ?? null);
       } else {
         const withUserMessage = userMessageText
           ? [...currentMessages, { role: "user" as const, content: userMessageText }]
@@ -148,6 +169,21 @@ export default function IntakeChat() {
     void send(text, messages);
   }
 
+  // Explicit retake action from the completed-conversation CTA — per the
+  // SAGE_Intake_Completion_Handoff_Spec.md decision, /intake now shows the
+  // finished LIFE Brief + CTA by default whenever the subscriber's latest
+  // sitting is complete (including via the dashboard's "Retake your
+  // intake" link), so starting a genuinely new conversation is one
+  // deliberate click here rather than automatic on every page load.
+  function startNewConversation() {
+    conversationId.current = undefined;
+    setSummary(null);
+    setClosingMessage(null);
+    setEmail(null);
+    setMessages([]);
+    void send(undefined, []);
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     submitMessage();
@@ -163,7 +199,14 @@ export default function IntakeChat() {
   }
 
   if (summary) {
-    return <SummaryCard summary={summary} />;
+    return (
+      <SummaryCard
+        summary={summary}
+        closingMessage={closingMessage}
+        email={email}
+        onStartNew={startNewConversation}
+      />
+    );
   }
 
   return (
@@ -262,7 +305,17 @@ export default function IntakeChat() {
 
 const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
 
-function SummaryCard({ summary }: { summary: Completion }) {
+function SummaryCard({
+  summary,
+  closingMessage,
+  email,
+  onStartNew,
+}: {
+  summary: Completion;
+  closingMessage: string | null;
+  email: string | null;
+  onStartNew: () => void;
+}) {
   const tracks = summary.recommended_track_ids
     .map((id) => findTrack(id))
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
@@ -274,6 +327,13 @@ function SummaryCard({ summary }: { summary: Completion }) {
 
   return (
     <div className="rounded-2xl border border-copper/30 bg-white/70 p-6 sm:p-10">
+      {closingMessage && (
+        <div className="mb-6 flex items-start gap-3 rounded-xl bg-navy/5 px-4 py-3">
+          <p className="text-xs font-semibold text-navy/40">Sage</p>
+          <p className="flex-1 text-sm leading-relaxed text-navy/80">{closingMessage}</p>
+        </div>
+      )}
+
       <p className="text-xs font-semibold uppercase tracking-[0.15em] text-copper">
         Your Wellness Profile Summary
       </p>
@@ -419,7 +479,38 @@ function SummaryCard({ summary }: { summary: Completion }) {
         </div>
       )}
 
-      <p className="mt-8 text-xs leading-relaxed text-navy/40">
+      {/* Explicit next-step CTA — SAGE_Intake_Completion_Handoff_Spec.md:
+          a visible, clickable element, not just descriptive text. Copy and
+          hrefs match app/dashboard/page.tsx's equivalent links exactly. */}
+      <div className="mt-10 rounded-xl border border-copper/20 bg-copper/5 p-5 sm:p-6">
+        <p className="text-sm font-semibold text-navy">Your LIFE Brief is ready.</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <a
+            href="/dashboard/brief"
+            className="rounded-full bg-copper px-5 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-copper/90"
+          >
+            View Your Full LIFE Brief →
+          </a>
+          <a
+            href="/api/dashboard/insights-pdf"
+            className="rounded-full border border-copper/40 px-5 py-2.5 text-sm font-semibold text-copper transition-colors hover:bg-copper/10"
+          >
+            Download Your LIFE Brief (PDF)
+          </a>
+        </div>
+        {email && <p className="mt-3 text-xs text-navy/50">Also sent to you at {email}.</p>}
+        <p className="mt-4 text-xs">
+          <button
+            type="button"
+            onClick={onStartNew}
+            className="font-semibold text-navy/50 underline underline-offset-2 hover:text-navy/70"
+          >
+            Start a new conversation
+          </button>
+        </p>
+      </div>
+
+      <p className="mt-6 text-xs leading-relaxed text-navy/40">
         This is personalized wellness information, not medical advice,
         diagnosis, or treatment. Wikipedia links are provided as a general
         reference, not as medical guidance. Your profile has been saved — you

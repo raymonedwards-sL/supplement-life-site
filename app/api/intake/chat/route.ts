@@ -681,6 +681,10 @@ export async function POST(request: NextRequest) {
         track_fit_scores: engine.tracks,
         confidence_score: engine.confidenceScore,
         contradiction_flags: engine.contradictionFlags,
+        // Persisted (0019_track_assignments_ingredient_highlights.sql) so a
+        // reload after completion can reconstruct the same CTA content —
+        // see app/api/intake/chat/history/route.ts.
+        ingredient_highlights: ingredientHighlights,
       });
       if (trackError) console.error("Failed to save track assignment:", trackError);
 
@@ -726,8 +730,19 @@ export async function POST(request: NextRequest) {
         })();
       }
 
-      await persistAssistantMessage(sanitizeModelText(input.reply));
-      return NextResponse.json({ done: true, conversationId, summary: finalCompletion });
+      // closingMessage/email let the client show Sage's own closing words
+      // plus a real CTA (View Your LIFE Brief / Download PDF / "also sent
+      // to you at...") instead of silently discarding this turn's reply
+      // once summary/done takes over — see IntakeChat.tsx.
+      const closingReplyText = sanitizeModelText(input.reply);
+      await persistAssistantMessage(closingReplyText);
+      return NextResponse.json({
+        done: true,
+        conversationId,
+        summary: finalCompletion,
+        closingMessage: closingReplyText,
+        email: user.email ?? null,
+      });
     }
 
     const finalReplyText = sanitizeModelText(input.reply);
