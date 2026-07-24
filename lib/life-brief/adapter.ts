@@ -251,35 +251,34 @@ const REPORTED_TEMPLATES: ((label: string) => string)[] = [
  */
 const DOMAIN_REAL_WORLD_CONTEXT: Record<string, string> = {
   cellular_energy:
-    "day to day, this tends to track with how well recovery days, protein and hydration intake, and sleep quality are keeping pace with your activity level.",
+    "this tends to track with how well recovery days, protein and hydration intake, and sleep quality are keeping pace with your activity level.",
   sleep_calm:
-    "day to day, this tends to track with caffeine timing, screen exposure before bed, and how much room your evenings leave for your nervous system to downshift.",
+    "this tends to track with caffeine timing, screen exposure before bed, and how much room your evenings leave for your nervous system to downshift.",
   digestive_comfort:
-    "day to day, this tends to track with fiber and water intake, meal timing, and how travel or schedule changes disrupt a normal digestive rhythm.",
+    "this tends to track with fiber and water intake, meal timing, and how travel or schedule changes disrupt a normal digestive rhythm.",
   vitality_stamina:
-    "day to day, this tends to track with activity load, recovery time between workouts, and how consistent your sleep and hydration are.",
+    "this tends to track with activity load, recovery time between workouts, and how consistent your sleep and hydration are.",
   immune_resilience:
-    "day to day, this tends to track with sleep consistency, stress load, and exposure through travel or shared workspaces.",
+    "this tends to track with sleep consistency, stress load, and exposure through travel or shared workspaces.",
   morning_reset:
-    "day to day, this tends to track with blood-sugar swings, caffeine and sugar intake, and how consistent your wake times and sleep quality are.",
+    "this tends to track with blood-sugar swings, caffeine and sugar intake, and how consistent your wake times and sleep quality are.",
   womens_rhythm:
-    "day to day, this tends to track with stress load, sleep, and how nutrition and activity shift across your cycle.",
+    "this tends to track with stress load, sleep, and how nutrition and activity shift across your cycle.",
   mens_rhythm:
-    "day to day, this tends to track with sleep quality, stress load, and the balance between activity and recovery.",
+    "this tends to track with sleep quality, stress load, and the balance between activity and recovery.",
   cognitive_focus:
-    "day to day, this tends to track with sleep quality, caffeine timing, and how mentally demanding your environment is on a given day.",
+    "this tends to track with sleep quality, caffeine timing, and how mentally demanding your environment is on a given day.",
 };
 
-/** Combines the intake-confirmation clause with the domain's real-world
- * context above into one sentence, rather than two separate templated
- * fragments — falls back to a plain confirmation if a domain key isn't
- * in the map (keeps this forward-compatible with any future domain
- * added to lib/scoring/domains.ts without this file needing to know
- * about it first). */
+/** Combines the pillar label with its real-world context above into one
+ * sentence — falls back to a plain label if a domain key isn't in the
+ * map (keeps this forward-compatible with any future domain added to
+ * lib/scoring/domains.ts without this file needing to know about it
+ * first). */
 function observedSentence(label: string, domainKey: string): string {
   const context = DOMAIN_REAL_WORLD_CONTEXT[domainKey];
-  if (!context) return `${label} — confirmed by what you shared during your intake.`;
-  return `${label} — confirmed by what you shared during your intake. In daily life, ${context}`;
+  if (!context) return `${label}.`;
+  return `${label} — ${context}`;
 }
 
 /** Turns a freeform snake_case tag (e.g. one Sage logged from

@@ -9,7 +9,6 @@ import {
   buildLifeIndexProps,
   buildPatternMapProps,
   buildTrackCardProps,
-  buildIngredientIntelligenceProps,
   buildDailyRhythmProps,
   buildRoadmapProps,
   buildShareCardProps,
@@ -18,7 +17,6 @@ import {
 } from "@/lib/life-brief/adapter";
 import { LifeRevelation } from "@/components/life-brief/LifeRevelation";
 import { TrackCard } from "@/components/life-brief/TrackCard";
-import { IngredientIntelligenceCard } from "@/components/life-brief/IngredientIntelligenceCard";
 import { LifeIndex } from "@/components/life-brief/LifeIndex";
 import { PatternMap } from "@/components/life-brief/PatternMap";
 import { DailyRhythm } from "@/components/life-brief/DailyRhythm";
@@ -116,7 +114,6 @@ export default async function LifeBriefPage() {
   const lifeIndex = buildLifeIndexProps(ctx, newestRow, oldestRow);
   const patternMap = buildPatternMapProps(ctx);
   const trackCards = buildTrackCardProps(ctx);
-  const ingredientCards = buildIngredientIntelligenceProps(ctx);
   const dailyRhythm = buildDailyRhythmProps(ctx);
   const roadmap = buildRoadmapProps(ctx);
   const shareCard = buildShareCardProps(ctx);
@@ -168,16 +165,6 @@ export default async function LifeBriefPage() {
               <div className="flex flex-col gap-4">
                 {trackCards.map((card) => (
                   <TrackCard key={card.track} {...card} />
-                ))}
-              </div>
-            </BriefSection>
-          )}
-
-          {ingredientCards.length > 0 && (
-            <BriefSection label="Ingredient Intelligence">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {ingredientCards.map((card) => (
-                  <IngredientIntelligenceCard key={card.ingredientName} {...card} />
                 ))}
               </div>
             </BriefSection>

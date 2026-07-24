@@ -27,7 +27,7 @@ function Bucket({ label, items, tone }: { label: string; items: string[]; tone: 
  * sized up and bolded (founder feedback, 2026-07-25) — this section is
  * meant to be skimmed at a glance, and the prior text-xs/text-sm weight
  * read too faint against the white card background. */
-export function PatternMap({ chain, reported, observed, uncertain, monitoring }: PatternMapProps) {
+export function PatternMap({ chain, observed, uncertain, monitoring }: PatternMapProps) {
   return (
     <div className="rounded-2xl border border-navy/10 bg-white/70 p-6 sm:p-8">
       <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Your Personal Pattern Map</p>
@@ -45,8 +45,7 @@ export function PatternMap({ chain, reported, observed, uncertain, monitoring }:
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Bucket label="What you reported" items={reported} tone="solid" />
+      <div className="mt-6 grid grid-cols-1 gap-4">
         <Bucket label="What Sage observed" items={observed} tone="solid" />
         <Bucket label="What remains uncertain" items={uncertain} tone="muted" />
         <Bucket label="What Sage is monitoring" items={monitoring} tone="muted" />
