@@ -180,7 +180,7 @@ export default function AccountMenu() {
                 onClick={close}
                 className="rounded-lg px-3 py-2 text-left transition-colors hover:bg-navy/5"
               >
-                Dashboard
+                Your LIFE Brief
               </Link>
               <Link
                 href="/intake"
