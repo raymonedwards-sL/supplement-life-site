@@ -17,6 +17,11 @@ import {
   isCuriositySignal,
   LIFESTYLE_FIELD_COLUMNS,
 } from "@/lib/claude/subscriber-context";
+import {
+  buildReturnGreetingBlock,
+  computeTimeSinceLastVisit,
+  pickGreetingArchetype,
+} from "@/lib/claude/greetingContext";
 import { runAssessmentEngine, type StructuredAnswer, type ContradictionFlag } from "@/lib/scoring";
 import { findTrack } from "@/lib/tracks";
 import { buildLifeBriefPdf } from "@/lib/pdf/life-brief";
@@ -219,33 +224,80 @@ export async function POST(request: NextRequest) {
   }
 
   const {
-    messages,
+    message,
     conversationId: incomingConversationId,
-  }: { messages: ChatMessage[]; conversationId?: string } = await request.json();
+  }: { message?: string; conversationId?: string } = await request.json();
 
   // Generated once per browser session by the client (see IntakeChat.tsx)
-  // and echoed back on every turn — scopes intake_responses rows to "this
-  // sitting" so the scoring engine can read back exactly this
-  // conversation's structured answers at completion time, not a
+  // and echoed back on every turn — scopes intake_responses/chat_messages
+  // rows to "this sitting" so the scoring engine can read back exactly
+  // this conversation's structured answers at completion time, not a
   // subscriber's entire history. Always returned in the response so the
   // client can capture it after turn one.
   const conversationId = incomingConversationId ?? randomUUID();
 
-  const anthropicMessages: Anthropic.MessageParam[] = messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-  }));
+  // Absent conversationId means this is a brand-new conversation (the
+  // very first load) — used both to fetch the opening question and,
+  // further down, to bump conversation_count exactly once per
+  // conversation rather than once per turn, and to mark the first
+  // assistant reply as this conversation's opening greeting (see
+  // supabase/migrations/0018_intake_chat_messages.sql).
+  const isNewConversation = !incomingConversationId;
 
-  // Empty history means this is a brand-new conversation (the very first
-  // load, before the seed message below is added) — used both to fetch
-  // the opening question and, further down, to bump conversation_count
-  // exactly once per conversation rather than once per turn.
-  const isNewConversation = anthropicMessages.length === 0;
+  // Message history now lives server-side (chat_messages) instead of
+  // being resent by the client in full every turn — the client only ever
+  // sends the single new message it's replying with. See
+  // app/intake/IntakeChat.tsx and app/api/intake/chat/history/route.ts
+  // (the resume-on-reload read path).
+  const anthropicMessages: Anthropic.MessageParam[] = [];
 
-  // First load sends an empty history to get Claude's opening question —
-  // the API requires at least one message, so seed a hidden starter turn.
-  if (isNewConversation) {
+  if (!isNewConversation) {
+    const { data: priorMessages } = await supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("user_id", user.id)
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .returns<ChatMessage[]>();
+
+    for (const m of priorMessages ?? []) {
+      anthropicMessages.push({ role: m.role, content: m.content });
+    }
+  }
+
+  if (message) {
+    const { error: userMessageError } = await supabase.from("chat_messages").insert({
+      user_id: user.id,
+      conversation_id: conversationId,
+      role: "user",
+      content: message,
+    });
+    if (userMessageError) console.error("Failed to persist user chat message:", userMessageError);
+    anthropicMessages.push({ role: "user", content: message });
+  }
+
+  // First load of a brand-new conversation sends no message yet, purely
+  // to fetch Claude's opening question — the API requires at least one
+  // message, so seed a hidden starter turn. Never persisted; it isn't a
+  // real subscriber message, and if it were shown as one on resume it
+  // would look like a stray reply typed by the subscriber.
+  if (anthropicMessages.length === 0) {
     anthropicMessages.push({ role: "user", content: "Hi, I'm ready to begin." });
+  }
+
+  /** Persists Sage's reply for this turn — shared by every return path
+   * below (normal turn, hard-block re-entry, and completion) so history
+   * always reflects exactly what the subscriber actually saw. */
+  const userId = user.id;
+  async function persistAssistantMessage(content: string) {
+    const { error } = await supabase.from("chat_messages").insert({
+      user_id: userId,
+      conversation_id: conversationId,
+      role: "assistant",
+      content,
+      is_opening_greeting: isNewConversation,
+    });
+    if (error) console.error("Failed to persist assistant chat message:", error);
   }
 
   try {
@@ -256,6 +308,28 @@ export async function POST(request: NextRequest) {
     // self-assess Depth Ladder tier from real data density, not just
     // what's been said in this one conversation.
     const subscriberContext = await buildSubscriberContext(supabase, user.id);
+
+    // Return-greeting variation (SAGE_Return_Greeting_and_Chat_History_
+    // Spec.md, 2026-07-24) — only applies to a genuine returning
+    // subscriber's opening turn, never a first-ever intake (nothing to
+    // vary against yet) and never a mid-conversation turn (the greeting
+    // only happens once, at the start).
+    let returnGreetingBlock = "";
+    if (isNewConversation && subscriberContext.profile?.conversation_count) {
+      const { data: priorGreetingRows } = await supabase
+        .from("chat_messages")
+        .select("content")
+        .eq("user_id", user.id)
+        .eq("is_opening_greeting", true)
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      returnGreetingBlock = buildReturnGreetingBlock({
+        timeSinceLastVisit: computeTimeSinceLastVisit(subscriberContext.profile.last_conversation_at),
+        archetype: pickGreetingArchetype(user.id, subscriberContext.profile.conversation_count),
+        priorGreetings: (priorGreetingRows ?? []).map((r) => r.content),
+      });
+    }
 
     if (isNewConversation) {
       const { error: convCountError } = await supabase.rpc("increment_conversation_count", {
@@ -350,7 +424,7 @@ export async function POST(request: NextRequest) {
       // generous headroom, not a guarantee — see the completion-shape
       // validation right after this call for the actual backstop.
       max_tokens: 4096,
-      system: buildSystemPrompt(subscriberContext.text, activeContradictions),
+      system: buildSystemPrompt(subscriberContext.text, activeContradictions, returnGreetingBlock),
       tools: [INTAKE_TURN_TOOL],
       tool_choice: { type: "tool", name: "intake_turn" },
       messages: anthropicMessages,
@@ -512,11 +586,13 @@ export async function POST(request: NextRequest) {
       if (engine.hardBlock) {
         const flag = engine.contradictionFlags.find((f) => f.hardError);
         console.warn("Intake chat: hard-block contradiction, prompting re-entry:", flag?.message);
+        const hardBlockReply =
+          "Before I put your profile together — a couple of the details you've shared don't quite line up. Could you confirm your age for me again?";
+        await persistAssistantMessage(hardBlockReply);
         return NextResponse.json({
           done: false,
           conversationId,
-          reply:
-            "Before I put your profile together — a couple of the details you've shared don't quite line up. Could you confirm your age for me again?",
+          reply: hardBlockReply,
         });
       }
 
@@ -650,10 +726,13 @@ export async function POST(request: NextRequest) {
         })();
       }
 
+      await persistAssistantMessage(sanitizeModelText(input.reply));
       return NextResponse.json({ done: true, conversationId, summary: finalCompletion });
     }
 
-    return NextResponse.json({ done: false, conversationId, reply: sanitizeModelText(input.reply) });
+    const finalReplyText = sanitizeModelText(input.reply);
+    await persistAssistantMessage(finalReplyText);
+    return NextResponse.json({ done: false, conversationId, reply: finalReplyText });
   } catch (error) {
     console.error("Intake chat failed:", error);
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });

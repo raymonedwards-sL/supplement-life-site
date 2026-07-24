@@ -36,9 +36,48 @@ export default function IntakeChat() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void send([]);
+    void hydrate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Resume-on-reload (SAGE_Return_Greeting_and_Chat_History_Spec.md,
+  // 2026-07-24): before assuming this is a brand-new conversation, check
+  // whether the subscriber has an unfinished sitting to pick back up —
+  // see app/api/intake/chat/history/route.ts for what counts as
+  // "unfinished" (a completed sitting always starts fresh instead, since
+  // that's a real retake).
+  async function hydrate() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/intake/chat/history");
+      const data = await res.json();
+      const history: ChatMessage[] = Array.isArray(data.messages) ? data.messages : [];
+
+      if (res.ok && data.conversationId && history.length > 0) {
+        conversationId.current = data.conversationId;
+        setMessages(history);
+
+        const last = history[history.length - 1];
+        if (last.role === "user") {
+          // Rare crash-mid-turn case: the subscriber's message was saved
+          // but Sage never replied — pick the conversation back up rather
+          // than leaving them stuck on their own last message.
+          void send(undefined, history);
+          return;
+        }
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to load chat history, starting fresh:", err);
+    }
+
+    // No resumable sitting (or the history fetch itself failed) — behave
+    // exactly as before: fetch the opening question for a new conversation.
+    void send(undefined, []);
+  }
 
   // Scroll only the chat's own message list, not the page — a plain
   // scrollIntoView() on a sentinel element also drags the outer window
@@ -51,7 +90,12 @@ export default function IntakeChat() {
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
 
-  async function send(nextMessages: ChatMessage[]) {
+  // History now lives server-side (see hydrate() above) — this only ever
+  // sends the single new message being replied with, not the whole
+  // transcript. `currentMessages` is the state from BEFORE this message
+  // (used to rebuild the post-reply array without waiting on a round
+  // trip for what the client already knows).
+  async function send(userMessageText: string | undefined, currentMessages: ChatMessage[]) {
     setLoading(true);
     setError(null);
 
@@ -59,7 +103,7 @@ export default function IntakeChat() {
       const res = await fetch("/api/intake/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, conversationId: conversationId.current }),
+        body: JSON.stringify({ message: userMessageText, conversationId: conversationId.current }),
       });
 
       const data = await res.json();
@@ -73,7 +117,10 @@ export default function IntakeChat() {
       if (data.done) {
         setSummary(data.summary);
       } else {
-        setMessages([...nextMessages, { role: "assistant", content: data.reply }]);
+        const withUserMessage = userMessageText
+          ? [...currentMessages, { role: "user" as const, content: userMessageText }]
+          : currentMessages;
+        setMessages([...withUserMessage, { role: "assistant", content: data.reply }]);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -95,10 +142,10 @@ export default function IntakeChat() {
   function submitMessage() {
     if (!input.trim() || loading) return;
 
-    const next: ChatMessage[] = [...messages, { role: "user", content: input.trim() }];
-    setMessages(next);
+    const text = input.trim();
+    setMessages([...messages, { role: "user", content: text }]);
     setInput("");
-    void send(next);
+    void send(text, messages);
   }
 
   function handleSubmit(e: React.FormEvent) {

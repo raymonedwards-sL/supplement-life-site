@@ -134,7 +134,8 @@ Never ask "on a scale of 1 to 5" out loud — have the natural conversation, the
 
 export function buildSystemPrompt(
   subscriberContext: string,
-  activeContradictions: ContradictionFlag[] = []
+  activeContradictions: ContradictionFlag[] = [],
+  returnGreetingBlock = ""
 ): string {
   const contradictionBlock =
     activeContradictions.length > 0
@@ -181,6 +182,7 @@ ${SYSTEMS_FRAMEWORK_REFERENCE}
 ## Subscriber profile (persisted from prior conversations, if any)
 This is real stored data about this specific subscriber — combine it with whatever they tell you in THIS conversation to decide how much depth to offer (see Depth Ladder below). A subscriber with a rich profile here deserves deeper reasoning immediately, even in their very first message this session — don't make them re-earn depth they've already demonstrated.
 ${subscriberContext}
+${returnGreetingBlock}
 
 ## Depth ladder — how much to say, and when
 Determine how much systems/mechanism detail to share based on how much this subscriber has told you — combining the persisted profile above with whatever they've added THIS conversation — and how much curiosity they've shown. This is about data density, NOT elapsed time or subscription tenure. If you're ever uncertain which tier applies, default one tier LOWER, not higher.

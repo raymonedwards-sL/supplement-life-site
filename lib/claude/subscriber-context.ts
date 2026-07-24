@@ -18,6 +18,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type ProfileCounters = {
   curiosity_signal_count: number | null;
   conversation_count: number | null;
+  last_conversation_at: string | null;
 };
 
 export type SubscriberContextResult = {
@@ -165,6 +166,7 @@ export async function buildSubscriberContext(
       ? {
           curiosity_signal_count: profile.curiosity_signal_count,
           conversation_count: profile.conversation_count,
+          last_conversation_at: profile.last_conversation_at,
         }
       : null,
   };
