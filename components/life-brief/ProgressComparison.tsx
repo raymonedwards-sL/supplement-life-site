@@ -4,8 +4,8 @@ function SnapshotCard({ snapshot }: { snapshot: ProgressSnapshot }) {
   return (
     <div className="rounded-xl bg-navy/5 p-5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-copper">{snapshot.dayLabel}</p>
-      <p className="mt-1 font-serif text-3xl text-navy">{snapshot.vitalityIndex}</p>
-      <p className="text-xs text-navy/40">LIFE Index</p>
+      <p className="mt-1 font-serif text-3xl text-navy">{snapshot.vitalityIndex ?? "—"}</p>
+      <p className="text-xs text-navy/40">{snapshot.vitalityIndex != null ? "LIFE Index" : "LIFE Index — still building"}</p>
       <div className="mt-3 flex flex-col gap-1.5">
         {snapshot.topBenchmarks.map((b, i) => (
           <p key={i} className="text-xs text-navy/60">

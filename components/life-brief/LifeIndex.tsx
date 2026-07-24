@@ -60,8 +60,16 @@ export function LifeIndex({
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-[auto_1fr] sm:items-start">
         <div className="text-center sm:text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Your LIFE Index</p>
-          <p className="mt-1 font-serif text-6xl text-copper">{vitalityIndex}</p>
-          <p className="text-sm text-navy/40">/ 100</p>
+          {vitalityIndex != null ? (
+            <>
+              <p className="mt-1 font-serif text-6xl text-copper">{vitalityIndex}</p>
+              <p className="text-sm text-navy/40">/ 100</p>
+            </>
+          ) : (
+            <p className="mt-2 max-w-[14rem] font-serif text-2xl leading-snug text-navy/60">
+              Still building your picture
+            </p>
+          )}
           <p className="mt-2 max-w-[14rem] text-xs leading-relaxed text-navy/50">{vitalityIndexDisclaimer}</p>
           <p className="mt-4 text-xs text-navy/50">
             Sage confidence: <span className="font-semibold text-navy/80">{sageConfidence}/100</span>

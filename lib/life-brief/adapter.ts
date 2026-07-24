@@ -23,6 +23,7 @@ import { parseRationale } from "@/lib/rationale";
 import type {
   EngineDomainResult,
   ContradictionFlag,
+  SafetyGateResult,
 } from "@/lib/scoring";
 import type {
   LifeRevelationProps,
@@ -45,6 +46,7 @@ export type TrackAssignmentRow = {
   domain_scores: EngineDomainResult[] | null;
   confidence_score: number | null;
   contradiction_flags: ContradictionFlag[] | null;
+  safety_gate: Record<string, SafetyGateResult> | null;
   assigned_at: string | null;
 };
 
@@ -61,6 +63,7 @@ export type LifeBriefContext = {
   domainScores: EngineDomainResult[] | null;
   confidenceScore: number | null;
   contradictionFlags: ContradictionFlag[];
+  safetyGate: Record<string, SafetyGateResult> | null;
   profile: ProfileRow | null;
 };
 
@@ -71,6 +74,7 @@ export function buildLifeBriefContext(row: TrackAssignmentRow, profile: ProfileR
     domainScores: row.domain_scores,
     confidenceScore: row.confidence_score,
     contradictionFlags: row.contradiction_flags ?? [],
+    safetyGate: row.safety_gate,
     profile,
   };
 }
@@ -93,28 +97,92 @@ function getTopDomain(domainScores: EngineDomainResult[]): (EngineDomainResult &
   return scored[0] ?? null;
 }
 
-/**
- * PROVISIONAL vitalityIndex formula — NOT Data-Science-approved. The
- * roadmap explicitly flags this weighting as "TBD for Data Science"
- * (P3-2's own spec note); this is a placeholder so the report isn't
- * missing its headline number, not a final formula. Revisit once Data
- * Science has actually specified one.
- *
- * opportunityScore is inverted semantics (high = more room to improve,
- * i.e. WORSE) — a "Vitality Index" should read high when things are
- * good, so this inverts average opportunity (100 - avg) before scaling
- * by confidence, rather than using average opportunity directly.
- */
-function computeProvisionalVitalityIndex(domainScores: EngineDomainResult[], confidenceScore: number): number {
-  const scored = scoredDomains(domainScores);
-  if (scored.length === 0) return 0;
-  const avgOpportunity = scored.reduce((sum, d) => sum + d.opportunityScore, 0) / scored.length;
-  const raw = (100 - avgOpportunity) * (confidenceScore / 100);
-  return Math.max(0, Math.min(100, Math.round(raw)));
+function isDomainSafetyGateEligible(domain: EngineDomainResult, safetyGate: Record<string, SafetyGateResult> | null): boolean {
+  if (!safetyGate) return true; // no safety gate data on this row — don't exclude on a basis we can't check
+  const result = safetyGate[domain.trackId];
+  return result ? result.eligible : true;
 }
 
+/** itemsAnswered/itemsTotal as a 0-100 completeness ratio. */
+function domainCompletenessProxy(domain: EngineDomainResult): number {
+  if (domain.itemsTotal === 0) return 0;
+  return (domain.itemsAnswered / domain.itemsTotal) * 100;
+}
+
+/**
+ * v1 priority-weighted vitalityIndex formula, specified 2026-07-24. Same
+ * "recalibrate against Phase 4 pilot data" treatment as P2-4's Track-Fit
+ * weights (lib/scoring/track-fit.ts) — not Data-Science-final, tagged v1.
+ *
+ *   vitalityIndex = (sum of (100 - opportunityScore) x weight) / (sum of weight)
+ *   weight = 1.5 for the subscriber's top-3 highest-interference domains, 1.0 otherwise
+ *   a domain is EXCLUDED from the average entirely (never scored as 0) if:
+ *     - it was never scored at all (opportunityScore null), or
+ *     - its completeness proxy is below 40, or
+ *     - its track is Safety-Gate-ineligible (e.g. opposite-sex exclusion)
+ *   if more than 3 of the 9 domains end up excluded -> null ("still
+ *   building your picture" state, rendered by LifeIndex.tsx)
+ *
+ * Two adaptations from the literal spec, both because the data the spec
+ * asks for doesn't exist yet in this codebase — flagged here rather than
+ * silently guessed:
+ *  1. "top-3 priority during intake" — the intake only captures a single
+ *     primary_goal today, not a ranked top-3, so this always uses the
+ *     spec's own documented fallback: highest reported degree-of-life-
+ *     interference, via each domain's raw interferenceRating
+ *     (lib/scoring/engine.ts).
+ *  2. "if a domain's confidence_score is below 40" — there is no
+ *     per-domain confidence_score anywhere in the engine (confidenceScore
+ *     is assessment-wide, not per-domain). domainCompletenessProxy()
+ *     above (itemsAnswered/itemsTotal) is used instead — the same "do we
+ *     actually have enough real signal here" intent, at the granularity
+ *     that actually exists in this codebase.
+ *  3. opportunityScore has inverted semantics vs. "domain_score" as used
+ *     in the spec — a HIGH opportunityScore means MORE room to improve,
+ *     i.e. things are WORSE there, not better. A "Vitality Index" (and
+ *     the compliance-required "general-wellness composite" framing) only
+ *     makes sense read as high-is-good, so this inverts each domain's
+ *     score (100 - opportunityScore) before weighting/averaging, rather
+ *     than averaging opportunityScore directly.
+ */
+function computeVitalityIndexV1(
+  domainScores: EngineDomainResult[],
+  safetyGate: Record<string, SafetyGateResult> | null
+): number | null {
+  const byInterference = domainScores
+    .filter((d): d is EngineDomainResult & { interferenceRating: number } => d.interferenceRating != null)
+    .sort((a, b) => b.interferenceRating - a.interferenceRating);
+  const priorityKeys = new Set(byInterference.slice(0, 3).map((d) => d.key));
+
+  let weightedSum = 0;
+  let weightTotal = 0;
+  let excludedCount = 0;
+
+  for (const domain of domainScores) {
+    if (
+      domain.opportunityScore == null ||
+      domainCompletenessProxy(domain) < 40 ||
+      !isDomainSafetyGateEligible(domain, safetyGate)
+    ) {
+      excludedCount += 1;
+      continue;
+    }
+    const weight = priorityKeys.has(domain.key) ? 1.5 : 1.0;
+    weightedSum += (100 - domain.opportunityScore) * weight;
+    weightTotal += weight;
+  }
+
+  if (excludedCount > 3 || weightTotal === 0) return null;
+
+  return Math.max(0, Math.min(100, Math.round(weightedSum / weightTotal)));
+}
+
+// Compliance requirement (product doc, carried into the 2026-07-24
+// formula spec): must always describe this as a general-wellness
+// composite — never a medical score, biological-age test, or diagnostic
+// measurement.
 const VITALITY_INDEX_DISCLAIMER =
-  "A general-wellness composite based on what you've shared — not a medical score or diagnosis. (Early preview: this composite's formula is still being refined and hasn't been finalized yet.)";
+  "A general-wellness composite based on what you've shared — not a medical score, biological-age test, diagnostic measurement, or diagnosis.";
 
 /** Heuristic sentence-split of the real one-paragraph rationale into up
  * to 3 discrete items — TrackCardProps.whySelected has no real 3-item
@@ -181,7 +249,7 @@ export function buildLifeIndexProps(ctx: LifeBriefContext): LifeIndexProps | nul
     ];
 
   return {
-    vitalityIndex: computeProvisionalVitalityIndex(ctx.domainScores, ctx.confidenceScore),
+    vitalityIndex: computeVitalityIndexV1(ctx.domainScores, ctx.safetyGate),
     vitalityIndexDisclaimer: VITALITY_INDEX_DISCLAIMER,
     topStrengths: pad(strengths, (d) => `${d.label} is an area you're already doing comparatively well in`),
     topFrictions: pad(frictions, (d) => `${d.label} shows up as a current opportunity`),
@@ -437,7 +505,7 @@ export function buildProgressComparisonProps(
     const top = getTopDomain(row.domain_scores!);
     return {
       dayLabel,
-      vitalityIndex: computeProvisionalVitalityIndex(row.domain_scores!, row.confidence_score!),
+      vitalityIndex: computeVitalityIndexV1(row.domain_scores!, row.safety_gate),
       topBenchmarks: top ? [{ metric: top.label, current: `${top.opportunityScore}/100 opportunity` }] : [],
     };
   };

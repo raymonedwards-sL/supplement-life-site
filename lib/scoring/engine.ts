@@ -39,6 +39,13 @@ export type EngineDomainResult = {
   opportunityScore: number | null;
   itemsAnswered: number;
   itemsTotal: number;
+  /** Raw 1-5 interference rating for this domain (how much it interferes
+   * with daily life), null if never asked/answered. Already folded into
+   * opportunityScore's multiplier — exposed separately here because some
+   * downstream consumers (e.g. the LIFE Brief's vitalityIndex priority
+   * weighting, lib/life-brief/adapter.ts) need the raw rating itself, not
+   * just its effect on the opportunity score. */
+  interferenceRating: number | null;
 };
 
 export type EngineTrackResult = {
@@ -133,6 +140,7 @@ export function runAssessmentEngine(
         opportunityScore: null,
         itemsAnswered: 0,
         itemsTotal: 0,
+        interferenceRating: null,
       });
       continue;
     }
@@ -164,6 +172,7 @@ export function runAssessmentEngine(
       opportunityScore,
       itemsAnswered: itemScores.length,
       itemsTotal: domain.items.length,
+      interferenceRating: interferenceRaw,
     });
   }
 

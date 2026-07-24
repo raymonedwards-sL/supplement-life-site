@@ -78,11 +78,25 @@ export interface BenchmarkMetric {
 }
 
 export interface LifeIndexProps {
-  /** GAP: no aggregation formula exists anywhere in the codebase today —
-   * this needs new spec work, not just data plumbing, before real
-   * wiring. Mock data hand-authors a plausible number. */
-  vitalityIndex: number; // 0-100 composite
-  vitalityIndexDisclaimer: string; // MANDATORY, must render adjacent to the index
+  /**
+   * 0-100 composite — a priority-weighted average of domain opportunity
+   * scores. v1 formula (lib/life-brief/adapter.ts), specified 2026-07-24:
+   * 1.5x weight for the subscriber's top-3 highest-interference domains,
+   * 1.0x for the rest; domains below a per-domain completeness threshold
+   * or excluded by the Safety Gate are dropped from the average entirely
+   * (never scored as 0). Same "recalibrate against Phase 4 pilot data"
+   * treatment as P2-4's Track-Fit weights (lib/scoring/track-fit.ts) —
+   * not Data-Science-final.
+   *
+   * null = "still building your picture" state — the formula's own spec
+   * requires this when more than 3 of the 9 domains end up excluded, so
+   * the report never shows a number built from too little real signal.
+   */
+  vitalityIndex: number | null;
+  /** MANDATORY, must render adjacent to the index. Compliance requirement
+   * (product doc): must describe this as a general-wellness composite —
+   * never a medical score, biological-age test, or diagnostic measurement. */
+  vitalityIndexDisclaimer: string;
   topStrengths: [string, string, string];
   topFrictions: [string, string, string];
   /** EngineResult.recommendedTrackIds documents 0-3 entries, not always
@@ -269,8 +283,8 @@ export interface ShareCardProps {
 
 export interface ProgressSnapshot {
   dayLabel: "Day 0" | "Day 30" | "Day 60" | "Day 90";
-  /** Same "no aggregation formula exists yet" GAP as LifeIndexProps.vitalityIndex. */
-  vitalityIndex: number;
+  /** Same v1 formula and null semantics as LifeIndexProps.vitalityIndex. */
+  vitalityIndex: number | null;
   topBenchmarks: Pick<BenchmarkMetric, "metric" | "current">[];
 }
 

@@ -60,7 +60,7 @@ export default async function LifeBriefPage() {
     supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
     supabase
       .from("track_assignments")
-      .select("tracks, rationale, domain_scores, confidence_score, contradiction_flags, assigned_at")
+      .select("tracks, rationale, domain_scores, confidence_score, contradiction_flags, safety_gate, assigned_at")
       .eq("user_id", user.id)
       .order("assigned_at", { ascending: false })
       .limit(2)

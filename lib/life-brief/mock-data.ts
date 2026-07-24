@@ -124,7 +124,8 @@ const mockBenchmarks: BenchmarkMetric[] = [
 
 export const mockLifeIndexProps: LifeIndexProps = {
   vitalityIndex: SAMPLE_VITALITY_INDEX,
-  vitalityIndexDisclaimer: "A general-wellness composite based on what you've shared — not a medical score or diagnosis.",
+  vitalityIndexDisclaimer:
+    "A general-wellness composite based on what you've shared — not a medical score, biological-age test, diagnostic measurement, or diagnosis.",
   topStrengths: [
     "Consistent daily routine once a habit is set",
     "Clear, specific goals for what 'better' looks like",
