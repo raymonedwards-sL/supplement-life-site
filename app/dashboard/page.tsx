@@ -17,6 +17,7 @@ import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
 import { parseRationale } from "@/lib/rationale";
 import { fetchTrustedArticlesByCategory } from "@/lib/third-party-articles";
 import { resolveIntakeAccess } from "@/lib/access/intake-access";
+import { boldBotanicals } from "@/components/BoldBotanicals";
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
@@ -240,7 +241,7 @@ export default async function Dashboard() {
             {profile?.current_summary ? (
               <>
                 <p className="mt-3 border-l-4 border-copper/30 pl-5 text-lg font-medium leading-relaxed text-navy">
-                  {profile.current_summary}
+                  {boldBotanicals(profile.current_summary)}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
                   {intakeAccess.allowed && (
@@ -401,7 +402,7 @@ export default async function Dashboard() {
                         )}
                         {reasonFor(t.id) && (
                           <p className="mt-3 border-t border-navy/10 pt-3 text-left text-sm leading-relaxed text-navy/75">
-                            {reasonFor(t.id)}
+                            {boldBotanicals(reasonFor(t.id)!)}
                           </p>
                         )}
                       </div>
@@ -425,7 +426,7 @@ export default async function Dashboard() {
                 )}
                 {legacyRationale && (
                   <p className="mt-5 text-base font-medium leading-relaxed text-navy/80">
-                    {legacyRationale}
+                    {boldBotanicals(legacyRationale)}
                   </p>
                 )}
               </>

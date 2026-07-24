@@ -6,6 +6,7 @@ import { findTrack } from "@/lib/tracks";
 import { getIngredientEducationList } from "@/lib/ingredient-education";
 import { IngredientCard } from "@/components/ingredients/IngredientCard";
 import { getTrackAtmosphere } from "@/lib/tracks-atmosphere";
+import { boldBotanicals } from "@/components/BoldBotanicals";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -270,7 +271,7 @@ export default function IntakeChat() {
                   : "rounded-bl-sm bg-navy/5 text-navy"
               }`}
             >
-              {m.content}
+              {boldBotanicals(m.content)}
             </div>
           </div>
         ))}
@@ -330,7 +331,7 @@ function SummaryCard({
       {closingMessage && (
         <div className="mb-6 flex items-start gap-3 rounded-xl bg-navy/5 px-4 py-3">
           <p className="text-xs font-semibold text-navy/40">Sage</p>
-          <p className="flex-1 text-sm leading-relaxed text-navy/80">{closingMessage}</p>
+          <p className="flex-1 text-sm leading-relaxed text-navy/80">{boldBotanicals(closingMessage)}</p>
         </div>
       )}
 
@@ -338,7 +339,7 @@ function SummaryCard({
         Your Wellness Profile Summary
       </p>
       <p className="mt-4 border-l-4 border-copper/30 pl-5 text-lg font-medium leading-relaxed text-navy sm:text-xl">
-        {summary.summary}
+        {boldBotanicals(summary.summary)}
       </p>
 
       {tracks.length > 0 && (
@@ -367,7 +368,7 @@ function SummaryCard({
                 <span className="mt-0.5 text-base font-bold text-navy">{t.name}</span>
                 {reasonFor(t.id) && (
                   <p className="mt-3 border-t border-navy/10 pt-3 text-left text-sm leading-relaxed text-navy/75">
-                    {reasonFor(t.id)}
+                    {boldBotanicals(reasonFor(t.id)!)}
                   </p>
                 )}
               </div>
@@ -383,7 +384,7 @@ function SummaryCard({
             {summary.ingredient_highlights.map((ing, i) => (
               <div key={i} className="rounded-lg bg-copper/5 px-4 py-2.5 text-sm sm:text-base">
                 <span className="font-bold text-copper">{ing.ingredient}</span>
-                <span className="ml-2 text-navy/75">{ing.role}</span>
+                <span className="ml-2 text-navy/75">{boldBotanicals(ing.role)}</span>
               </div>
             ))}
           </div>

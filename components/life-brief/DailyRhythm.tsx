@@ -1,3 +1,4 @@
+import { boldBotanicals } from "@/components/BoldBotanicals";
 import type { DailyRhythmProps, RhythmBlock } from "@/lib/life-brief/types";
 
 const TIME_LABELS: Record<RhythmBlock["timeOfDay"], string> = {
@@ -40,7 +41,7 @@ export function DailyRhythm({ blocks, lifestyleCompatibilityNote }: DailyRhythmP
                   return (
                     <p key={key} className="text-sm leading-relaxed text-navy/85">
                       <span className="font-semibold text-navy/60">{label}: </span>
-                      {value}
+                      {boldBotanicals(value)}
                     </p>
                   );
                 })}

@@ -1,3 +1,4 @@
+import { boldBotanicals } from "@/components/BoldBotanicals";
 import type { IngredientIntelligenceProps } from "@/lib/life-brief/types";
 
 // Note: evidenceClassification is still passed in from the adapter/mock data
@@ -31,11 +32,11 @@ export function IngredientIntelligenceCard({
         {botanicalName && <p className="text-xs italic text-navy/50">{botanicalName}</p>}
       </div>
 
-      <p className="mt-3 text-sm leading-relaxed text-navy/85">{traditionalUseContext}</p>
+      <p className="mt-3 text-sm leading-relaxed text-navy/85">{boldBotanicals(traditionalUseContext)}</p>
 
       <p className="mt-2 text-sm leading-relaxed text-navy/85">
         <span className="font-bold text-navy">Role in your formula: </span>
-        {formulationRole}
+        {boldBotanicals(formulationRole)}
       </p>
 
       <p className="mt-2 text-xs text-navy/60">{formAndAmount}</p>
@@ -50,7 +51,7 @@ export function IngredientIntelligenceCard({
       {safetyAndInteractionNotes.length > 0 && (
         <p className="mt-2 text-xs leading-relaxed text-navy/60">
           <span className="font-semibold">Safety notes: </span>
-          {safetyAndInteractionNotes.join(" ")}
+          {boldBotanicals(safetyAndInteractionNotes.join(" "))}
         </p>
       )}
 

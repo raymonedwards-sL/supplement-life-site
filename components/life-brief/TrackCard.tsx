@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { findTrack } from "@/lib/tracks";
+import { boldBotanicals } from "@/components/BoldBotanicals";
 import type { TrackCardProps } from "@/lib/life-brief/types";
 
 const TIER_LABELS: Record<TrackCardProps["tier"], string> = {
@@ -53,7 +54,7 @@ export function TrackCard({
               {whySelected.map((reason, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-[15px] font-medium leading-relaxed text-navy/90">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-copper" />
-                  {reason}
+                  {boldBotanicals(reason)}
                 </li>
               ))}
             </ul>
@@ -79,7 +80,7 @@ export function TrackCard({
           {precautions.length > 0 && (
             <p className="mt-2 text-xs leading-relaxed text-navy/60">
               <span className="font-semibold">Precautions: </span>
-              {precautions.join(" ")}
+              {boldBotanicals(precautions.join(" "))}
             </p>
           )}
 

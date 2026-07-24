@@ -1,4 +1,5 @@
 import { BotanicalIcon } from "./BotanicalIcon";
+import { boldBotanicals } from "@/components/BoldBotanicals";
 import type { IngredientEducation } from "@/lib/ingredient-education";
 
 /**
@@ -15,7 +16,7 @@ export function IngredientCard({ ingredient }: { ingredient: IngredientEducation
       </div>
       <div className="min-w-0">
         <p className="text-base font-bold text-navy">{ingredient.name}</p>
-        <p className="mt-1.5 text-sm leading-relaxed text-navy/70">{ingredient.summary}</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-navy/70">{boldBotanicals(ingredient.summary)}</p>
         <a
           href={ingredient.wikipediaUrl}
           target="_blank"

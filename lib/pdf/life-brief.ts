@@ -10,6 +10,7 @@ import {
 } from "pdf-lib";
 import { findTrack, type Track } from "@/lib/tracks";
 import type { TrackRationale } from "@/lib/rationale";
+import { segmentText } from "@/lib/text/botanical-terms";
 
 /**
  * Builds "Your LIFE Brief" — the branded PDF snapshot of a subscriber's
@@ -100,7 +101,7 @@ export async function buildLifeBriefPdf(input: LifeBriefInput): Promise<Uint8Arr
   // --- Wellness Profile ---
   drawSectionHeading(pdfDoc, cursor, "Your Wellness Profile", bold);
   if (input.currentSummary) {
-    drawPullQuoteBox(pdfDoc, cursor, input.currentSummary, serifItalic);
+    drawPullQuoteBox(pdfDoc, cursor, input.currentSummary, serifItalic, serifBold);
   } else {
     drawParagraph(
       pdfDoc,
@@ -134,7 +135,7 @@ export async function buildLifeBriefPdf(input: LifeBriefInput): Promise<Uint8Arr
     if (legacyRationale) {
       drawText(pdfDoc, cursor, "Why this fits you", bold, 11, NAVY);
       cursor.y -= 16;
-      drawParagraph(pdfDoc, cursor, legacyRationale, font, 11, INK);
+      drawRichParagraph(pdfDoc, cursor, legacyRationale, font, bold, 11, INK);
       cursor.y -= 12;
     }
   } else {
@@ -264,6 +265,108 @@ function drawParagraph(
   }
 }
 
+// ---------------------------------------------------------------------
+// Rich (bold-aware) text — Track/ingredient names bold, 2026-07-25
+// founder request ("recallability, education and branding"). pdf-lib has
+// no concept of an inline style run within a single drawn string, so
+// unlike the React side (components/BoldBotanicals.tsx, which just
+// wraps matched substrings in <strong>), bolding here requires
+// tokenizing each paragraph into words tagged bold/not-bold BEFORE
+// wrapping (word-width math must use the correct font per word), then
+// drawing each line word-by-word, advancing the x cursor by that word's
+// own font metrics. Shares lib/text/botanical-terms.ts's segmentText()
+// with the web renderer for "which words are bold" — only the drawing
+// step is duplicated, because it has to be.
+// ---------------------------------------------------------------------
+
+type RichToken = { text: string; bold: boolean };
+
+function tokenizeRich(text: string): RichToken[] {
+  const tokens: RichToken[] = [];
+  for (const seg of segmentText(text)) {
+    for (const word of seg.text.split(/\s+/).filter(Boolean)) {
+      tokens.push({ text: word, bold: seg.bold });
+    }
+  }
+  return tokens;
+}
+
+/** Same wrapping algorithm as wrapLines(), but measures each word with
+ * its own (regular vs. bold) font before deciding whether it fits. */
+function wrapRichLines(
+  text: string,
+  font: PDFFont,
+  boldFont: PDFFont,
+  size: number,
+  maxWidth: number
+): RichToken[][] {
+  const tokens = tokenizeRich(text);
+  const spaceWidth = font.widthOfTextAtSize(" ", size);
+  const lines: RichToken[][] = [];
+  let current: RichToken[] = [];
+  let currentWidth = 0;
+
+  for (const token of tokens) {
+    const tokenWidth = (token.bold ? boldFont : font).widthOfTextAtSize(token.text, size);
+    const addedWidth = current.length > 0 ? spaceWidth + tokenWidth : tokenWidth;
+    if (currentWidth + addedWidth > maxWidth && current.length > 0) {
+      lines.push(current);
+      current = [token];
+      currentWidth = tokenWidth;
+    } else {
+      current.push(token);
+      currentWidth += addedWidth;
+    }
+  }
+  if (current.length > 0) lines.push(current);
+  return lines;
+}
+
+/** Draws one already-wrapped line word-by-word, switching fonts per
+ * word so bold Track/ingredient names render bold inline with regular
+ * text — pdf-lib's page.drawText() only ever takes one font per call,
+ * so a "line" here isn't a single draw call the way plain drawText() is. */
+function drawRichLine(
+  page: PDFPage,
+  line: RichToken[],
+  x: number,
+  y: number,
+  font: PDFFont,
+  boldFont: PDFFont,
+  size: number,
+  color: ReturnType<typeof rgb>
+) {
+  const spaceWidth = font.widthOfTextAtSize(" ", size);
+  let cx = x;
+  line.forEach((token, i) => {
+    const tokenFont = token.bold ? boldFont : font;
+    page.drawText(token.text, { x: cx, y, size, font: tokenFont, color });
+    cx += tokenFont.widthOfTextAtSize(token.text, size) + (i < line.length - 1 ? spaceWidth : 0);
+  });
+}
+
+/** Bold-aware counterpart to drawParagraph() — same wrapping/cursor
+ * behavior, but Track and ingredient names within `text` draw with
+ * `boldFont` instead of `font`. */
+function drawRichParagraph(
+  doc: PDFDocument,
+  cursor: Cursor,
+  text: string,
+  font: PDFFont,
+  boldFont: PDFFont,
+  size: number,
+  color: ReturnType<typeof rgb>,
+  maxWidth: number = CONTENT_WIDTH,
+  x = MARGIN_X
+) {
+  const lineHeight = size * 1.45;
+  for (const line of wrapRichLines(text, font, boldFont, size, maxWidth)) {
+    ensureSpace(doc, cursor, lineHeight);
+    drawRichLine(cursor.page, line, x, cursor.y, font, boldFont, size, color);
+    cursor.y -= lineHeight;
+  }
+}
+
 function drawSectionHeading(doc: PDFDocument, cursor: Cursor, text: string, bold: PDFFont) {
   ensureSpace(doc, cursor, 40);
   const bandHeight = 24;
@@ -337,7 +440,8 @@ function drawPullQuoteBox(
   doc: PDFDocument,
   cursor: Cursor,
   text: string,
-  serifItalic: PDFFont
+  serifItalic: PDFFont,
+  serifBold: PDFFont
 ) {
   const barWidth = 4;
   const padding = 16;
@@ -345,7 +449,11 @@ function drawPullQuoteBox(
   const maxWidth = CONTENT_WIDTH + 24 - barWidth - padding - 12;
   const size = 12.5;
   const lineHeight = size * 1.55;
-  const lines = wrapLines(text, serifItalic, size, maxWidth);
+  // Bold-aware: Track/ingredient names Sage mentions in this freeform
+  // summary render in serifBold rather than staying italic — same
+  // Times family, so "bold breaks italic" here reads as emphasis, not
+  // a font mismatch.
+  const lines = wrapRichLines(text, serifItalic, serifBold, size, maxWidth);
   const boxHeight = lines.length * lineHeight + padding * 2;
 
   ensureSpace(doc, cursor, boxHeight + 18);
@@ -370,7 +478,7 @@ function drawPullQuoteBox(
 
   let ty = topY - padding - size * 0.85;
   for (const line of lines) {
-    cursor.page.drawText(line, { x: textX, y: ty, size, font: serifItalic, color: NAVY });
+    drawRichLine(cursor.page, line, textX, ty, serifItalic, serifBold, size, NAVY);
     ty -= lineHeight;
   }
   cursor.y = topY - boxHeight - 18;
@@ -406,14 +514,20 @@ async function drawTrackCard(
 
   const titleText = `${roleLabel.toUpperCase()} — ${track.name}`;
   const needLines = wrapLines(track.consumerNeed, italic, 10, textMaxWidth);
-  const ingredientsLines = wrapLines(
+  // Rich (bold-aware): both of these are prose/list text that names
+  // specific ingredients or Track names — see the "Rich (bold-aware)
+  // text" section above for why this needs a separate word-by-word
+  // wrap+draw path rather than the plain wrapLines()/drawText() used
+  // for needLines/formatLines below (which don't mention them).
+  const ingredientsLines = wrapRichLines(
     `Ingredients: ${track.ingredients.join(", ")}`,
     font,
+    bold,
     10,
     textMaxWidth
   );
   const formatLines = wrapLines(`Format: ${track.format}`, font, 10, textMaxWidth);
-  const reasonLines = reason ? wrapLines(reason, font, 10, textMaxWidth) : [];
+  const reasonLines = reason ? wrapRichLines(reason, font, bold, 10, textMaxWidth) : [];
 
   const titleLH = 17;
   const needLH = 10 * 1.45;
@@ -462,7 +576,7 @@ async function drawTrackCard(
   ty -= 4;
 
   for (const line of ingredientsLines) {
-    cursor.page.drawText(line, { x: textX, y: ty, size: 10, font, color: INK });
+    drawRichLine(cursor.page, line, textX, ty, font, bold, 10, INK);
     ty -= bodyLH;
   }
   for (const line of formatLines) {
@@ -475,7 +589,7 @@ async function drawTrackCard(
     cursor.page.drawText("WHY THIS FITS YOU", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
     ty -= 13;
     for (const line of reasonLines) {
-      cursor.page.drawText(line, { x: textX, y: ty, size: 10, font, color: INK });
+      drawRichLine(cursor.page, line, textX, ty, font, bold, 10, INK);
       ty -= bodyLH;
     }
   }
@@ -498,7 +612,10 @@ function drawPracticeCards(
   const textMaxWidth = colWidth - barWidth - padding * 2;
   const bodyLH = 10 * 1.45;
 
-  const wrapped = items.map((it) => wrapLines(it.text, font, 10, textMaxWidth));
+  // Hydration/fasting guidance occasionally names a Track/ingredient
+  // (e.g. "a large glass right after your morning Ginger tea") — rich
+  // wrap so those still bold, same as everywhere else in the Brief.
+  const wrapped = items.map((it) => wrapRichLines(it.text, font, bold, 10, textMaxWidth));
   const cardHeight =
     Math.max(...wrapped.map((lines) => 16 + lines.length * bodyLH)) + padding * 2;
 
@@ -535,7 +652,7 @@ function drawPracticeCards(
     });
     ty -= 16;
     for (const line of wrapped[i]) {
-      cursor.page.drawText(line, { x: textX, y: ty, size: 10, font, color: INK });
+      drawRichLine(cursor.page, line, textX, ty, font, bold, 10, INK);
       ty -= bodyLH;
     }
   });
