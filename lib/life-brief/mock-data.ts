@@ -105,13 +105,15 @@ const mockBenchmarks: BenchmarkMetric[] = [
     ninetyDayDirection: "up",
   },
   {
-    metric: "Recommended overnight sleep window",
+    // Self-baseline only (decision 2026-07-24) — no publicReferenceNote/
+    // Source here even though the field supports it; real v1 data never
+    // sets it either, so the mock stays consistent with what real data
+    // actually looks like.
+    metric: "Overnight sleep window",
     current: "7-9 hours",
     personalBaseline: "7-9 hours",
     thirtyDayTarget: "7-9 hours",
     ninetyDayDirection: "stable",
-    publicReferenceNote: "General adult sleep guidance",
-    publicReferenceSource: "National Academies of Sciences, Engineering, and Medicine",
   },
   {
     metric: "Brain fog frequency",
@@ -144,6 +146,9 @@ export const mockLifeIndexProps: LifeIndexProps = {
   sageConfidence: SAMPLE_CONFIDENCE,
   momentumBehavior: "A consistent overnight wind-down routine — the single highest-leverage habit given the reported pattern.",
   benchmarks: mockBenchmarks,
+  // v1: always null — reserved slot for Phase 4 cohort/external
+  // comparison. See the doc-comment on LifeIndexProps.benchmarkComparison.
+  benchmarkComparison: null,
 };
 
 // ---------------------------------------------------------------------------

@@ -234,7 +234,54 @@ export function buildLifeRevelationProps(ctx: LifeBriefContext): LifeRevelationP
 // P3-2 — LIFE Index + Benchmarks
 // ---------------------------------------------------------------------------
 
-export function buildLifeIndexProps(ctx: LifeBriefContext): LifeIndexProps | null {
+/**
+ * Self-baseline benchmark bars (decision 2026-07-24): this subscriber's
+ * current value vs. their OWN prior assessment — never a cross-
+ * subscriber/cohort comparison (see benchmarkComparison on
+ * LifeIndexProps for that separate, always-null-for-now slot). Empty
+ * when there's no prior real snapshot to compare against — same 2+-row
+ * gating as buildProgressComparisonProps, since a "trend" needs two real
+ * data points, not one. thirtyDayTarget stays qualitative text rather
+ * than a fabricated number — no real target-setting formula has been
+ * specified for this.
+ */
+function buildSelfBaselineBenchmarks(
+  oldestRow: TrackAssignmentRow | undefined,
+  newestRow: TrackAssignmentRow
+): BenchmarkMetric[] {
+  if (!oldestRow?.domain_scores || !newestRow.domain_scores) return [];
+  if (oldestRow.assigned_at === newestRow.assigned_at) return [];
+
+  const benchmarks: BenchmarkMetric[] = [];
+  for (const newDomain of scoredDomains(newestRow.domain_scores)) {
+    const oldDomain = scoredDomains(oldestRow.domain_scores).find((d) => d.key === newDomain.key);
+    if (!oldDomain) continue;
+
+    // Same inversion convention as vitalityIndex (100 - opportunityScore)
+    // so these numbers read high-is-good, consistent with the rest of
+    // the report.
+    const current = 100 - newDomain.opportunityScore;
+    const personalBaseline = 100 - oldDomain.opportunityScore;
+    const delta = current - personalBaseline;
+
+    benchmarks.push({
+      metric: newDomain.label,
+      current,
+      personalBaseline,
+      thirtyDayTarget: current >= 90 ? "Maintain this level" : "Continued improvement from your own baseline",
+      ninetyDayDirection: delta > 5 ? "up" : delta < -5 ? "down" : "stable",
+      // publicReferenceNote/Source intentionally omitted — self-baseline
+      // only, no external/cohort reference for v1.
+    });
+  }
+  return benchmarks;
+}
+
+export function buildLifeIndexProps(
+  ctx: LifeBriefContext,
+  newestRow: TrackAssignmentRow,
+  oldestRow?: TrackAssignmentRow
+): LifeIndexProps | null {
   if (!ctx.domainScores || ctx.confidenceScore == null || ctx.trackIds.length === 0) return null;
 
   const ranked = scoredDomains(ctx.domainScores).sort((a, b) => b.opportunityScore - a.opportunityScore);
@@ -260,10 +307,10 @@ export function buildLifeIndexProps(ctx: LifeBriefContext): LifeIndexProps | nul
     },
     sageConfidence: ctx.confidenceScore,
     momentumBehavior: "Focus on your top track's daily routine first — consistency matters more than intensity.",
-    // No aggregation formula exists for benchmarks (see the GAP comment
-    // on LifeIndexProps.benchmarks in types.ts) — always empty for real
-    // data; the component already renders nothing when this is [].
-    benchmarks: [] as BenchmarkMetric[],
+    benchmarks: buildSelfBaselineBenchmarks(oldestRow, newestRow),
+    // v1: always null — see the doc-comment on LifeIndexProps.benchmarkComparison
+    // in types.ts. Reserved for Phase 4 cohort/external comparison.
+    benchmarkComparison: null,
   };
 }
 
@@ -282,14 +329,23 @@ export function buildPatternMapProps(ctx: LifeBriefContext): PatternMapProps | n
     .map((d) => `${d.label} — Sage will keep tracking this as you check in.`);
   const uncertain = ctx.contradictionFlags.filter((f) => !f.hardError).map((f) => f.message);
 
+  // chain/observed classification rule (decision 2026-07-24, see the
+  // doc-comment on PatternMapProps in types.ts): both draw from the same
+  // ground-truth set — domains backed by a direct intake answer
+  // (itemsAnswered > 0) — ranked by opportunity so the chain reads as
+  // "what matters most, in order." No cross-domain-correlation
+  // derivation exists in this codebase, so there is no predicted/
+  // inferred tier to add on top of this yet.
+  const groundTruthDomains = scoredDomains(ctx.domainScores)
+    .filter((d) => d.itemsAnswered > 0)
+    .sort((a, b) => b.opportunityScore - a.opportunityScore);
+  const chain = groundTruthDomains.map((d) => d.label);
+  const observed = groundTruthDomains.map((d) => `${d.label} — confirmed by what you shared during your intake.`);
+
   return {
-    // No reasonable heuristic exists for an ordered causal chain or for
-    // what Sage "inferred" as a pattern (see the GAP comment on
-    // PatternMapProps in types.ts) — left empty rather than
-    // misrepresenting a ranked list as a causal chain.
-    chain: [],
+    chain,
     reported,
-    observed: [],
+    observed,
     uncertain,
     monitoring,
   };

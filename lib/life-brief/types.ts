@@ -107,8 +107,27 @@ export interface LifeIndexProps {
    * path of any field in this file. */
   sageConfidence: number;
   momentumBehavior: string; // single behavior most likely to create momentum
-  /** GAP: same "no aggregation exists yet" caveat as vitalityIndex. */
+  /**
+   * Self-baseline only (decision 2026-07-24) — this subscriber's current
+   * value vs. their OWN prior assessment, never a cross-subscriber/cohort
+   * comparison. Empty for a first scored assessment (no prior snapshot to
+   * compare against yet — there's no "trend" with one data point);
+   * populated once the subscriber has 2+ engine-backed assessments.
+   * publicReferenceNote/Source (on BenchmarkMetric above) intentionally
+   * unused for v1 real data — see benchmarkComparison below for the
+   * separate cohort-comparison slot this is NOT.
+   */
   benchmarks: BenchmarkMetric[]; // 6-8 per product notes, not a dense dashboard
+  /**
+   * v1: always null. Reserved slot for Phase 4 cohort/external benchmark
+   * comparison once real pilot data exists to calibrate actual norms —
+   * decision 2026-07-24. Do not populate with placeholder population or
+   * synthetic-cohort data; leave null until Phase 4 defines the real
+   * shape. Customer-facing copy must never compare this subscriber
+   * against others ("vs. others") until this is populated with real,
+   * calibrated data.
+   */
+  benchmarkComparison: null;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,15 +135,20 @@ export interface LifeIndexProps {
 // ---------------------------------------------------------------------------
 
 /**
- * GAP: none of these five buckets have a clean 1:1 engine mapping today.
- * Closest conceptual seeds for later wiring: EngineResult.contradictionFlags
- * (-> uncertain) and domains where itemsAnswered < itemsTotal (-> monitoring)
- * — a derivation design question to resolve later, not in this shell pass.
+ * chain/observed classification rule (decision 2026-07-24): "observed" =
+ * true for any link backed by either logged tracking data or a direct
+ * intake answer — both count as user-reported ground truth.
+ * "predicted"/"inferred" is reserved for links the system derives purely
+ * from cross-domain correlation the customer never directly stated — no
+ * such derivation exists anywhere in this codebase, so chain/observed
+ * only ever contain observed (ground-truth) links in v1; there is no
+ * predicted/inferred tier yet. uncertain/monitoring are unaffected by
+ * this rule — see lib/life-brief/adapter.ts for exactly what feeds each.
  */
 export interface PatternMapProps {
   chain: string[]; // ordered chain, e.g. ["Irregular travel", "Inconsistent meal timing", ...]
   reported: string[]; // what the customer directly reported
-  observed: string[]; // what Sage inferred as a pattern
+  observed: string[]; // ground-truth links per the rule above — ordered by opportunity, same source set as chain
   uncertain: string[]; // what remains uncertain
   monitoring: string[]; // what Sage will track going forward
 }

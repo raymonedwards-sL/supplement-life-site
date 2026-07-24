@@ -107,16 +107,16 @@ export default async function LifeBriefPage() {
   }
 
   const ctx = buildLifeBriefContext(newestRow, profile ?? null);
+  const oldestRow = assignmentRows?.[1];
 
   const lifeRevelation = buildLifeRevelationProps(ctx);
-  const lifeIndex = buildLifeIndexProps(ctx);
+  const lifeIndex = buildLifeIndexProps(ctx, newestRow, oldestRow);
   const patternMap = buildPatternMapProps(ctx);
   const trackCards = buildTrackCardProps(ctx);
   const ingredientCards = buildIngredientIntelligenceProps(ctx);
   const dailyRhythm = buildDailyRhythmProps(ctx);
   const roadmap = buildRoadmapProps(ctx);
   const shareCard = buildShareCardProps(ctx);
-  const oldestRow = assignmentRows?.[1];
   const progressComparison = oldestRow ? buildProgressComparisonProps(oldestRow, newestRow) : null;
 
   return (
