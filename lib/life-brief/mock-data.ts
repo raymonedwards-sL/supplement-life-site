@@ -183,9 +183,9 @@ export const mockTrackCards: TrackCardProps[] = [
     track: SAMPLE_TRACKS.primary,
     tier: "primary",
     whySelected: [
-      "Directly addresses a racing mind at bedtime and delayed sleep onset",
-      "Valerian root is well-studied specifically for sleep onset",
-      "Ashwagandha supports the stress-adaptation side, not just sedation",
+      "May help support easier wind-down given the reported racing mind at bedtime and delayed sleep onset",
+      "Valerian root is traditionally used to support sleep onset",
+      "Ashwagandha may help support the body's stress-adaptation response, not just sedation",
     ],
     ingredients: primaryTrack.ingredients,
     timingAndFormat: `Evening, ${primaryTrack.format}`,
@@ -215,7 +215,7 @@ export const mockTrackCards: TrackCardProps[] = [
     track: SAMPLE_TRACKS.tertiary,
     tier: "tertiary",
     whySelected: [
-      "Targets the reported occasional brain fog directly",
+      "May help support mental clarity given the reported occasional brain fog",
       "Complements the sleep/energy focus of the other two tracks rather than duplicating it",
       "Non-stimulant cognitive support, consistent with the rest of the protocol",
     ],
@@ -233,33 +233,44 @@ export const mockTrackCards: TrackCardProps[] = [
 // P3-5 — Ingredient Intelligence
 // ---------------------------------------------------------------------------
 
+// Citations below are plain-text references (author/journal/year), not
+// URLs — per project content policy (memory
+// feedback_ingredient_claims_language), a citation is required per
+// ingredient claim even in this mock/draft content, and a URL/DOI should
+// never be fabricated for a source that hasn't been directly verified.
+// These have NOT been vetted by Regulatory/legal — evidenceClassification
+// stays "blocked" until that review happens; the citations exist so the
+// claim isn't unsupported, not as a substitute for that review.
 export const mockIngredientIntelligenceCards: IngredientIntelligenceProps[] = [
   {
     ingredientName: "Valerian",
     botanicalName: "Valeriana officinalis",
-    traditionalUseContext: "Used traditionally as an evening botanical to support relaxation before sleep.",
-    formulationRole: "Primary sleep-onset support in PM Calm.",
+    traditionalUseContext: "Traditionally used as an evening botanical that may help support relaxation before sleep.",
+    formulationRole: "May help support sleep onset as part of the PM Calm evening blend.",
     formAndAmount: "Included in the PM Calm evening blend — exact per-serving amount pending Claims/Evidence Library sign-off.",
     evidenceClassification: "blocked",
+    citations: ["Bent S, Padula A, Moore D, Patterson E, Mehling W. \"Valerian for sleep: a systematic review and meta-analysis.\" Am J Med. 2006;119(12):1005-1012."],
     complementaryIngredients: ["Ashwagandha (KSM-66)", "L-theanine"],
     safetyAndInteractionNotes: ["Avoid combining with sedative medications without checking with a healthcare provider."],
   },
   {
     ingredientName: "Ashwagandha",
     botanicalName: "Withania somnifera",
-    traditionalUseContext: "An adaptogenic root used traditionally to support the body's response to stress.",
-    formulationRole: "Stress-adaptation support in PM Calm, complementing Valerian's sleep-onset role.",
+    traditionalUseContext: "An adaptogenic root traditionally used to support the body's response to everyday stress.",
+    formulationRole: "May help support stress adaptation in PM Calm, alongside Valerian's role in sleep onset.",
     formAndAmount: "Included in the PM Calm evening blend — exact per-serving amount pending Claims/Evidence Library sign-off.",
     evidenceClassification: "blocked",
+    citations: ["Chandrasekhar K, Kapoor J, Anishetty S. \"A prospective, randomized double-blind, placebo-controlled study of safety and efficacy of a high-concentration full-spectrum extract of ashwagandha root in reducing stress and anxiety in adults.\" Indian J Psychol Med. 2012;34(3):255-262."],
     complementaryIngredients: ["Valerian", "Magnesium glycinate"],
     safetyAndInteractionNotes: ["Framed as stress/hormone support only — never framed as affecting testosterone."],
   },
   {
     ingredientName: "Bacopa monnieri",
-    traditionalUseContext: "Used traditionally to support memory and mental clarity.",
-    formulationRole: "Core cognitive-support ingredient in Cognitive Focus.",
+    traditionalUseContext: "Traditionally used to support memory and mental clarity.",
+    formulationRole: "May help support cognitive function as part of the Cognitive Focus formula.",
     formAndAmount: "Included in the Cognitive Focus daily capsule — exact per-serving amount pending Claims/Evidence Library sign-off.",
     evidenceClassification: "blocked",
+    citations: ["Stough C, Lloyd J, Clarke J, et al. \"The chronic effects of an extract of Bacopa monniera (Brahmi) on cognitive function in healthy human subjects.\" Psychopharmacology (Berl). 2001;156(4):481-484."],
     complementaryIngredients: ["Lion's mane", "Rhodiola rosea"],
     safetyAndInteractionNotes: ["No specific interaction notes on file yet — pending Claims/Evidence Library review."],
   },

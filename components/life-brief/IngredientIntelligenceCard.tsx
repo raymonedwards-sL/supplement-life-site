@@ -21,6 +21,7 @@ export function IngredientIntelligenceCard({
   formulationRole,
   formAndAmount,
   evidenceClassification,
+  citations,
   complementaryIngredients,
   safetyAndInteractionNotes,
   sourcingNote,
@@ -61,6 +62,19 @@ export function IngredientIntelligenceCard({
       )}
 
       {sourcingNote && <p className="mt-2 text-xs text-navy/40">{sourcingNote}</p>}
+
+      {citations.length > 0 && (
+        <div className="mt-3 border-t border-navy/10 pt-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-navy/40">Sources</p>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {citations.map((citation, i) => (
+              <li key={i} className="text-[11px] leading-relaxed text-navy/40">
+                {citation}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

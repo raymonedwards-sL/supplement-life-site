@@ -161,6 +161,11 @@ export interface TrackCardProps {
 export interface IngredientIntelligenceProps {
   ingredientName: string;
   botanicalName?: string;
+  /** Structure-function language only ("supports," "traditionally used
+   * for") — never a diagnosis/treatment/cure claim, even implied (no
+   * "treats," "addresses [condition]," "well-studied for [condition]").
+   * Content policy per project standard — see memory
+   * feedback_ingredient_claims_language. */
   traditionalUseContext: string;
   formulationRole: string;
   /** GAP: per-ingredient dosage exists nowhere in the current data model
@@ -170,6 +175,16 @@ export interface IngredientIntelligenceProps {
   formAndAmount: string;
   /** Same P1-3 blocker as TrackCardProps.evidenceStrength. */
   evidenceClassification: EvidenceStrength;
+  /**
+   * REQUIRED, non-empty — at least one citation per ingredient claim, per
+   * project content policy (see memory feedback_ingredient_claims_language),
+   * even before Regulatory/legal has vetted it. Applies to mock/draft
+   * content too, not only content that's already shipped — the discipline
+   * should be present from the first draft. Plain citation strings
+   * (author/journal/year), not URLs — do not fabricate a DOI/PubMed link
+   * for a citation that hasn't been verified.
+   */
+  citations: string[];
   complementaryIngredients: string[];
   safetyAndInteractionNotes: string[]; // pulled from Safety Gate rules that reference this ingredient
   sourcingNote?: string;
