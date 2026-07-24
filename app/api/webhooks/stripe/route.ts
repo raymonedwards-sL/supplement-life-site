@@ -46,10 +46,36 @@ import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
  * stakes, skip the block" reasoning no longer holds. Worth adding a
  * refund-triggered access block here before this price change ships.)
  *
+ * customer.subscription.created / .updated / .deleted (added 2026-07-24 —
+ * stripe-go-live-runbook.md Blocker 2: the live endpoint previously
+ * listened to only two event types, so a renewal failure or any other
+ * subscription-state change never reached this app at all) — sync
+ * Stripe's own subscription.status onto the matching `subscriptions` row
+ * (matched by stripe_customer_id, same lookup charge.refunded already
+ * uses) plus stripe_subscription_id, so portal-access checks elsewhere in
+ * the app are reading real, current state. See mapStripeSubscriptionStatus
+ * below for the status mapping and stripe_subscription_id's own doc
+ * comment (supabase/migrations/0020_subscriptions_stripe_subscription_id.sql)
+ * for why matching by customer id alone stopped being precise enough.
+ *
+ * invoice.paid / invoice.payment_failed / invoice.payment_action_required
+ * (added 2026-07-24, same audit) — acknowledged and logged, not written to
+ * the database: Stripe's own customer.subscription.updated event already
+ * reflects a failed/recovered payment via subscription.status (e.g.
+ * "past_due"), so these three are handled here purely so a renewal
+ * failure is no longer silently dropped (every event type outside the
+ * two originally-subscribed ones used to return `{received:true}`
+ * immediately without recording anything) — not as a second, potentially
+ * racing source of truth for status. A dunning email/notification off
+ * these events is a real gap worth building later, but is a separate,
+ * larger decision than "stop silently ignoring the event."
+ *
  * Add this route's URL (https://yourdomain.com/api/webhooks/stripe) as an
  * endpoint in Stripe: Developers > Webhooks, subscribed to
- * checkout.session.completed AND charge.refunded. Stripe will give you a
- * signing secret — put that in STRIPE_WEBHOOK_SECRET.
+ * checkout.session.completed, charge.refunded, customer.subscription.created,
+ * customer.subscription.updated, customer.subscription.deleted,
+ * invoice.paid, invoice.payment_failed, and invoice.payment_action_required.
+ * Stripe will give you a signing secret — put that in STRIPE_WEBHOOK_SECRET.
  *
  * TODO (not yet built): the actual "go-live conversion" job — the thing
  * that takes every "pending" subscriptions row and creates a REAL Stripe
@@ -62,7 +88,11 @@ import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
  * standard $499/month price, with a repeating coupon (duration: "repeating",
  * duration_in_months: 6, amount_off: 25000) applied so Founding Subscribers
  * are actually charged $249/month for the first 6 cycles before it steps up
- * to $499/month automatically. See project memory for full context.
+ * to $499/month automatically. See project memory for full context. The
+ * subscription- and invoice-event handlers below are ready for when that
+ * job (or any other path that creates a real Stripe Subscription) starts
+ * existing — they don't depend on it, but they're inert until it does,
+ * since no code anywhere creates a Stripe Subscription yet.
  */
 export async function POST(request: NextRequest) {
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
@@ -87,6 +117,25 @@ export async function POST(request: NextRequest) {
 
   if (event.type === "charge.refunded") {
     return handleChargeRefunded(event.data.object as Stripe.Charge);
+  }
+
+  if (
+    event.type === "customer.subscription.created" ||
+    event.type === "customer.subscription.updated"
+  ) {
+    return handleSubscriptionUpsert(event.data.object as Stripe.Subscription);
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    return handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+  }
+
+  if (
+    event.type === "invoice.paid" ||
+    event.type === "invoice.payment_failed" ||
+    event.type === "invoice.payment_action_required"
+  ) {
+    return handleInvoiceEvent(event.type, event.data.object as Stripe.Invoice);
   }
 
   if (event.type !== "checkout.session.completed") {
@@ -344,6 +393,130 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   if (error) {
     console.error("Failed to mark subscription refunded:", error);
     return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+/**
+ * public.subscriptions.status is a narrower enum than Stripe's own
+ * subscription statuses (see supabase/migrations/0001_init.sql) — this
+ * maps the two that don't have a direct match:
+ * - "incomplete"/"incomplete_expired" (the very first payment on the
+ *   subscription never went through) → "pending", since nothing about
+ *   this subscription ever actually started, the same state a deposit-only
+ *   row is already in.
+ * - "paused" (collection intentionally paused, not currently used by any
+ *   path in this codebase) → "unpaid", the closest existing status for
+ *   "not currently being billed" — an approximation, not a real status
+ *   this app produces itself.
+ * Every other Stripe status maps 1:1 onto an identically-named enum value.
+ */
+function mapStripeSubscriptionStatus(
+  status: Stripe.Subscription.Status
+): "pending" | "trialing" | "active" | "past_due" | "canceled" | "unpaid" {
+  switch (status) {
+    case "trialing":
+    case "active":
+    case "past_due":
+    case "canceled":
+    case "unpaid":
+      return status;
+    case "incomplete":
+    case "incomplete_expired":
+      return "pending";
+    case "paused":
+      return "unpaid";
+  }
+}
+
+/**
+ * customer.subscription.created / .updated — syncs Stripe's own status
+ * onto the matching subscriptions row. Matches by stripe_customer_id
+ * (same lookup handleChargeRefunded already uses) since every real
+ * subscription in this product model is created for a customer who
+ * already has a row from their original deposit checkout — there is no
+ * scenario yet where this event should create a NEW row (that's the
+ * not-yet-built go-live conversion job's job, not the webhook's).
+ */
+async function handleSubscriptionUpsert(subscription: Stripe.Subscription) {
+  const customerId =
+    typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+
+  const supabaseAdmin = createAdminClient();
+  const { data, error } = await supabaseAdmin
+    .from("subscriptions")
+    .update({
+      status: mapStripeSubscriptionStatus(subscription.status),
+      stripe_subscription_id: subscription.id,
+    })
+    .eq("stripe_customer_id", customerId)
+    .select("id");
+
+  if (error) {
+    console.error("Failed to sync subscription status:", error);
+    return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+  }
+
+  if (!data || data.length === 0) {
+    // No existing row for this customer — shouldn't happen in the current
+    // product model (every subscription customer started with a deposit
+    // checkout), but log it rather than silently dropping the event so a
+    // real mismatch is visible instead of invisible.
+    console.warn(
+      `customer.subscription.created/updated: no subscriptions row found for stripe_customer_id ${customerId}`
+    );
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+/** customer.subscription.deleted — explicitly "canceled", regardless of
+ * whatever status the subscription object reports at deletion time. */
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const customerId =
+    typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+
+  const supabaseAdmin = createAdminClient();
+  const { data, error } = await supabaseAdmin
+    .from("subscriptions")
+    .update({ status: "canceled", stripe_subscription_id: subscription.id })
+    .eq("stripe_customer_id", customerId)
+    .select("id");
+
+  if (error) {
+    console.error("Failed to mark subscription canceled:", error);
+    return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+  }
+
+  if (!data || data.length === 0) {
+    console.warn(`customer.subscription.deleted: no subscriptions row found for stripe_customer_id ${customerId}`);
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+/**
+ * invoice.paid / invoice.payment_failed / invoice.payment_action_required
+ * — see the file-level doc comment above for why these are logged rather
+ * than written to the database (customer.subscription.updated already
+ * carries the resulting status change). Acknowledging them here is what
+ * stops Stripe from seeing a non-2xx and retrying an event this app was
+ * never going to act on differently.
+ */
+async function handleInvoiceEvent(
+  eventType: "invoice.paid" | "invoice.payment_failed" | "invoice.payment_action_required",
+  invoice: Stripe.Invoice
+) {
+  const customerId =
+    typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id ?? "unknown";
+
+  if (eventType === "invoice.payment_failed" || eventType === "invoice.payment_action_required") {
+    console.warn(
+      `${eventType}: customer ${customerId}, invoice ${invoice.id}, amount_due ${invoice.amount_due}`
+    );
+  } else {
+    console.log(`invoice.paid: customer ${customerId}, invoice ${invoice.id}, amount_paid ${invoice.amount_paid}`);
   }
 
   return NextResponse.json({ received: true });
