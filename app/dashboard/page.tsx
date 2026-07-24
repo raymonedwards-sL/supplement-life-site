@@ -71,7 +71,7 @@ export default async function Dashboard() {
       .select("status, conversion_date")
       .eq("user_id", user.id)
       .maybeSingle(),
-    supabase.from("users").select("full_name").eq("id", user.id).maybeSingle(),
+    supabase.from("users").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
     // LIFE Assessment funnel (2026-07-17): a subscriber who paid $797 for
     // the assessment but never reserved a Founding Subscription has no
     // `subscriptions` row at all — used below to surface the "Become a
@@ -530,8 +530,10 @@ export default async function Dashboard() {
           <p className="text-sm font-medium text-navy/50">Account Settings</p>
           <div className="mt-4">
             <AccountSettings
+              userId={user.id}
               initialFullName={accountRow?.full_name ?? ""}
               initialEmail={user.email ?? ""}
+              initialAvatarUrl={accountRow?.avatar_url ?? null}
             />
           </div>
         </div>

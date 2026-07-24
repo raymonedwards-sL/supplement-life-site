@@ -2,19 +2,25 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import AvatarUpload from "@/components/AvatarUpload";
 
 /**
- * Self-service account editing on the dashboard: full name (a direct table
- * update) and email (routed through Supabase Auth's updateUser(), which
+ * Self-service account editing on the dashboard: profile photo (Supabase
+ * Storage upload, see AvatarUpload.tsx), full name (a direct table
+ * update), and email (routed through Supabase Auth's updateUser(), which
  * emails a confirmation link to the new address before the change takes
  * effect — the old email stays active until then).
  */
 export default function AccountSettings({
+  userId,
   initialFullName,
   initialEmail,
+  initialAvatarUrl,
 }: {
+  userId: string;
   initialFullName: string;
   initialEmail: string;
+  initialAvatarUrl: string | null;
 }) {
   const [fullName, setFullName] = useState(initialFullName);
   const [nameStatus, setNameStatus] = useState<"idle" | "saving" | "saved" | "error">(
@@ -108,6 +114,13 @@ export default function AccountSettings({
 
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+      <AvatarUpload
+        userId={userId}
+        initialAvatarUrl={initialAvatarUrl}
+        fullName={initialFullName}
+        email={initialEmail}
+      />
+
       <form onSubmit={saveName} className="flex flex-col gap-3">
         <label className="text-sm font-medium text-navy" htmlFor="full-name">
           Full name

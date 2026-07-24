@@ -25,6 +25,7 @@ import { DailyRhythm } from "@/components/life-brief/DailyRhythm";
 import { Roadmap } from "@/components/life-brief/Roadmap";
 import { ProgressComparison } from "@/components/life-brief/ProgressComparison";
 import { ShareCard } from "@/components/life-brief/ShareCard";
+import { ProfileAvatar } from "@/components/life-brief/ProfileAvatar";
 
 const BLOCKED_STATUSES = new Set(["refunded", "canceled"]);
 
@@ -56,21 +57,23 @@ export default async function LifeBriefPage() {
     );
   }
 
-  const [{ data: subscription }, { data: assignmentRows }, { data: profile }] = await Promise.all([
-    supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
-    supabase
-      .from("track_assignments")
-      .select("tracks, rationale, domain_scores, confidence_score, contradiction_flags, safety_gate, assigned_at")
-      .eq("user_id", user.id)
-      .order("assigned_at", { ascending: false })
-      .limit(2)
-      .returns<TrackAssignmentRow[]>(),
-    supabase
-      .from("profiles")
-      .select("water_intake_recommendation, fasting_recommendation, travel_frequency, work_environment")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-  ]);
+  const [{ data: subscription }, { data: assignmentRows }, { data: profile }, { data: accountRow }] =
+    await Promise.all([
+      supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
+      supabase
+        .from("track_assignments")
+        .select("tracks, rationale, domain_scores, confidence_score, contradiction_flags, safety_gate, assigned_at")
+        .eq("user_id", user.id)
+        .order("assigned_at", { ascending: false })
+        .limit(2)
+        .returns<TrackAssignmentRow[]>(),
+      supabase
+        .from("profiles")
+        .select("water_intake_recommendation, fasting_recommendation, travel_frequency, work_environment")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase.from("users").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
+    ]);
 
   if (subscription?.status && BLOCKED_STATUSES.has(subscription.status)) {
     return (
@@ -136,9 +139,16 @@ export default async function LifeBriefPage() {
 
         <div className="mt-10 flex flex-col gap-14">
           {lifeRevelation && (
-            <BriefSection label="Your LIFE Revelation">
-              <LifeRevelation {...lifeRevelation} />
-            </BriefSection>
+            <div className="relative">
+              <ProfileAvatar
+                avatarUrl={accountRow?.avatar_url ?? null}
+                fullName={accountRow?.full_name ?? ""}
+                email={user.email ?? ""}
+              />
+              <BriefSection label="Your LIFE Revelation">
+                <LifeRevelation {...lifeRevelation} />
+              </BriefSection>
+            </div>
           )}
 
           {lifeIndex && (
