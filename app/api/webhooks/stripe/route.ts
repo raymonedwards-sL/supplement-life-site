@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, FOUNDING_RESERVATION_DEPOSIT_CENTS } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { mapStripeSubscriptionStatus } from "@/lib/stripe/subscription-status";
 import { addBeehiivSubscriber, extractFirstName } from "@/lib/beehiiv";
 import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
 
@@ -53,9 +54,10 @@ import { getOrCreateUserForCheckout } from "@/lib/supabase/checkout-account";
  * Stripe's own subscription.status onto the matching `subscriptions` row
  * (matched by stripe_customer_id, same lookup charge.refunded already
  * uses) plus stripe_subscription_id, so portal-access checks elsewhere in
- * the app are reading real, current state. See mapStripeSubscriptionStatus
- * below for the status mapping and stripe_subscription_id's own doc
- * comment (supabase/migrations/0020_subscriptions_stripe_subscription_id.sql)
+ * the app are reading real, current state. See lib/stripe/subscription-
+ * status.ts for the status mapping (shared with the go-live conversion
+ * job) and stripe_subscription_id's own doc comment
+ * (supabase/migrations/0020_subscriptions_stripe_subscription_id.sql)
  * for why matching by customer id alone stopped being precise enough.
  *
  * invoice.paid / invoice.payment_failed / invoice.payment_action_required
@@ -396,38 +398,6 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   }
 
   return NextResponse.json({ received: true });
-}
-
-/**
- * public.subscriptions.status is a narrower enum than Stripe's own
- * subscription statuses (see supabase/migrations/0001_init.sql) — this
- * maps the two that don't have a direct match:
- * - "incomplete"/"incomplete_expired" (the very first payment on the
- *   subscription never went through) → "pending", since nothing about
- *   this subscription ever actually started, the same state a deposit-only
- *   row is already in.
- * - "paused" (collection intentionally paused, not currently used by any
- *   path in this codebase) → "unpaid", the closest existing status for
- *   "not currently being billed" — an approximation, not a real status
- *   this app produces itself.
- * Every other Stripe status maps 1:1 onto an identically-named enum value.
- */
-function mapStripeSubscriptionStatus(
-  status: Stripe.Subscription.Status
-): "pending" | "trialing" | "active" | "past_due" | "canceled" | "unpaid" {
-  switch (status) {
-    case "trialing":
-    case "active":
-    case "past_due":
-    case "canceled":
-    case "unpaid":
-      return status;
-    case "incomplete":
-    case "incomplete_expired":
-      return "pending";
-    case "paused":
-      return "unpaid";
-  }
 }
 
 /**
