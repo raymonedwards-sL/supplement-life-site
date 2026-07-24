@@ -8,12 +8,12 @@ const TIER_LABELS: Record<TrackCardProps["tier"], string> = {
   tertiary: "Tertiary",
 };
 
-const EVIDENCE_LABELS: Record<TrackCardProps["evidenceStrength"], string> = {
-  confirmed: "Confirmed",
-  "partial-pending-review": "Partial — Pending Review",
-  "not-yet-validated": "Not Yet Validated",
-  blocked: "Pending Evidence Review",
-};
+// Note: evidenceStrength is still passed in from the adapter/mock data (it's
+// part of TrackCardProps) but is deliberately NOT rendered — it's an internal
+// tracking field for the still-blocked Claims/Evidence Library (P1-3), and a
+// "Pending Evidence Review" badge is not something a paying subscriber should
+// ever see. Re-add a rendering once P1-3 is signed off and this can show a
+// real "Confirmed" state instead.
 
 /** P3-4, Page 5 — "Why Sage Chose This" track cards. Renders whatever
  * tracks it's given (1-3), not a fixed 3 — EngineResult.recommendedTrackIds
@@ -26,7 +26,6 @@ export function TrackCard({
   timingAndFormat,
   whatYouMayObserve,
   whatItIsNotFor,
-  evidenceStrength,
   precautions,
   reconsiderConditions,
 }: TrackCardProps) {
@@ -44,9 +43,6 @@ export function TrackCard({
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-copper/70">{TIER_LABELS[tier]}</span>
-            <span className="rounded-full bg-navy/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-navy/50">
-              Evidence: {EVIDENCE_LABELS[evidenceStrength]}
-            </span>
           </div>
           <h3 className="mt-1 font-serif text-2xl text-navy">{trackData?.name ?? track}</h3>
           <p className="mt-1 text-sm text-navy/60">{timingAndFormat}</p>

@@ -1,11 +1,10 @@
 import type { IngredientIntelligenceProps } from "@/lib/life-brief/types";
 
-const EVIDENCE_LABELS: Record<IngredientIntelligenceProps["evidenceClassification"], string> = {
-  confirmed: "Confirmed",
-  "partial-pending-review": "Partial — Pending Review",
-  "not-yet-validated": "Not Yet Validated",
-  blocked: "Pending Evidence Review",
-};
+// Note: evidenceClassification is still passed in from the adapter/mock data
+// (it's part of IngredientIntelligenceProps) but is deliberately NOT
+// rendered — same reasoning as TrackCard.tsx: it's an internal tracking
+// field for the still-blocked Claims/Evidence Library (P1-3), not something
+// a paying subscriber should see as a "Pending Evidence Review" badge.
 
 /**
  * P3-5, Page 6 — deeper per-ingredient education for the LIFE Brief
@@ -20,7 +19,6 @@ export function IngredientIntelligenceCard({
   traditionalUseContext,
   formulationRole,
   formAndAmount,
-  evidenceClassification,
   citations,
   complementaryIngredients,
   safetyAndInteractionNotes,
@@ -28,14 +26,9 @@ export function IngredientIntelligenceCard({
 }: IngredientIntelligenceProps) {
   return (
     <div className="rounded-xl border border-navy/10 bg-white/70 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-base font-bold text-navy">{ingredientName}</p>
-          {botanicalName && <p className="text-xs italic text-navy/50">{botanicalName}</p>}
-        </div>
-        <span className="shrink-0 rounded-full bg-navy/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-navy/50">
-          {EVIDENCE_LABELS[evidenceClassification]}
-        </span>
+      <div>
+        <p className="text-base font-bold text-navy">{ingredientName}</p>
+        {botanicalName && <p className="text-xs italic text-navy/50">{botanicalName}</p>}
       </div>
 
       <p className="mt-3 text-sm leading-relaxed text-navy/70">{traditionalUseContext}</p>
