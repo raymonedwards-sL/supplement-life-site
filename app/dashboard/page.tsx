@@ -257,6 +257,14 @@ export default async function Dashboard() {
                   >
                     Download Your LIFE Brief (PDF)
                   </a>
+                  {tracks.length > 0 && (
+                    <Link
+                      href="/dashboard/brief"
+                      className="text-sm font-semibold text-copper underline underline-offset-2"
+                    >
+                      View Your Full LIFE Brief →
+                    </Link>
+                  )}
                 </div>
                 {!intakeAccess.allowed &&
                   (intakeAccess.reason === "assessment_window_expired" ||
