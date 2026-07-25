@@ -9,8 +9,28 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import { findTrack, type Track } from "@/lib/tracks";
-import type { TrackRationale } from "@/lib/rationale";
 import { segmentText } from "@/lib/text/botanical-terms";
+import {
+  buildLifeRevelationProps,
+  buildLifeIndexProps,
+  buildPatternMapProps,
+  buildTrackCardProps,
+  buildDailyRhythmProps,
+  buildRoadmapProps,
+  buildProgressComparisonProps,
+  type LifeBriefContext,
+  type TrackAssignmentRow,
+} from "@/lib/life-brief/adapter";
+import type {
+  LifeRevelationProps,
+  LifeIndexProps,
+  PatternMapProps,
+  TrackCardProps,
+  DailyRhythmProps,
+  RhythmBlock,
+  RoadmapProps,
+  ProgressComparisonProps,
+} from "@/lib/life-brief/types";
 
 /**
  * Builds "Your LIFE Brief" — the branded PDF snapshot of a subscriber's
@@ -34,7 +54,11 @@ import { segmentText } from "@/lib/text/botanical-terms";
  * canonical builder.
  */
 
-const TRACK_ROLE_LABELS = ["Primary", "Secondary", "Tertiary"];
+const TIER_LABELS: Record<TrackCardProps["tier"], string> = {
+  primary: "Primary",
+  secondary: "Secondary",
+  tertiary: "Tertiary",
+};
 
 const NAVY = rgb(0x1b / 255, 0x2a / 255, 0x4a / 255);
 const COPPER = rgb(0xb5 / 255, 0x73 / 255, 0x2b / 255);
@@ -52,13 +76,31 @@ const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2;
 
 type Cursor = { page: PDFPage; y: number; pageNumber: number };
 
+type BriefFonts = {
+  font: PDFFont;
+  bold: PDFFont;
+  italic: PDFFont;
+  serifBold: PDFFont;
+  serifItalic: PDFFont;
+};
+
+/**
+ * Report content beyond `email`/`currentSummary`/subscription fields is
+ * sourced from the same `LifeBriefContext` + row(s) that
+ * lib/life-brief/adapter.ts's builder functions feed to /dashboard/brief —
+ * one source of truth for both renderers, added 2026-07-26 so this PDF can
+ * carry the same LIFE Revelation/Index/Pattern Map/Roadmap/Progress
+ * Comparison sections the web report already has, without re-deriving the
+ * scoring-engine math a second time. `oldestRow` is optional — Progress
+ * Comparison only renders when a caller has (and passes) a real prior
+ * sitting to compare against.
+ */
 export type LifeBriefInput = {
   email: string;
   currentSummary: string | null;
-  waterIntakeRecommendation: string | null;
-  fastingRecommendation: string | null;
-  trackIds: string[];
-  rationale: TrackRationale[];
+  ctx: LifeBriefContext;
+  newestRow: TrackAssignmentRow;
+  oldestRow?: TrackAssignmentRow;
   subscriptionStatus: string | null;
   conversionDate: string | null;
   /** Whether this subscriber has already opted in to Sage's daily SMS nudge (lib/sms) — swaps the closing callout between a status note and a sign-up CTA. */
@@ -114,29 +156,36 @@ export async function buildLifeBriefPdf(input: LifeBriefInput): Promise<Uint8Arr
     cursor.y -= 18;
   }
 
+  // --- LIFE Revelation / LIFE Index / Pattern Map — same adapter builder
+  // functions app/dashboard/brief/page.tsx uses; each renders only when
+  // its builder returns real (non-null) data, same contract as the web
+  // page. ---
+  const { ctx } = input;
+  const lifeRevelation = buildLifeRevelationProps(ctx);
+  if (lifeRevelation) {
+    drawLifeRevelation(pdfDoc, cursor, lifeRevelation, fonts);
+  }
+
+  const lifeIndex = buildLifeIndexProps(ctx, input.newestRow, input.oldestRow);
+  if (lifeIndex) {
+    drawLifeIndex(pdfDoc, cursor, lifeIndex, fonts);
+  }
+
+  const patternMap = buildPatternMapProps(ctx);
+  if (
+    patternMap &&
+    (patternMap.observed.length > 0 || patternMap.uncertain.length > 0 || patternMap.monitoring.length > 0)
+  ) {
+    drawPatternMap(pdfDoc, cursor, patternMap, fonts);
+  }
+
   // --- Botanical Track(s) ---
   drawSectionHeading(pdfDoc, cursor, "Your Botanical Track(s)", bold);
-  const tracks = input.trackIds
-    .map((id) => findTrack(id))
-    .filter((t): t is NonNullable<typeof t> => Boolean(t));
+  const trackCards = buildTrackCardProps(ctx);
 
-  if (tracks.length > 0) {
-    const legacyRationale = input.rationale.find((r) => !r.track_id)?.reason;
-
-    for (let i = 0; i < tracks.length; i++) {
-      const track = tracks[i];
-      const label = TRACK_ROLE_LABELS[i] ?? "Additional";
-      const reason = input.rationale.find((r) => r.track_id === track.id)?.reason;
-      await drawTrackCard(pdfDoc, cursor, track, label, reason, fonts);
-    }
-
-    // Legacy rows (pre 2026-07-13) stored one shared paragraph with no
-    // track_id — still show it rather than silently dropping it.
-    if (legacyRationale) {
-      drawText(pdfDoc, cursor, "Why this fits you", bold, 11, NAVY);
-      cursor.y -= 16;
-      drawRichParagraph(pdfDoc, cursor, legacyRationale, font, bold, 11, INK);
-      cursor.y -= 12;
+  if (trackCards.length > 0) {
+    for (const card of trackCards) {
+      await drawTrackCard(pdfDoc, cursor, card, fonts);
     }
   } else {
     drawParagraph(
@@ -150,17 +199,22 @@ export async function buildLifeBriefPdf(input: LifeBriefInput): Promise<Uint8Arr
     cursor.y -= 18;
   }
 
-  // --- Daily Practices ---
-  if (input.waterIntakeRecommendation || input.fastingRecommendation) {
-    drawSectionHeading(pdfDoc, cursor, "Your Daily Practices", bold);
-    const items: { label: string; text: string }[] = [];
-    if (input.waterIntakeRecommendation) {
-      items.push({ label: "Hydration", text: input.waterIntakeRecommendation });
+  // --- Daily LIFE Rhythm — replaces the old flat hydration/fasting
+  // cards; buildDailyRhythmProps already folds water/fasting guidance
+  // into the Wake / Midday Stability blocks, so showing both would
+  // repeat the same guidance under two headings. ---
+  drawDailyRhythm(pdfDoc, cursor, buildDailyRhythmProps(ctx), fonts);
+
+  // --- 90-Day Roadmap ---
+  drawRoadmap(pdfDoc, cursor, buildRoadmapProps(ctx), fonts);
+
+  // --- Then vs. Now — only when a real prior sitting was passed in and
+  // there's enough real data on both rows to compare. ---
+  if (input.oldestRow) {
+    const progressComparison = buildProgressComparisonProps(input.oldestRow, input.newestRow);
+    if (progressComparison) {
+      drawProgressComparison(pdfDoc, cursor, progressComparison, fonts);
     }
-    if (input.fastingRecommendation) {
-      items.push({ label: "Fasting Window", text: input.fastingRecommendation });
-    }
-    drawPracticeCards(pdfDoc, cursor, items, { bold, font });
   }
 
   // --- SMS nudge callout — ties the Brief to the ongoing relationship,
@@ -279,20 +333,39 @@ function drawParagraph(
 // step is duplicated, because it has to be.
 // ---------------------------------------------------------------------
 
-type RichToken = { text: string; bold: boolean };
+/** `spaceBefore` tracks whether whitespace actually separated this token
+ * from the previous one in the source text — needed because segmentText
+ * splits on bold-term boundaries, not whitespace, so a bold term glued
+ * directly to trailing punctuation (e.g. "Restore's", "dock:") is a
+ * segment boundary with NO space in the original string. Without this,
+ * drawRichLine used to insert a space at every segment boundary
+ * unconditionally, producing phantom spaces like "Restore 's" / "dock :"
+ * (found 2026-07-26 generating a real test PDF against the new Track
+ * Card / benchmark sections, which lean on rich text far more than the
+ * original single-rationale-string design did). */
+type RichToken = { text: string; bold: boolean; spaceBefore: boolean };
 
 function tokenizeRich(text: string): RichToken[] {
   const tokens: RichToken[] = [];
+  let pendingSpace = false;
   for (const seg of segmentText(text)) {
-    for (const word of seg.text.split(/\s+/).filter(Boolean)) {
-      tokens.push({ text: word, bold: seg.bold });
+    for (const part of seg.text.split(/(\s+)/)) {
+      if (part === "") continue;
+      if (/^\s+$/.test(part)) {
+        pendingSpace = true;
+        continue;
+      }
+      tokens.push({ text: part, bold: seg.bold, spaceBefore: pendingSpace });
+      pendingSpace = false;
     }
   }
   return tokens;
 }
 
 /** Same wrapping algorithm as wrapLines(), but measures each word with
- * its own (regular vs. bold) font before deciding whether it fits. */
+ * its own (regular vs. bold) font before deciding whether it fits, and
+ * only reserves space for a gap when the source text actually had one
+ * (see RichToken.spaceBefore). */
 function wrapRichLines(
   text: string,
   font: PDFFont,
@@ -308,10 +381,12 @@ function wrapRichLines(
 
   for (const token of tokens) {
     const tokenWidth = (token.bold ? boldFont : font).widthOfTextAtSize(token.text, size);
-    const addedWidth = current.length > 0 ? spaceWidth + tokenWidth : tokenWidth;
+    const gap = current.length > 0 && token.spaceBefore ? spaceWidth : 0;
+    const addedWidth = gap + tokenWidth;
     if (currentWidth + addedWidth > maxWidth && current.length > 0) {
       lines.push(current);
-      current = [token];
+      // A token that wraps to a new line never needs a leading space.
+      current = [{ ...token, spaceBefore: false }];
       currentWidth = tokenWidth;
     } else {
       current.push(token);
@@ -340,8 +415,9 @@ function drawRichLine(
   let cx = x;
   line.forEach((token, i) => {
     const tokenFont = token.bold ? boldFont : font;
+    if (i > 0 && token.spaceBefore) cx += spaceWidth;
     page.drawText(token.text, { x: cx, y, size, font: tokenFont, color });
-    cx += tokenFont.widthOfTextAtSize(token.text, size) + (i < line.length - 1 ? spaceWidth : 0);
+    cx += tokenFont.widthOfTextAtSize(token.text, size);
   });
 }
 
@@ -365,6 +441,98 @@ function drawRichParagraph(
     drawRichLine(cursor.page, line, x, cursor.y, font, boldFont, size, color);
     cursor.y -= lineHeight;
   }
+}
+
+/** Rich (bold-aware), dot-bulleted list — one item per bullet, each
+ * independently wrapped and paginated via ensureSpace. Shared by every
+ * new report section below (LIFE Revelation's supporting signals, LIFE
+ * Index's strengths/frictions/benchmarks, Pattern Map's buckets, the
+ * Roadmap's milestones, Progress Comparison's whatChanged). Not used
+ * inside drawTrackCard, which pre-computes one fixed card height up
+ * front and draws onto it directly — this helper's per-line ensureSpace
+ * would fight that fixed-height card background. */
+function drawBulletList(
+  doc: PDFDocument,
+  cursor: Cursor,
+  items: string[],
+  font: PDFFont,
+  boldFont: PDFFont,
+  size: number,
+  color: ReturnType<typeof rgb>,
+  opts: { maxWidth?: number; x?: number; dotColor?: ReturnType<typeof rgb> } = {}
+) {
+  const x = opts.x ?? MARGIN_X;
+  const dotIndent = 12;
+  const textX = x + dotIndent;
+  const maxWidth = (opts.maxWidth ?? CONTENT_WIDTH) - dotIndent;
+  const lineHeight = size * 1.45;
+  const dotColor = opts.dotColor ?? COPPER;
+
+  for (const item of items) {
+    const lines = wrapRichLines(item, font, boldFont, size, maxWidth);
+    lines.forEach((line, i) => {
+      ensureSpace(doc, cursor, lineHeight);
+      if (i === 0) {
+        cursor.page.drawEllipse({
+          x: x + 3,
+          y: cursor.y + size * 0.35,
+          xScale: 2,
+          yScale: 2,
+          color: dotColor,
+        });
+      }
+      drawRichLine(cursor.page, line, textX, cursor.y, font, boldFont, size, color);
+      cursor.y -= lineHeight;
+    });
+  }
+}
+
+/** Two side-by-side bulleted lists sharing one fixed card height,
+ * computed up front — same precomputed-height pattern as the old
+ * drawPracticeCards (which this doesn't replace; that section is gone,
+ * but the two-column layout it established is reused here for LIFE
+ * Index's Top Strengths / Top Frictions). */
+function drawTwoColumnLists(
+  doc: PDFDocument,
+  cursor: Cursor,
+  columns: { heading: string; items: string[] }[],
+  fonts: BriefFonts
+) {
+  const { bold, font } = fonts;
+  const gutter = 24;
+  const colWidth = (CONTENT_WIDTH - gutter) / 2;
+  const bodySize = 10;
+  const bodyLH = bodySize * 1.45;
+  const dotIndent = 12;
+
+  const wrappedColumns = columns.map((col) =>
+    col.items.map((item) => wrapRichLines(item, font, bold, bodySize, colWidth - dotIndent))
+  );
+  const colHeights = wrappedColumns.map(
+    (lines) => 16 + lines.reduce((sum, l) => sum + l.length * bodyLH, 0)
+  );
+  const blockHeight = Math.max(...colHeights);
+
+  ensureSpace(doc, cursor, blockHeight + 18);
+  const topY = cursor.y;
+
+  columns.forEach((col, ci) => {
+    const x = MARGIN_X + ci * (colWidth + gutter);
+    let ty = topY;
+    cursor.page.drawText(col.heading.toUpperCase(), { x, y: ty, size: 9.5, font: bold, color: COPPER });
+    ty -= 16;
+    wrappedColumns[ci].forEach((lines) => {
+      lines.forEach((line, li) => {
+        if (li === 0) {
+          cursor.page.drawEllipse({ x: x + 3, y: ty + bodySize * 0.35, xScale: 2, yScale: 2, color: COPPER });
+        }
+        drawRichLine(cursor.page, line, x + dotIndent, ty, font, bold, bodySize, INK);
+        ty -= bodyLH;
+      });
+    });
+  });
+
+  cursor.y = topY - blockHeight - 18;
 }
 
 function drawSectionHeading(doc: PDFDocument, cursor: Cursor, text: string, bold: PDFFont) {
@@ -484,14 +652,130 @@ function drawPullQuoteBox(
   cursor.y = topY - boxHeight - 18;
 }
 
+// ---------------------------------------------------------------------
+// LIFE Revelation / LIFE Index / Pattern Map — mirror
+// app/dashboard/brief/page.tsx's section set, fed by the same
+// lib/life-brief/adapter.ts builder functions.
+// ---------------------------------------------------------------------
+
+function drawLifeRevelation(pdfDoc: PDFDocument, cursor: Cursor, props: LifeRevelationProps, fonts: BriefFonts) {
+  const { bold, font, serifBold } = fonts;
+  drawSectionHeading(pdfDoc, cursor, "Your LIFE Revelation", bold);
+
+  drawText(pdfDoc, cursor, props.dominantPattern, serifBold, 18, NAVY, 24);
+  cursor.y -= 4;
+  drawParagraph(pdfDoc, cursor, props.sageInterpretation, font, 11, INK);
+  cursor.y -= 10;
+
+  drawBulletList(pdfDoc, cursor, props.supportingSignals, font, bold, 10.5, INK);
+  cursor.y -= 6;
+
+  drawText(pdfDoc, cursor, props.ninetyDayCta, bold, 11, COPPER, 18);
+  cursor.y -= 12;
+}
+
+function drawLifeIndex(
+  pdfDoc: PDFDocument,
+  cursor: Cursor,
+  props: LifeIndexProps,
+  fonts: BriefFonts
+) {
+  const { bold, font, italic, serifBold } = fonts;
+  drawSectionHeading(pdfDoc, cursor, "Your LIFE Index", bold);
+
+  if (props.vitalityIndex != null) {
+    drawText(pdfDoc, cursor, `${props.vitalityIndex}/100`, serifBold, 30, COPPER, 38);
+  } else {
+    drawText(pdfDoc, cursor, "Still building your picture", serifBold, 16, NAVY, 22);
+  }
+  drawParagraph(pdfDoc, cursor, props.vitalityIndexDisclaimer, italic, 9, MUTED);
+  cursor.y -= 10;
+
+  drawTwoColumnLists(
+    pdfDoc,
+    cursor,
+    [
+      { heading: "Top strengths", items: props.topStrengths },
+      { heading: "Top frictions", items: props.topFrictions },
+    ],
+    fonts
+  );
+
+  const matchNames = [props.trackMatches.primary, props.trackMatches.secondary, props.trackMatches.tertiary]
+    .filter((id): id is string => Boolean(id))
+    .map((id) => findTrack(id)?.name ?? id);
+  if (matchNames.length > 0) {
+    drawParagraph(pdfDoc, cursor, `Track matches: ${matchNames.join(", ")}`, font, 10.5, INK);
+    cursor.y -= 6;
+  }
+
+  drawParagraph(pdfDoc, cursor, `Sage's confidence in this profile: ${props.sageConfidence}/100.`, font, 10.5, INK);
+  cursor.y -= 6;
+  drawParagraph(pdfDoc, cursor, props.momentumBehavior, font, 10.5, INK);
+  cursor.y -= 10;
+
+  if (props.benchmarks.length > 0) {
+    drawText(pdfDoc, cursor, "SELF-BASELINE BENCHMARKS", bold, 9.5, COPPER, 14);
+    drawBulletList(
+      pdfDoc,
+      cursor,
+      props.benchmarks.map(
+        (b) => `${b.metric}: ${b.current}/100 (personal baseline ${b.personalBaseline}/100). ${b.thirtyDayTarget}.`
+      ),
+      font,
+      bold,
+      10,
+      INK
+    );
+  }
+  cursor.y -= 8;
+}
+
+function drawPatternMap(pdfDoc: PDFDocument, cursor: Cursor, props: PatternMapProps, fonts: BriefFonts) {
+  const { bold, font } = fonts;
+  drawSectionHeading(pdfDoc, cursor, "Your Personal Pattern Map", bold);
+
+  if (props.chain.length > 0) {
+    // pdf-lib's StandardFonts use WinAnsi encoding, which has no glyph
+    // for "→" (unlike the web UI's PatternMap.tsx, which can rely on the
+    // browser's font stack) — "->" is the ASCII-safe equivalent.
+    drawParagraph(pdfDoc, cursor, props.chain.join("   ->   "), bold, 10.5, NAVY);
+    cursor.y -= 10;
+  }
+
+  const buckets: { label: string; items: string[] }[] = [
+    { label: "What Sage observed", items: props.observed },
+    { label: "What remains uncertain", items: props.uncertain },
+    { label: "What Sage is monitoring", items: props.monitoring },
+  ];
+  for (const bucket of buckets) {
+    if (bucket.items.length === 0) continue;
+    drawText(pdfDoc, cursor, bucket.label.toUpperCase(), bold, 9.5, COPPER, 14);
+    drawBulletList(pdfDoc, cursor, bucket.items, font, bold, 10, INK);
+    cursor.y -= 6;
+  }
+}
+
+/**
+ * Renders the full TrackCardProps set — matches
+ * components/life-brief/TrackCard.tsx's field set (whySelected as 3
+ * bullets, plus what-you-may-observe/not-intended-for/precautions/
+ * reconsider-conditions as labeled mini-sections), not just the single
+ * rationale string this used to draw. `evidenceStrength` is
+ * deliberately never rendered here either — same reasoning as
+ * TrackCard.tsx's own comment: it's always "blocked" pending the
+ * Claims/Evidence Library, and a "Pending Evidence Review" badge isn't
+ * something a paying subscriber should see.
+ */
 async function drawTrackCard(
   pdfDoc: PDFDocument,
   cursor: Cursor,
-  track: Track,
-  roleLabel: string,
-  reason: string | undefined,
+  card: TrackCardProps,
   fonts: { bold: PDFFont; font: PDFFont; italic: PDFFont }
 ) {
+  const track = findTrack(card.track);
+  if (!track) return;
+
   const { bold, font, italic } = fonts;
   const imgTargetWidth = 92;
   const gutter = 16;
@@ -512,32 +796,35 @@ async function drawTrackCard(
     console.error(`LIFE Brief: failed to embed packaging photo for ${track.id}:`, err);
   }
 
-  const titleText = `${roleLabel.toUpperCase()} — ${track.name}`;
+  const titleText = `${TIER_LABELS[card.tier].toUpperCase()} — ${track.name}`;
   const needLines = wrapLines(track.consumerNeed, italic, 10, textMaxWidth);
-  // Rich (bold-aware): both of these are prose/list text that names
-  // specific ingredients or Track names — see the "Rich (bold-aware)
-  // text" section above for why this needs a separate word-by-word
-  // wrap+draw path rather than the plain wrapLines()/drawText() used
-  // for needLines/formatLines below (which don't mention them).
-  const ingredientsLines = wrapRichLines(
-    `Ingredients: ${track.ingredients.join(", ")}`,
-    font,
-    bold,
-    10,
-    textMaxWidth
-  );
-  const formatLines = wrapLines(`Format: ${track.format}`, font, 10, textMaxWidth);
-  const reasonLines = reason ? wrapRichLines(reason, font, bold, 10, textMaxWidth) : [];
+  // Rich (bold-aware): these name specific ingredients or Track names —
+  // see the "Rich (bold-aware) text" section above for why this needs a
+  // separate word-by-word wrap+draw path rather than the plain
+  // wrapLines()/drawText() used for needLines below (which don't
+  // mention them).
+  const ingredientsLines = wrapRichLines(`Ingredients: ${card.ingredients.join(", ")}`, font, bold, 10, textMaxWidth);
+  const formatLines = wrapLines(`Format: ${card.timingAndFormat}`, font, 10, textMaxWidth);
+  const whySelectedLines = card.whySelected.map((reason) => wrapRichLines(reason, font, bold, 10, textMaxWidth - 12));
+  const observeLines = wrapLines(card.whatYouMayObserve, font, 9.5, textMaxWidth);
+  const notForLines = wrapLines(card.whatItIsNotFor, font, 9.5, textMaxWidth);
+  const precautionsLines =
+    card.precautions.length > 0 ? wrapRichLines(card.precautions.join(" "), font, bold, 9.5, textMaxWidth) : [];
+  const reconsiderLines =
+    card.reconsiderConditions.length > 0 ? wrapLines(card.reconsiderConditions.join(" "), font, 9.5, textMaxWidth) : [];
 
   const titleLH = 17;
   const needLH = 10 * 1.45;
   const bodyLH = 10 * 1.45;
+  const smallLH = 9.5 * 1.45;
 
   let textHeight =
     titleLH + needLines.length * needLH + 4 + ingredientsLines.length * bodyLH + formatLines.length * bodyLH;
-  if (reasonLines.length > 0) {
-    textHeight += 8 + 13 + reasonLines.length * bodyLH;
-  }
+  textHeight += 8 + 13 + whySelectedLines.reduce((sum, lines) => sum + lines.length * bodyLH, 0);
+  textHeight += 8 + 12 + observeLines.length * smallLH;
+  textHeight += 6 + 12 + notForLines.length * smallLH;
+  if (precautionsLines.length > 0) textHeight += 6 + 12 + precautionsLines.length * smallLH;
+  if (reconsiderLines.length > 0) textHeight += 6 + 12 + reconsiderLines.length * smallLH;
 
   const cardHeight = Math.max(imgHeight, textHeight) + padding * 2;
   ensureSpace(pdfDoc, cursor, cardHeight + 16);
@@ -584,80 +871,209 @@ async function drawTrackCard(
     ty -= bodyLH;
   }
 
-  if (reasonLines.length > 0) {
-    ty -= 8;
-    cursor.page.drawText("WHY THIS FITS YOU", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
-    ty -= 13;
-    for (const line of reasonLines) {
-      drawRichLine(cursor.page, line, textX, ty, font, bold, 10, INK);
+  ty -= 8;
+  cursor.page.drawText("WHY THIS FITS YOU", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
+  ty -= 13;
+  for (const lines of whySelectedLines) {
+    lines.forEach((line, i) => {
+      if (i === 0) {
+        cursor.page.drawEllipse({ x: textX + 3, y: ty + 3.5, xScale: 1.8, yScale: 1.8, color: COPPER });
+      }
+      drawRichLine(cursor.page, line, textX + 12, ty, font, bold, 10, INK);
       ty -= bodyLH;
+    });
+  }
+
+  ty -= 8;
+  cursor.page.drawText("WHAT YOU MAY OBSERVE", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
+  ty -= 12;
+  for (const line of observeLines) {
+    cursor.page.drawText(line, { x: textX, y: ty, size: 9.5, font, color: INK });
+    ty -= smallLH;
+  }
+
+  ty -= 6;
+  cursor.page.drawText("NOT INTENDED FOR", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
+  ty -= 12;
+  for (const line of notForLines) {
+    cursor.page.drawText(line, { x: textX, y: ty, size: 9.5, font, color: MUTED });
+    ty -= smallLH;
+  }
+
+  if (precautionsLines.length > 0) {
+    ty -= 6;
+    cursor.page.drawText("PRECAUTIONS", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
+    ty -= 12;
+    for (const line of precautionsLines) {
+      drawRichLine(cursor.page, line, textX, ty, font, bold, 9.5, MUTED);
+      ty -= smallLH;
+    }
+  }
+
+  if (reconsiderLines.length > 0) {
+    ty -= 6;
+    cursor.page.drawText("WE'D REVISIT THIS IF", { x: textX, y: ty, size: 9, font: bold, color: NAVY });
+    ty -= 12;
+    for (const line of reconsiderLines) {
+      cursor.page.drawText(line, { x: textX, y: ty, size: 9.5, font, color: MUTED });
+      ty -= smallLH;
     }
   }
 
   cursor.y = cardTopY - cardHeight - 16;
 }
 
-function drawPracticeCards(
-  pdfDoc: PDFDocument,
-  cursor: Cursor,
-  items: { label: string; text: string }[],
-  fonts: { bold: PDFFont; font: PDFFont }
-) {
-  if (items.length === 0) return;
-  const { bold, font } = fonts;
-  const gutter = 16;
-  const barWidth = 3;
-  const padding = 14;
-  const colWidth = items.length > 1 ? (CONTENT_WIDTH - gutter) / 2 : CONTENT_WIDTH;
-  const textMaxWidth = colWidth - barWidth - padding * 2;
-  const bodyLH = 10 * 1.45;
+// Every optional narrative field a RhythmBlock can carry, in the order
+// checked — most populated blocks only ever set exactly one of these
+// (see lib/life-brief/adapter.ts's buildDailyRhythmProps), but checking
+// all of them (rather than hardcoding which field belongs to which
+// timeOfDay) keeps this in sync with the type without this file needing
+// its own copy of that mapping.
+const RHYTHM_DETAIL_FIELDS: (keyof RhythmBlock)[] = [
+  "hydrationCue",
+  "botanicalTiming",
+  "mealRhythm",
+  "movement",
+  "caffeineBoundary",
+  "recoveryPractice",
+  "sageCheckIn",
+];
 
-  // Hydration/fasting guidance occasionally names a Track/ingredient
-  // (e.g. "a large glass right after your morning Ginger tea") — rich
-  // wrap so those still bold, same as everywhere else in the Brief.
-  const wrapped = items.map((it) => wrapRichLines(it.text, font, bold, 10, textMaxWidth));
-  const cardHeight =
-    Math.max(...wrapped.map((lines) => 16 + lines.length * bodyLH)) + padding * 2;
+/** P3-6 — the full ordered wake-to-sleep timeline, replacing the old
+ * flat "Your Daily Practices" hydration/fasting cards (those values now
+ * live inside the Wake / Midday Stability blocks here, via
+ * buildDailyRhythmProps — showing them twice under two headings would
+ * just repeat the same guidance). A block with no populated field is
+ * skipped rather than shown empty. */
+function drawDailyRhythm(pdfDoc: PDFDocument, cursor: Cursor, props: DailyRhythmProps, fonts: BriefFonts) {
+  const { bold, font, italic } = fonts;
+  drawSectionHeading(pdfDoc, cursor, "Your Daily LIFE Rhythm", bold);
 
-  ensureSpace(pdfDoc, cursor, cardHeight + 16);
-  const topY = cursor.y;
+  for (const block of props.blocks) {
+    const detail = RHYTHM_DETAIL_FIELDS.map((field) => block[field]).find((v): v is string => Boolean(v));
+    if (!detail) continue;
+    drawText(pdfDoc, cursor, block.label, bold, 11, COPPER, 15);
+    drawRichParagraph(pdfDoc, cursor, detail, font, bold, 10.5, INK);
+    cursor.y -= 8;
+  }
 
-  items.forEach((it, i) => {
-    const x = MARGIN_X + i * (colWidth + gutter);
+  if (props.lifestyleCompatibilityNote) {
+    drawParagraph(pdfDoc, cursor, props.lifestyleCompatibilityNote, italic, 9.5, MUTED);
+    cursor.y -= 8;
+  }
+}
+
+/** P3-7 — the 3 fixed Stabilize/Build/Personalize phases plus the
+ * weekly check-in's priority marker question (the other 7 rotating
+ * questions aren't listed verbatim — too much for a print page, and the
+ * priority question is the one the report should foreground). */
+function drawRoadmap(pdfDoc: PDFDocument, cursor: Cursor, props: RoadmapProps, fonts: BriefFonts) {
+  const { bold, font, italic } = fonts;
+  drawSectionHeading(pdfDoc, cursor, "Your 90-Day Roadmap", bold);
+
+  for (const phase of props.phases) {
+    const padding = 14;
+    const barWidth = 3;
+    const textX = MARGIN_X + barWidth + padding;
+    const textMaxWidth = CONTENT_WIDTH - barWidth - padding * 2;
+    const headingLH = 15;
+    const bodyLH = 10 * 1.45;
+    const dotIndent = 12;
+
+    const focusLines = wrapLines(phase.focus, font, 10, textMaxWidth);
+    const milestoneLines = phase.milestones.map((m) => wrapLines(m, font, 10, textMaxWidth - dotIndent));
+    const cardHeight =
+      headingLH +
+      focusLines.length * bodyLH +
+      6 +
+      milestoneLines.reduce((sum, lines) => sum + lines.length * bodyLH, 0) +
+      padding * 2;
+
+    ensureSpace(pdfDoc, cursor, cardHeight + 12);
+    const topY = cursor.y;
+    const cardX = MARGIN_X - 12;
+    const cardWidth = CONTENT_WIDTH + 24;
+
     cursor.page.drawRectangle({
-      x,
+      x: cardX,
       y: topY - cardHeight,
-      width: colWidth,
+      width: cardWidth,
       height: cardHeight,
       color: CARD_TINT,
       borderColor: CARD_BORDER,
       borderWidth: 1,
     });
-    cursor.page.drawRectangle({
-      x,
-      y: topY - cardHeight,
-      width: barWidth,
-      height: cardHeight,
-      color: COPPER,
-    });
+    cursor.page.drawRectangle({ x: cardX, y: topY - cardHeight, width: barWidth, height: cardHeight, color: COPPER });
 
-    const textX = x + barWidth + padding;
-    let ty = topY - padding - 9;
-    cursor.page.drawText(it.label.toUpperCase(), {
+    let ty = topY - padding - 10;
+    cursor.page.drawText(`${phase.label.toUpperCase()} — ${phase.dayRange}`, {
       x: textX,
       y: ty,
-      size: 10,
+      size: 12,
       font: bold,
       color: COPPER,
     });
-    ty -= 16;
-    for (const line of wrapped[i]) {
-      drawRichLine(cursor.page, line, textX, ty, font, bold, 10, INK);
+    ty -= headingLH;
+
+    for (const line of focusLines) {
+      cursor.page.drawText(line, { x: textX, y: ty, size: 10, font, color: INK });
       ty -= bodyLH;
     }
-  });
+    ty -= 6;
 
-  cursor.y = topY - cardHeight - 18;
+    milestoneLines.forEach((lines) => {
+      lines.forEach((line, i) => {
+        if (i === 0) {
+          cursor.page.drawEllipse({ x: textX + 3, y: ty + 3.5, xScale: 1.8, yScale: 1.8, color: COPPER });
+        }
+        cursor.page.drawText(line, { x: textX + dotIndent, y: ty, size: 10, font, color: INK });
+        ty -= bodyLH;
+      });
+    });
+
+    cursor.y = topY - cardHeight - 12;
+  }
+
+  cursor.y -= 4;
+  drawText(pdfDoc, cursor, "Weekly check-in", bold, 10.5, NAVY, 15);
+  drawParagraph(
+    pdfDoc,
+    cursor,
+    `${props.weeklyCheckIn.priorityMarkerQuestion} (plus a short rotating set of check-in questions each week.)`,
+    italic,
+    10,
+    MUTED
+  );
+  cursor.y -= 10;
+}
+
+/** P3-9 — only ever called when a real prior sitting exists; see the
+ * `oldestRow` gating in buildLifeBriefPdf. */
+function drawProgressComparison(pdfDoc: PDFDocument, cursor: Cursor, props: ProgressComparisonProps, fonts: BriefFonts) {
+  const { bold, font } = fonts;
+  drawSectionHeading(pdfDoc, cursor, "Then vs. Now", bold);
+
+  const snapshotLine = (snap: ProgressComparisonProps["then"]) => {
+    const indexText = snap.vitalityIndex != null ? `${snap.vitalityIndex}/100` : "still building";
+    const topBenchmark = snap.topBenchmarks[0];
+    return topBenchmark
+      ? `${snap.dayLabel}: LIFE Index ${indexText} — ${topBenchmark.metric}: ${topBenchmark.current}`
+      : `${snap.dayLabel}: LIFE Index ${indexText}`;
+  };
+
+  drawParagraph(pdfDoc, cursor, snapshotLine(props.then), font, 10.5, INK);
+  cursor.y -= 4;
+  drawParagraph(pdfDoc, cursor, snapshotLine(props.now), bold, 10.5, NAVY);
+  cursor.y -= 10;
+
+  if (props.whatChanged.length > 0) {
+    drawText(pdfDoc, cursor, "WHAT CHANGED", bold, 9.5, COPPER, 14);
+    drawBulletList(pdfDoc, cursor, props.whatChanged, font, bold, 10, INK);
+    cursor.y -= 6;
+  }
+
+  drawParagraph(pdfDoc, cursor, props.sageRecommendsNext, font, 10.5, INK);
+  cursor.y -= 10;
 }
 
 function drawSmsCallout(

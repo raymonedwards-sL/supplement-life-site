@@ -25,6 +25,7 @@ import {
 import { runAssessmentEngine, type StructuredAnswer, type ContradictionFlag } from "@/lib/scoring";
 import { findTrack } from "@/lib/tracks";
 import { buildLifeBriefPdf } from "@/lib/pdf/life-brief";
+import { buildLifeBriefContext, type TrackAssignmentRow } from "@/lib/life-brief/adapter";
 import { sendLifeBriefEmail } from "@/lib/email/send-life-brief";
 import { resolveIntakeAccess } from "@/lib/access/intake-access";
 
@@ -703,19 +704,57 @@ export async function POST(request: NextRequest) {
       if (user.email) {
         void (async () => {
           try {
-            const { data: subscription } = await supabase
-              .from("subscriptions")
-              .select("status, conversion_date")
-              .eq("user_id", user.id)
-              .maybeSingle();
+            // subscription/profile: fetched fresh, same as the on-demand
+            // download route. priorRows: this subscriber's most recent
+            // sitting BEFORE the one that just completed (excluded by
+            // conversation_id), if any — gives Progress Comparison the
+            // same "2+ real snapshots" data app/dashboard/brief/page.tsx
+            // gets, without waiting for a second page load.
+            const [{ data: subscription }, { data: profileRow }, { data: priorRows }] = await Promise.all([
+              supabase.from("subscriptions").select("status, conversion_date").eq("user_id", user.id).maybeSingle(),
+              supabase.from("profiles").select("travel_frequency, work_environment").eq("user_id", user.id).maybeSingle(),
+              supabase
+                .from("track_assignments")
+                .select("tracks, rationale, domain_scores, confidence_score, contradiction_flags, safety_gate, assigned_at")
+                .eq("user_id", user.id)
+                .neq("conversation_id", conversationId)
+                .order("assigned_at", { ascending: false })
+                .limit(1)
+                .returns<TrackAssignmentRow[]>(),
+            ]);
+
+            // Built directly from this turn's engine output rather than
+            // re-fetched — this is the exact row that was just written to
+            // track_assignments above, so a DB round-trip would only add
+            // latency to a fire-and-forget email. assigned_at uses "now"
+            // as a stand-in for the real DB-assigned timestamp — only
+            // ever compared for inequality against a real prior row's
+            // assigned_at (see buildProgressComparisonProps), which "now"
+            // satisfies by construction.
+            const newestRow: TrackAssignmentRow = {
+              tracks: engine.recommendedTrackIds,
+              rationale: JSON.stringify(rationale),
+              domain_scores: engine.domains,
+              confidence_score: engine.confidenceScore,
+              contradiction_flags: engine.contradictionFlags,
+              safety_gate: engine.safetyGate,
+              assigned_at: new Date().toISOString(),
+            };
+            const oldestRow = priorRows?.[0];
+
+            const ctx = buildLifeBriefContext(newestRow, {
+              water_intake_recommendation: finalCompletion.daily_practices.water_intake,
+              fasting_recommendation: finalCompletion.daily_practices.fasting,
+              travel_frequency: profileRow?.travel_frequency ?? null,
+              work_environment: profileRow?.work_environment ?? null,
+            });
 
             const pdfBytes = await buildLifeBriefPdf({
               email: user.email!,
               currentSummary: finalCompletion.summary,
-              waterIntakeRecommendation: finalCompletion.daily_practices.water_intake,
-              fastingRecommendation: finalCompletion.daily_practices.fasting,
-              trackIds: finalCompletion.recommended_track_ids,
-              rationale: finalCompletion.rationale,
+              ctx,
+              newestRow,
+              oldestRow,
               subscriptionStatus: subscription?.status ?? null,
               conversionDate: subscription?.conversion_date ?? null,
               // SMS opt-in only happens later from the dashboard (never at
