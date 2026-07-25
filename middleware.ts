@@ -8,14 +8,20 @@ import {
 
 /**
  * Geo-restriction, layer 1 of 3 (see lib/geo/allowed-countries.ts for the
- * full picture). Supplement :: LIFE is only offered to US/CA/MX residents:
- *   - /reserve, /assessment, and /concierge render a hard "not available
- *     in your region" state instead of the respective checkout form.
- *   - /api/checkout, /api/checkout-assessment, and /api/checkout-concierge
- *     are rejected outright, in case the form page is bypassed.
+ * full picture). US/CA/MX-only:
+ *   - /reserve and /concierge render a hard "not available in your
+ *     region" state instead of the respective checkout form.
+ *   - /api/checkout and /api/checkout-concierge are rejected outright,
+ *     in case the form page is bypassed.
+ * /assessment and /api/checkout-assessment are deliberately NOT
+ * restricted (2026-07-25, sage_launch_package_v2) — the LIFE Assessment
+ * is a digital/service deliverable with no customs/import/controlled-
+ * ingredient exposure, unlike the physical Botanical Kits shipped via
+ * the Founding Reservation/Concierge, so it's offered worldwide while
+ * kit distribution stays Phase-1-restricted.
  * Both checks fail OPEN on an unresolvable IP or a lookup error/timeout —
- * layers 2 (attestation checkbox) and 3 (Stripe allowed_countries, where
- * applicable) remain as backstops either way.
+ * layer 2 (attestation checkbox) and layer 3 (Stripe allowed_countries)
+ * remain as backstops either way, for the routes that still have them.
  */
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -27,11 +33,7 @@ export async function middleware(request: NextRequest) {
   const codeExchange = await exchangeStrayCode(request);
   if (codeExchange) return codeExchange;
 
-  if (
-    pathname === "/api/checkout" ||
-    pathname === "/api/checkout-assessment" ||
-    pathname === "/api/checkout-concierge"
-  ) {
+  if (pathname === "/api/checkout" || pathname === "/api/checkout-concierge") {
     const ip = getClientIp(request);
     const country = ip ? await lookupCountryForIp(ip) : null;
     if (!isAllowedCountry(country)) {
@@ -46,7 +48,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (
-    (pathname === "/reserve" || pathname === "/assessment" || pathname === "/concierge") &&
+    (pathname === "/reserve" || pathname === "/concierge") &&
     searchParams.get("region") !== "unsupported"
   ) {
     const ip = getClientIp(request);
