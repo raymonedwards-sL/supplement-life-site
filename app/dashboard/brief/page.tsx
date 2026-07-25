@@ -142,47 +142,29 @@ export default async function LifeBriefPage() {
                 fullName={accountRow?.full_name ?? ""}
                 email={user.email ?? ""}
               />
-              <BriefSection label="Your LIFE Revelation">
-                <LifeRevelation {...lifeRevelation} />
-              </BriefSection>
+              <LifeRevelation {...lifeRevelation} />
             </div>
           )}
 
-          {lifeIndex && (
-            <BriefSection label="Your LIFE Index">
-              <LifeIndex {...lifeIndex} />
-            </BriefSection>
-          )}
+          {lifeIndex && <LifeIndex {...lifeIndex} />}
 
           {patternMap && (patternMap.reported.length > 0 || patternMap.uncertain.length > 0 || patternMap.monitoring.length > 0) && (
-            <BriefSection label="Your Personal Pattern Map">
-              <PatternMap {...patternMap} />
-            </BriefSection>
+            <PatternMap {...patternMap} />
           )}
 
           {trackCards.length > 0 && (
-            <BriefSection label="Why Sage Chose This">
-              <div className="flex flex-col gap-4">
-                {trackCards.map((card) => (
-                  <TrackCard key={card.track} {...card} />
-                ))}
-              </div>
-            </BriefSection>
+            <div className="flex flex-col gap-4">
+              {trackCards.map((card) => (
+                <TrackCard key={card.track} {...card} />
+              ))}
+            </div>
           )}
 
-          <BriefSection label="Your Daily LIFE Rhythm">
-            <DailyRhythm {...dailyRhythm} />
-          </BriefSection>
+          <DailyRhythm {...dailyRhythm} />
 
-          <BriefSection label="Your 90-Day Roadmap">
-            <Roadmap {...roadmap} />
-          </BriefSection>
+          <Roadmap {...roadmap} />
 
-          {progressComparison && (
-            <BriefSection label="Then vs. Now">
-              <ProgressComparison {...progressComparison} />
-            </BriefSection>
-          )}
+          {progressComparison && <ProgressComparison {...progressComparison} />}
 
           {shareCard && (
             <BriefSection label="Share Your LIFE Map">

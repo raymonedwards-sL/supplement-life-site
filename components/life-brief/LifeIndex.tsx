@@ -47,7 +47,6 @@ export function LifeIndex({
   topStrengths,
   topFrictions,
   trackMatches,
-  sageConfidence,
   momentumBehavior,
   benchmarks,
 }: LifeIndexProps) {
@@ -71,9 +70,6 @@ export function LifeIndex({
             </p>
           )}
           <p className="mt-2 max-w-[14rem] text-xs leading-relaxed text-navy/60">{vitalityIndexDisclaimer}</p>
-          <p className="mt-4 text-xs text-navy/60">
-            Sage confidence: <span className="font-bold text-navy/90">{sageConfidence}/100</span>
-          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

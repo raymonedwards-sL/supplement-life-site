@@ -1,0 +1,30 @@
+import { buildLifeBriefPdf } from "./lib/pdf/life-brief";
+import { writeFile } from "fs/promises";
+
+async function main() {
+  const bytes = await buildLifeBriefPdf({
+    email: "raymonedwards@gmail.com",
+    currentSummary:
+      "A 45-year-old man with a stable daily structure across a nomadic urban NYC/DC lifestyle. Sleep and mental fog remain steady. The current concern has narrowed from general vitality/visceral fat to a more specific marker: facial puffiness and jawline definition, arising during a transition period off an extended water-only fast.",
+    waterIntakeRecommendation:
+      "With coffee and unsweetened carbonated water back in your routine after a water-only fast, aim for roughly 90-100 oz of plain water across the day, front-loading a large glass right after your morning coffee to offset its mild diuretic pull.",
+    fastingRecommendation:
+      "Given your sleep is steady and you're easing back in from an extended water-only fast, a gentler daily rhythm — a 12-13 hour overnight eating window — is a realistic next step rather than jumping back into anything more restrictive right away.",
+    trackIds: ["daily-restore", "vitality", "morning-clarity"],
+    rationale: [
+      { track_id: "daily-restore", reason: "The puffiness and softened jawline you're describing line up well with this track's core mechanism: Burdock and Fennel support digestion and gentle fluid/mineral balance, while Ginger supports circulation and warmth rather than acting as a stimulant." },
+      { track_id: "vitality", reason: "Your consistent walking is already doing real circulatory work, and Sarsaparilla and Callaloo in this track are built to support that same nitric-oxide/vasodilation mechanism." },
+      { track_id: "morning-clarity", reason: "Given your financial-stress undercurrent and your fresh reintroduction of coffee, Kudzu and Dandelion root's bitter-tonic AM ritual role can support a steady morning reset without adding stimulant load." },
+    ],
+    subscriptionStatus: "pending",
+    conversionDate: "2026-09-30",
+    smsOptedIn: false,
+  });
+  await writeFile("/tmp/test-brief.pdf", bytes);
+  console.log("wrote", bytes.length, "bytes");
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -328,9 +328,14 @@ export function buildLifeRevelationProps(ctx: LifeBriefContext): LifeRevelationP
   return {
     dominantPattern: top.label,
     sageInterpretation: `Your assessment surfaced ${top.label.toLowerCase()} as the area with the most opportunity right now.`,
-    supportingSignals: [0, 1, 2].map(
-      (i) => ranked[i]?.label ? `${ranked[i].label}: opportunity score ${ranked[i].opportunityScore}/100` : "Sage is still gathering signal here."
-    ) as [string, string, string],
+    // Only domains with real scores — never padded to 3 with filler text
+    // (founder feedback 2026-07-25: repeated "Sage is still gathering
+    // signal here." lines read as glitched/auto-generated, not a
+    // considered report). Early in an account's life, before enough
+    // domains are scored, this list is simply shorter.
+    supportingSignals: ranked
+      .slice(0, 3)
+      .map((d) => `${d.label}: opportunity score ${d.opportunityScore}/100`),
     topOpportunity: top.label,
     botanicalVisualTrackId: ctx.trackIds[0],
     ninetyDayCta: "Your next 90 days begin here.",
@@ -412,21 +417,21 @@ export function buildLifeIndexProps(
   const frictions = ranked.slice(0, 3);
   const strengths = [...ranked].sort((a, b) => a.opportunityScore - b.opportunityScore).slice(0, 3);
 
-  const pad = (
+  // Only domains with real scores — never padded to 3 with filler text
+  // (founder feedback 2026-07-25: repeated "Sage is still gathering
+  // signal here." lines read as glitched/auto-generated, not a
+  // considered report). Early in an account's life, before enough
+  // domains are scored, these lists are simply shorter than 3.
+  const topN = (
     items: (EngineDomainResult & { opportunityScore: number })[],
     pool: ((label: string) => string)[]
-  ) =>
-    [0, 1, 2].map((i) => (items[i] ? fromPool(pool, i, items[i].label) : "Sage is still gathering signal here.")) as [
-      string,
-      string,
-      string,
-    ];
+  ) => items.slice(0, 3).map((item, i) => fromPool(pool, i, item.label));
 
   return {
     vitalityIndex: computeVitalityIndexV1(ctx.domainScores, ctx.safetyGate),
     vitalityIndexDisclaimer: VITALITY_INDEX_DISCLAIMER,
-    topStrengths: pad(strengths, STRENGTH_TEMPLATES),
-    topFrictions: pad(frictions, FRICTION_TEMPLATES),
+    topStrengths: topN(strengths, STRENGTH_TEMPLATES),
+    topFrictions: topN(frictions, FRICTION_TEMPLATES),
     trackMatches: {
       primary: ctx.trackIds[0],
       secondary: ctx.trackIds[1],

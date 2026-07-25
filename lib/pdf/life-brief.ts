@@ -709,8 +709,6 @@ function drawLifeIndex(
     cursor.y -= 6;
   }
 
-  drawParagraph(pdfDoc, cursor, `Sage's confidence in this profile: ${props.sageConfidence}/100.`, font, 10.5, INK);
-  cursor.y -= 6;
   drawParagraph(pdfDoc, cursor, props.momentumBehavior, font, 10.5, INK);
   cursor.y -= 10;
 

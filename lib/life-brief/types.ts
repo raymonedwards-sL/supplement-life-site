@@ -57,7 +57,7 @@ export type EvidenceStrength = "confirmed" | "partial-pending-review" | "not-yet
 export interface LifeRevelationProps {
   dominantPattern: string; // plain-language label, not a diagnosis
   sageInterpretation: string; // one sentence
-  supportingSignals: [string, string, string]; // tied to specific domain scores
+  supportingSignals: string[]; // tied to specific domain scores — only as many as have real data, never padded
   topOpportunity: string; // the single highest-priority domain, in plain language
   botanicalVisualTrackId: TrackId; // resolve display name/image via findTrack()
   ninetyDayCta: string; // "Your next 90 days begin here." pattern
@@ -97,8 +97,8 @@ export interface LifeIndexProps {
    * (product doc): must describe this as a general-wellness composite —
    * never a medical score, biological-age test, or diagnostic measurement. */
   vitalityIndexDisclaimer: string;
-  topStrengths: [string, string, string];
-  topFrictions: [string, string, string];
+  topStrengths: string[]; // only as many as have real data, never padded with filler
+  topFrictions: string[]; // only as many as have real data, never padded with filler
   /** EngineResult.recommendedTrackIds documents 0-3 entries, not always
    * 3 — secondary/tertiary are genuinely optional here, not just marked
    * so defensively. */
