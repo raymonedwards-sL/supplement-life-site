@@ -186,7 +186,8 @@ export default function Home() {
             <p className="mt-4 text-lg leading-relaxed text-navy/70">
               Most supplements were designed for everyone. So they end up
               being perfect for almost no one. Generic multivitamins assume
-              every body has the same needs. They don&apos;t account for:
+              every body has the same needs — and they miss the one thing
+              that actually governs how alive you feel.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               {failureFactors.map((factor) => (
@@ -198,14 +199,70 @@ export default function Home() {
                 </span>
               ))}
             </div>
-            <p className="mt-6 font-serif text-2xl text-navy">
-              Your protocol should.
-            </p>
             <p className="mt-6 leading-relaxed text-navy/70">
+              They treat the body like a container to be topped off. But you
+              are not a container. You&apos;re a current.
+            </p>
+
+            <h3 className="mt-8 text-lg font-semibold text-navy">
+              Life is electric.
+            </h3>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              Before it is anything else, life is a charge.
+            </p>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              Every cell you carry holds a small electrical potential across
+              its membrane — a living voltage it works, moment to moment, to
+              maintain. That charge isn&apos;t a metaphor. It&apos;s how your
+              cells speak to one another, draw nutrients in, carry waste out,
+              fire a thought, move a muscle, and decide — thousands of times
+              a second — to keep going.
+            </p>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              When that charge runs strong, cells behave the way they did
+              when you were young: responsive, resilient, awake. Energy
+              feels effortless. Recovery feels quick. You feel like
+              yourself.
+            </p>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              When it fades — worn down by age, stress, shallow sleep,
+              mineral-poor food, and a lifetime of environmental load —
+              cells grow quiet. They hold less. They signal weaker. They
+              repair slower. This is what aging <em className="italic">feels</em>{" "}
+              like long before it&apos;s something you can name. Not a
+              broken part. A dimming current.
+            </p>
+
+            <h3 className="mt-8 text-lg font-semibold text-navy">
+              Feed the field.
+            </h3>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              You can&apos;t force a tired cell to hold a charge by flooding
+              it with more of what it can&apos;t use. A cell&apos;s
+              electrical life depends on its environment — the minerals it
+              can draw on, the botanical compounds that support its
+              membranes, the conditions that keep it conductive and clean.
+            </p>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              Tend that terrain, and the charge returns on its own. It&apos;s
+              the oldest idea in natural living, told in a modern language:
+              restore the field, and the life takes care of itself.
+            </p>
+
+            <h3 className="mt-8 text-lg font-semibold text-navy">
+              Your protocol should.
+            </h3>
+            <p className="mt-4 leading-relaxed text-navy/70">
               This isn&apos;t another discount multivitamin subscription
-              competing for shelf space, and taking more of them rarely means
-              better results. Supplement :: LIFE is a single, precisely built
-              protocol for people who&apos;ve decided their long-term vitality
+              competing for shelf space — and taking more of them rarely
+              means better results. Supplement :: LIFE is a single,
+              precisely built protocol designed to do one thing
+              exceptionally well: support the bio-electric vitality of your
+              cells, so the energy you&apos;ve been chasing finally has
+              somewhere to come from.
+            </p>
+            <p className="mt-4 leading-relaxed text-navy/70">
+              For people who&apos;ve decided their long-term vitality
               deserves the same level of investment as everything else they
               take seriously.
             </p>
