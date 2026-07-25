@@ -34,6 +34,21 @@ export default function IntakeChat() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const started = useRef(false);
+  // Synchronous double-submit guard (SAGE_Intake_Duplicate_Send_Error_Bug.md,
+  // 2026-07-26). `loading` state alone isn't enough here: it only becomes
+  // true again once React actually re-renders, which happens a beat after
+  // the triggering event, not within it. A fast double-click on Send or
+  // Enter-key auto-repeat can fire submitMessage() twice before that
+  // render lands, so both calls read a stale loading=false and both
+  // proceed — producing the exact repro (the same message sent twice as
+  // two bubbles). A ref is read/written synchronously, immune to that gap.
+  const sendingRef = useRef(false);
+  // Captures the args of the most recent send() call so a failed attempt
+  // can be retried with exactly the same message + pre-send state,
+  // regardless of which call site triggered it (a fresh submitMessage(),
+  // the crash-mid-turn resume in hydrate(), etc.) — set once, inside
+  // send() itself, rather than duplicated at every call site.
+  const lastAttemptRef = useRef<{ text: string | undefined; before: ChatMessage[] } | null>(null);
   // Scopes this sitting's structured answers server-side (see
   // app/api/intake/chat/route.ts) so the scoring engine can tell this
   // conversation's answers apart from a subscriber's whole history.
@@ -116,6 +131,9 @@ export default function IntakeChat() {
   // (used to rebuild the post-reply array without waiting on a round
   // trip for what the client already knows).
   async function send(userMessageText: string | undefined, currentMessages: ChatMessage[]) {
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    lastAttemptRef.current = { text: userMessageText, before: currentMessages };
     setLoading(true);
     setError(null);
 
@@ -148,6 +166,7 @@ export default function IntakeChat() {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
+      sendingRef.current = false;
     }
   }
 
@@ -162,7 +181,13 @@ export default function IntakeChat() {
   }, [input]);
 
   function submitMessage() {
-    if (!input.trim() || loading) return;
+    // Checked here, before the optimistic bubble append below — not just
+    // inside send() — because a second, near-simultaneous call reaching
+    // this function would otherwise still append its own duplicate bubble
+    // even if send() itself later no-ops. sendingRef is set synchronously
+    // by send() (see above), so this read is never stale the way `loading`
+    // state was.
+    if (sendingRef.current || !input.trim()) return;
 
     const text = input.trim();
     setMessages([...messages, { role: "user", content: text }]);
@@ -278,7 +303,30 @@ export default function IntakeChat() {
         {loading && <ThinkingIndicator />}
       </div>
 
-      {error && <p className="px-6 text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="flex items-center justify-between gap-3 px-6">
+          <p className="text-sm text-red-600">Sorry — I hit a snag there. {error}</p>
+          <button
+            type="button"
+            onClick={() => {
+              // Replays the exact call that failed — including the
+              // original message text, if there was one — rather than
+              // silently dropping it. Safe to resend even if the server
+              // already persisted it on a prior attempt (that request
+              // failed AFTER persisting, not before): worst case is a
+              // harmless duplicate chat_messages row visible only if the
+              // conversation is later reloaded, which is a far better
+              // failure mode than the subscriber's answer just vanishing.
+              const attempt = lastAttemptRef.current;
+              if (attempt) void send(attempt.text, attempt.before);
+            }}
+            disabled={loading}
+            className="shrink-0 rounded-full border border-red-600/30 px-3 py-1 text-xs font-semibold text-red-600 transition-colors hover:bg-red-600/10 disabled:opacity-60"
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex items-end gap-3 border-t border-navy/10 p-4">
         <textarea
