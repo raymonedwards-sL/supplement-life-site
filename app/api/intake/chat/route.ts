@@ -251,15 +251,19 @@ export async function POST(request: NextRequest) {
   // app/intake/IntakeChat.tsx and app/api/intake/chat/history/route.ts
   // (the resume-on-reload read path).
   const anthropicMessages: Anthropic.MessageParam[] = [];
+  // Hoisted out of the block below so the dedup check further down can
+  // see the last-loaded row — see SAGE_Duplicate_Chat_Rows_Bug.md.
+  let priorMessages: ChatMessage[] | null = null;
 
   if (!isNewConversation) {
-    const { data: priorMessages } = await supabase
+    const { data } = await supabase
       .from("chat_messages")
       .select("role, content")
       .eq("user_id", user.id)
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true })
       .returns<ChatMessage[]>();
+    priorMessages = data;
 
     for (const m of priorMessages ?? []) {
       anthropicMessages.push({ role: m.role, content: m.content });
@@ -267,14 +271,29 @@ export async function POST(request: NextRequest) {
   }
 
   if (message) {
-    const { error: userMessageError } = await supabase.from("chat_messages").insert({
-      user_id: user.id,
-      conversation_id: conversationId,
-      role: "user",
-      content: message,
-    });
-    if (userMessageError) console.error("Failed to persist user chat message:", userMessageError);
-    anthropicMessages.push({ role: "user", content: message });
+    // Dedup (SAGE_Duplicate_Chat_Rows_Bug.md, 2026-07-27): the insert
+    // below used to be unconditional, so every "Try Again" retry of a
+    // failed turn (IntakeChat.tsx's lastAttemptRef — same message text,
+    // same conversationId) persisted its own identical row, each
+    // rendering as its own duplicate bubble on reload. If the most
+    // recent row already loaded for this conversation is this exact
+    // user message, this is a retry of an already-persisted turn, not a
+    // new one — skip the insert (and don't push it onto anthropicMessages
+    // a second time either, since the loop above already added it from
+    // that prior row).
+    const lastPriorMessage = priorMessages?.[priorMessages.length - 1];
+    const isRetryOfLastMessage = lastPriorMessage?.role === "user" && lastPriorMessage.content === message;
+
+    if (!isRetryOfLastMessage) {
+      const { error: userMessageError } = await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        conversation_id: conversationId,
+        role: "user",
+        content: message,
+      });
+      if (userMessageError) console.error("Failed to persist user chat message:", userMessageError);
+      anthropicMessages.push({ role: "user", content: message });
+    }
   }
 
   // First load of a brand-new conversation sends no message yet, purely
