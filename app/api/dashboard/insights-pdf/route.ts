@@ -47,7 +47,7 @@ export async function GET() {
       supabase
         .from("profiles")
         .select(
-          "current_summary, updated_at, water_intake_recommendation, fasting_recommendation, travel_frequency, work_environment, sms_opt_in"
+          "current_summary, updated_at, water_intake_recommendation, fasting_recommendation, movement_recommendation, nutrition_recommendation, travel_frequency, work_environment, sms_opt_in"
         )
         .eq("user_id", user.id)
         .maybeSingle(),

@@ -295,7 +295,12 @@ export const mockDailyRhythmProps: DailyRhythmProps = {
       botanicalTiming: `${secondaryTrack.name} — ${secondaryTrack.format}`,
       caffeineBoundary: "Coffee is fine through late morning.",
     },
-    { timeOfDay: "midday_stability", label: "Midday Stability", mealRhythm: "A protein-forward lunch to help steady the afternoon." },
+    {
+      timeOfDay: "midday_stability",
+      label: "Midday Stability",
+      mealRhythm: "A protein-forward lunch to help steady the afternoon.",
+      nutritionCue: "Add a source of fiber at lunch — an easy lever given the afternoon energy dip you described.",
+    },
     { timeOfDay: "movement_window", label: "Movement Window", movement: "A short walk in the early afternoon, before the usual energy dip." },
     { timeOfDay: "evening_recovery", label: "Evening Recovery", caffeineBoundary: "No caffeine after early afternoon." },
     {

@@ -92,7 +92,7 @@ export default function LifeBriefPreviewPage() {
           </PreviewSection>
 
           <PreviewSection label="P3-7 — 90-Day Roadmap + Weekly Check-In (Pages 8-9)">
-            <Roadmap {...mockRoadmapProps} />
+            <Roadmap {...mockRoadmapProps} lastCheckInAt={null} checkInHistory={[]} />
           </PreviewSection>
 
           <PreviewSection label="P3-9 — Progress Comparison (Then / Now / What Changed)">

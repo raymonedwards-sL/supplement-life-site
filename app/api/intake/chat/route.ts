@@ -53,7 +53,7 @@ type TurnInput = {
   // the phase-2 rationale call below.
   completion: {
     summary: string;
-    daily_practices: { water_intake: string; fasting: string };
+    daily_practices: { water_intake: string; fasting: string; movement: string; nutrition: string };
   } | null;
 };
 
@@ -474,7 +474,9 @@ export async function POST(request: NextRequest) {
       input.completion &&
       (!input.completion.summary ||
         !input.completion.daily_practices?.water_intake ||
-        !input.completion.daily_practices?.fasting)
+        !input.completion.daily_practices?.fasting ||
+        !input.completion.daily_practices?.movement ||
+        !input.completion.daily_practices?.nutrition)
     ) {
       console.error(
         `Intake chat: completion object was truncated/malformed (stop_reason: ${response.stop_reason}) — treating as incomplete this turn.`,
@@ -621,11 +623,15 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           current_summary: completion.summary,
           // Sage's synthesized daily guidance (distinct from the
-          // self-reported water_intake/fasting_pattern columns from
-          // 0007) — refreshed on every intake completion so it evolves
-          // the same way current_summary does. See 0009_daily_practices.sql.
+          // self-reported water_intake/fasting_pattern/exercise_pattern/
+          // diet_pattern columns from 0004/0007) — refreshed on every
+          // intake completion so it evolves the same way current_summary
+          // does. See 0009_daily_practices.sql and
+          // 0021_movement_nutrition_daily_practices.sql.
           water_intake_recommendation: completion.daily_practices.water_intake,
           fasting_recommendation: completion.daily_practices.fasting,
+          movement_recommendation: completion.daily_practices.movement,
+          nutrition_recommendation: completion.daily_practices.nutrition,
         },
         { onConflict: "user_id" }
       );
@@ -764,6 +770,8 @@ export async function POST(request: NextRequest) {
             const ctx = buildLifeBriefContext(newestRow, {
               water_intake_recommendation: finalCompletion.daily_practices.water_intake,
               fasting_recommendation: finalCompletion.daily_practices.fasting,
+              movement_recommendation: finalCompletion.daily_practices.movement,
+              nutrition_recommendation: finalCompletion.daily_practices.nutrition,
               travel_frequency: profileRow?.travel_frequency ?? null,
               work_environment: profileRow?.work_environment ?? null,
             });

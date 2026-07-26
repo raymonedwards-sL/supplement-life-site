@@ -238,6 +238,7 @@ export interface RhythmBlock {
   botanicalTiming?: string;
   hydrationCue?: string;
   mealRhythm?: string;
+  nutritionCue?: string;
   movement?: string;
   caffeineBoundary?: string;
   recoveryPractice?: string;

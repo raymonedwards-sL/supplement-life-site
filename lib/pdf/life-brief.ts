@@ -931,27 +931,53 @@ const RHYTHM_DETAIL_FIELDS: (keyof RhythmBlock)[] = [
   "hydrationCue",
   "botanicalTiming",
   "mealRhythm",
+  "nutritionCue",
   "movement",
   "caffeineBoundary",
   "recoveryPractice",
   "sageCheckIn",
 ];
 
+// Mirrors DailyRhythm.tsx's CUE_FIELDS labels — only used when a block
+// carries more than one populated field (see drawDailyRhythm below), so a
+// reader can tell which line is which. A single-field block still reads
+// as plain prose with no label, same as before.
+const RHYTHM_DETAIL_LABELS: Partial<Record<keyof RhythmBlock, string>> = {
+  botanicalTiming: "Botanical",
+  hydrationCue: "Hydration",
+  mealRhythm: "Meals",
+  nutritionCue: "Nutrition",
+  movement: "Movement",
+  caffeineBoundary: "Caffeine",
+  recoveryPractice: "Recovery",
+  sageCheckIn: "Sage check-in",
+};
+
 /** P3-6 — the full ordered wake-to-sleep timeline, replacing the old
  * flat "Your Daily Practices" hydration/fasting cards (those values now
  * live inside the Wake / Midday Stability blocks here, via
  * buildDailyRhythmProps — showing them twice under two headings would
  * just repeat the same guidance). A block with no populated field is
- * skipped rather than shown empty. */
+ * skipped rather than shown empty.
+ *
+ * Draws every populated field on a block, not just the first — Midday
+ * Stability now carries both mealRhythm and nutritionCue (2026-07-25),
+ * and taking only the first match would have silently dropped nutrition
+ * guidance from the PDF while it still showed on the web report. */
 function drawDailyRhythm(pdfDoc: PDFDocument, cursor: Cursor, props: DailyRhythmProps, fonts: BriefFonts) {
   const { bold, font, italic } = fonts;
   drawSectionHeading(pdfDoc, cursor, "Your Daily LIFE Rhythm", bold);
 
   for (const block of props.blocks) {
-    const detail = RHYTHM_DETAIL_FIELDS.map((field) => block[field]).find((v): v is string => Boolean(v));
-    if (!detail) continue;
+    const details = RHYTHM_DETAIL_FIELDS
+      .map((field) => ({ field, value: block[field] }))
+      .filter((d): d is { field: keyof RhythmBlock; value: string } => Boolean(d.value));
+    if (details.length === 0) continue;
     drawText(pdfDoc, cursor, block.label, bold, 11, COPPER, 15);
-    drawRichParagraph(pdfDoc, cursor, detail, font, bold, 10.5, INK);
+    for (const { field, value } of details) {
+      const label = details.length > 1 ? RHYTHM_DETAIL_LABELS[field] : undefined;
+      drawRichParagraph(pdfDoc, cursor, label ? `${label}: ${value}` : value, font, bold, 10.5, INK);
+    }
     cursor.y -= 8;
   }
 

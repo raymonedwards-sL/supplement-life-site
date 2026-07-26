@@ -54,8 +54,15 @@ export type TrackAssignmentRow = {
 export type ProfileRow = {
   water_intake_recommendation: string | null;
   fasting_recommendation: string | null;
+  movement_recommendation: string | null;
+  nutrition_recommendation: string | null;
   travel_frequency: string | null;
   work_environment: string | null;
+  /** Sage's short, compliant acknowledgment of the subscriber's most
+   * recent weekly check-in (app/api/dashboard/check-in/route.ts) —
+   * surfaced on the Daily LIFE Rhythm timeline's "wake" block. See
+   * docs/SAGE_Weekly_CheckIn_Loop_Gap2.md. */
+  last_check_in_note?: string | null;
 };
 
 export type LifeBriefContext = {
@@ -590,6 +597,12 @@ export function buildDailyRhythmProps(ctx: LifeBriefContext): DailyRhythmProps {
         timeOfDay: "wake",
         label: "Wake",
         hydrationCue: ctx.profile?.water_intake_recommendation ?? "Start the day with a full glass of water before coffee.",
+        // Weekly Check-In Loop (docs/SAGE_Weekly_CheckIn_Loop_Gap2.md) —
+        // the one real, non-mock source for this field. Placed on the
+        // first block of the day: "Sage already knows how last week
+        // went" framing, closing the loop rather than leaving this
+        // field permanently unpopulated.
+        sageCheckIn: ctx.profile?.last_check_in_note ?? undefined,
       },
       {
         timeOfDay: "morning_activation",
@@ -600,8 +613,15 @@ export function buildDailyRhythmProps(ctx: LifeBriefContext): DailyRhythmProps {
         timeOfDay: "midday_stability",
         label: "Midday Stability",
         mealRhythm: ctx.profile?.fasting_recommendation ?? "A steady, protein-forward meal to help sustain your afternoon.",
+        nutritionCue:
+          ctx.profile?.nutrition_recommendation ??
+          "Favor whole, minimally processed foods with a source of protein at each meal.",
       },
-      { timeOfDay: "movement_window", label: "Movement Window", movement: "A short walk or light activity, whenever fits your day." },
+      {
+        timeOfDay: "movement_window",
+        label: "Movement Window",
+        movement: ctx.profile?.movement_recommendation ?? "A short walk or light activity, whenever fits your day.",
+      },
       { timeOfDay: "evening_recovery", label: "Evening Recovery", caffeineBoundary: "No caffeine late in the day." },
       {
         timeOfDay: "sleep_prep",

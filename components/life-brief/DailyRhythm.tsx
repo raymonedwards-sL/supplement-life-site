@@ -14,6 +14,7 @@ const CUE_FIELDS: { key: keyof RhythmBlock; label: string }[] = [
   { key: "botanicalTiming", label: "Botanical" },
   { key: "hydrationCue", label: "Hydration" },
   { key: "mealRhythm", label: "Meals" },
+  { key: "nutritionCue", label: "Nutrition" },
   { key: "movement", label: "Movement" },
   { key: "caffeineBoundary", label: "Caffeine" },
   { key: "recoveryPractice", label: "Recovery" },

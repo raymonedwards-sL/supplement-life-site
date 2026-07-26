@@ -1,7 +1,23 @@
 import type { RoadmapProps } from "@/lib/life-brief/types";
+import { WeeklyCheckInForm, type CheckInHistoryRow } from "@/components/life-brief/WeeklyCheckInForm";
+import { getNextCheckInAvailableAt, isCheckInBlocked } from "@/lib/checkin";
 
-/** P3-7, Pages 8-9 — the 30/60/90-day roadmap plus weekly check-in spec. */
-export function Roadmap({ phases, weeklyCheckIn }: RoadmapProps) {
+/** P3-7, Pages 8-9 — the 30/60/90-day roadmap plus weekly check-in. The
+ * check-in itself is a real interactive form (WeeklyCheckInForm), not
+ * static text — see docs/SAGE_Weekly_CheckIn_Loop_Gap2.md. The cadence
+ * gate is resolved HERE, server-side (this stays a plain Server
+ * Component, no "use client"), so the client form never needs to read
+ * Date.now() itself — avoids both a render-purity issue and an SSR/
+ * hydration mismatch on a value that depends on wall-clock time. */
+export function Roadmap({
+  phases,
+  weeklyCheckIn,
+  lastCheckInAt,
+  checkInHistory,
+}: RoadmapProps & { lastCheckInAt: string | null; checkInHistory: CheckInHistoryRow[] }) {
+  const nextCheckInAvailableAt = getNextCheckInAvailableAt(lastCheckInAt);
+  const checkInBlocked = isCheckInBlocked(nextCheckInAvailableAt);
+
   return (
     <div className="rounded-2xl border border-navy/10 bg-white/70 p-6 sm:p-8">
       <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Your 90-Day Roadmap</p>
@@ -26,16 +42,12 @@ export function Roadmap({ phases, weeklyCheckIn }: RoadmapProps) {
 
       <div className="mt-6 border-t border-navy/10 pt-5">
         <p className="text-xs font-bold uppercase tracking-wide text-navy/60">Your Weekly Check-In</p>
-        <p className="mt-1.5 text-sm text-navy/60">
-          Priority marker: <span className="font-bold text-navy/90">{weeklyCheckIn.priorityMarkerQuestion}</span>
-        </p>
-        <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-          {weeklyCheckIn.questions.map((q, i) => (
-            <li key={i} className="text-sm font-medium text-navy/85">
-              {q}
-            </li>
-          ))}
-        </ul>
+        <WeeklyCheckInForm
+          weeklyCheckIn={weeklyCheckIn}
+          initiallyBlocked={checkInBlocked}
+          nextAvailableAtIso={nextCheckInAvailableAt?.toISOString() ?? null}
+          history={checkInHistory}
+        />
       </div>
     </div>
   );
