@@ -86,9 +86,14 @@ export default function Home() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-navy/10">
+        {/* Decorative only (alt="") — hidden below sm: on mobile this small
+            280px circle sat directly behind/near the hero heading and read
+            as a distorted, clashing smear rather than a soft backdrop. It
+            was designed for the larger sm:/lg: sizes where it has room to
+            breathe in the corner; mobile just skips it. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute right-0 top-0 h-[280px] w-[280px] sm:h-[620px] sm:w-[620px] lg:h-[720px] lg:w-[720px]"
+          className="pointer-events-none absolute right-0 top-0 hidden sm:block sm:h-[620px] sm:w-[620px] lg:h-[720px] lg:w-[720px]"
           style={{
             maskImage:
               "radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 75%)",
@@ -102,7 +107,7 @@ export default function Home() {
             fill
             priority
             className="object-cover opacity-70"
-            sizes="(min-width: 1024px) 720px, (min-width: 640px) 620px, 280px"
+            sizes="(min-width: 1024px) 720px, 620px"
           />
         </div>
 
@@ -147,10 +152,13 @@ export default function Home() {
           >
             See how it works &rarr;
           </Link>
-          <ul className="mt-6 flex flex-col flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-navy/50 sm:flex-row">
+          <ul className="mt-6 flex flex-col items-center justify-center gap-x-8 gap-y-3 text-sm text-navy/50 sm:flex-row sm:flex-wrap">
             {trust.map((item) => (
-              <li key={item} className="flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-copper" />
+              <li
+                key={item}
+                className="flex max-w-xs items-start gap-2 text-left sm:max-w-none sm:items-center"
+              >
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-copper sm:mt-0" />
                 {item}
               </li>
             ))}
@@ -258,7 +266,7 @@ export default function Home() {
       {/* What's actually at stake */}
       <section className="py-20">
         <Container className="max-w-3xl">
-          <Eyebrow>Why This Matters</Eyebrow>
+          <Eyebrow>Why It Matters, Now</Eyebrow>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
             This isn&apos;t just about energy.
           </h2>
@@ -273,7 +281,7 @@ export default function Home() {
             care about — your relationships, your ambition, your sense of
             being fully yourself.
           </p>
-          <p className="mt-4 leading-relaxed text-navy/70">
+          <p className="mt-4 text-lg leading-relaxed text-navy/70">
             A protocol built around your real biology isn&apos;t one more
             thing to manage. It&apos;s how you get back the version of you
             that shows up fully — for the people, the work, and the decade
@@ -371,9 +379,16 @@ export default function Home() {
 
       {/* Tracks grid */}
       <section className="relative overflow-hidden py-24">
+        {/* Decorative only (alt="") — hidden below sm:. This strip stretches
+            to the section's full height (`inset-y-0`), which on mobile is
+            very tall once the tracks grid stacks to one column, forcing a
+            200px-wide crop to blow up to match — that upscaling is what
+            read as blurry/distorted. Desktop's wider strip + shorter
+            section never hit that ratio, which is why it only showed on
+            mobile. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-[200px] sm:w-[460px] lg:w-[640px]"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden sm:block sm:w-[460px] lg:w-[640px]"
           style={{
             maskImage: "linear-gradient(to left, black 45%, transparent 92%)",
             WebkitMaskImage:
@@ -385,7 +400,7 @@ export default function Home() {
             alt=""
             fill
             className="object-cover opacity-60"
-            sizes="(min-width: 1024px) 640px, (min-width: 640px) 460px, 200px"
+            sizes="(min-width: 1024px) 640px, 460px"
           />
         </div>
 
