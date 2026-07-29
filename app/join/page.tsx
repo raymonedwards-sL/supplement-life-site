@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui/Container";
+import FounderVideoCard from "@/components/FounderVideoCard";
 import {
   PAIN_POINT_CATEGORY_LABELS,
   getPainPointsByCategory,
@@ -66,7 +67,10 @@ import {
 
 const GUIDE_PDF_PATH = "/Supplement-LIFE-7-Signs-Reset-After-35.pdf";
 
-const CHALLENGE_CATEGORIES: PainPointCategory[] = ["physical_signal", "buying_frustration"];
+const CHALLENGE_CATEGORIES: PainPointCategory[] = [
+  "physical_signal",
+  "buying_frustration",
+];
 
 const WHAT_YOU_GET = [
   "Instant access to “7 Signs Your Body Is Asking for a Reset After 35” — the free guide, no strings attached",
@@ -119,7 +123,7 @@ export default function JoinTheTribe() {
 
   function toggleChallenge(label: string) {
     setChallenges((prev) =>
-      prev.includes(label) ? prev.filter((c) => c !== label) : [...prev, label]
+      prev.includes(label) ? prev.filter((c) => c !== label) : [...prev, label],
     );
   }
 
@@ -137,7 +141,9 @@ export default function JoinTheTribe() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? "Something went wrong. Please try again.");
+        throw new Error(
+          data.error ?? "Something went wrong. Please try again.",
+        );
       }
 
       setStep("success");
@@ -164,7 +170,8 @@ export default function JoinTheTribe() {
             download
             className="mt-6 inline-block rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)]"
           >
-            Download &ldquo;7 Signs Your Body Is Asking for a Reset After 35&rdquo; &rarr;
+            Download &ldquo;7 Signs Your Body Is Asking for a Reset After
+            35&rdquo; &rarr;
           </a>
           <p className="mt-8 text-navy/70">
             From here you&apos;ll also start hearing from Sage with
@@ -217,7 +224,11 @@ export default function JoinTheTribe() {
       )}
 
       <section className="py-20 sm:py-28" ref={formRef}>
-        <Container className="max-w-xl text-center">
+        <Container
+          className={
+            step === "email" ? "max-w-4xl text-center" : "max-w-xl text-center"
+          }
+        >
           <Eyebrow>Join the LIFE Tribe</Eyebrow>
 
           {step === "question" && (
@@ -264,11 +275,17 @@ export default function JoinTheTribe() {
                           >
                             <span
                               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                                selected ? "border-copper bg-copper text-cream" : "border-navy/30"
+                                selected
+                                  ? "border-copper bg-copper text-cream"
+                                  : "border-navy/30"
                               }`}
                             >
                               {selected && (
-                                <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none">
+                                <svg
+                                  viewBox="0 0 12 12"
+                                  className="h-3 w-3"
+                                  fill="none"
+                                >
                                   <path
                                     d="M2 6.2 4.8 9 10 3"
                                     stroke="currentColor"
@@ -294,7 +311,10 @@ export default function JoinTheTribe() {
                 disabled={challenges.length === 0}
                 className="mt-8 w-full max-w-md rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Continue{challenges.length > 0 ? ` (${challenges.length} selected)` : ""}
+                Continue
+                {challenges.length > 0
+                  ? ` (${challenges.length} selected)`
+                  : ""}
               </button>
 
               <button
@@ -308,78 +328,88 @@ export default function JoinTheTribe() {
           )}
 
           {step === "email" && (
-            <>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Where should we send your guide?
-              </h1>
-              {challenges.length > 0 && (
-                <div className="mt-4 text-navy/70">
-                  <p>
-                    {challenges.length === 1
-                      ? "Got it — thanks for sharing that."
-                      : "Got it — that's a lot to be carrying at once. Thanks for sharing all of it."}{" "}
-                    We&apos;ll keep this in mind for what we send you:
-                  </p>
-                  <ul className="mx-auto mt-3 flex max-w-sm flex-col gap-1.5 text-left">
-                    {challenges.map((c) => (
-                      <li key={c} className="flex items-start gap-2 text-sm">
-                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-copper" />
-                        <span className="font-semibold text-copper">{c}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            <div className="mt-4 grid gap-10 md:grid-cols-2 md:items-center md:text-left">
+              <div>
+                <h1 className="text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
+                  Where should we send your guide?
+                </h1>
+                {challenges.length > 0 && (
+                  <div className="mt-4 text-navy/70">
+                    <p>
+                      {challenges.length === 1
+                        ? "Got it — thanks for sharing that."
+                        : "Got it — that's a lot to be carrying at once. Thanks for sharing all of it."}{" "}
+                      We&apos;ll keep this in mind for what we send you:
+                    </p>
+                    <ul className="mx-auto mt-3 flex max-w-sm flex-col gap-1.5 text-left">
+                      {challenges.map((c) => (
+                        <li key={c} className="flex items-start gap-2 text-sm">
+                          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-copper" />
+                          <span className="font-semibold text-copper">{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              <form
-                onSubmit={submit}
-                className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
-              >
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="jane@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                  className="w-full flex-1 rounded-full border border-navy/20 bg-white px-5 py-3 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
+                <form
+                  onSubmit={submit}
+                  className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
                 >
-                  {loading ? "Joining…" : "Join Free"}
+                  <label htmlFor="email" className="sr-only">
+                    Email address
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="jane@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                    className="w-full flex-1 rounded-full border border-navy/20 bg-white px-5 py-3 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
+                  >
+                    {loading ? "Joining…" : "Join Free"}
+                  </button>
+                </form>
+                {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+                <button
+                  type="button"
+                  onClick={() => setStep("question")}
+                  className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
+                >
+                  &larr; Back
                 </button>
-              </form>
-              {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
-              <button
-                type="button"
-                onClick={() => setStep("question")}
-                className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
-              >
-                &larr; Back
-              </button>
+                <p className="mt-6 text-xs leading-relaxed text-navy/40">
+                  By joining, you agree to receive email from Supplement ::
+                  LIFE. Unsubscribe anytime. Read our{" "}
+                  <Link
+                    href="/privacy"
+                    className="underline underline-offset-2 hover:text-copper"
+                  >
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
+              </div>
 
-              <p className="mt-6 text-xs leading-relaxed text-navy/40">
-                By joining, you agree to receive email from Supplement ::
-                LIFE. Unsubscribe anytime. Read our{" "}
-                <Link href="/privacy" className="underline underline-offset-2 hover:text-copper">
-                  Privacy Policy
-                </Link>
-                .
-              </p>
-            </>
+              <FounderVideoCard />
+            </div>
           )}
 
           <p className="mt-10 text-sm text-navy/50">
             Ready to see what Sage would say about you specifically?{" "}
-            <Link href="/assessment" className="font-semibold text-copper hover:text-copper/80">
+            <Link
+              href="/assessment"
+              className="font-semibold text-copper hover:text-copper/80"
+            >
               Take the LIFE Assessment — $797 &rarr;
             </Link>
           </p>
@@ -418,7 +448,9 @@ export default function JoinTheTribe() {
                 {GOOD_FIT.map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <span className="mt-1 text-copper">&rarr;</span>
-                    <p className="text-sm leading-relaxed text-navy/70">{item}</p>
+                    <p className="text-sm leading-relaxed text-navy/70">
+                      {item}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -431,7 +463,9 @@ export default function JoinTheTribe() {
                 {NOT_A_FIT.map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <span className="mt-1 text-navy/30">&times;</span>
-                    <p className="text-sm leading-relaxed text-navy/70">{item}</p>
+                    <p className="text-sm leading-relaxed text-navy/70">
+                      {item}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -449,9 +483,14 @@ export default function JoinTheTribe() {
             </h2>
             <div className="mt-8 flex flex-col gap-6">
               {TESTIMONIALS.map((t) => (
-                <div key={t.attribution} className="rounded-2xl border border-navy/10 bg-white/60 p-6">
+                <div
+                  key={t.attribution}
+                  className="rounded-2xl border border-navy/10 bg-white/60 p-6"
+                >
                   <p className="text-navy/80">&ldquo;{t.quote}&rdquo;</p>
-                  <p className="mt-3 text-sm font-semibold text-copper">{t.attribution}</p>
+                  <p className="mt-3 text-sm font-semibold text-copper">
+                    {t.attribution}
+                  </p>
                 </div>
               ))}
             </div>
