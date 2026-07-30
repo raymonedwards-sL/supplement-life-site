@@ -234,7 +234,7 @@ export default function JoinTheTribe() {
           <Eyebrow>Join the LIFE Tribe</Eyebrow>
 
           {step === "question" && (
-            <div className="mt-4 grid gap-10 md:grid-cols-2 md:items-center md:text-left">
+            <div className="mt-4 grid gap-10 md:grid-cols-2 md:items-start md:text-left">
               <div>
                 <h1 className="text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
                   Stop guessing in the supplement aisle. Sage is here &mdash;
