@@ -226,182 +226,185 @@ export default function JoinTheTribe() {
       <section className="py-20 sm:py-28" ref={formRef}>
         <Container
           className={
-            step === "email" ? "max-w-4xl text-center" : "max-w-xl text-center"
+            step === "question"
+              ? "max-w-4xl text-center"
+              : "max-w-xl text-center"
           }
         >
           <Eyebrow>Join the LIFE Tribe</Eyebrow>
 
           {step === "question" && (
-            <>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                Stop guessing in the supplement aisle. Sage is here &mdash;
-                matching your challenges to a real protocol.
-              </h1>
-              <div className="mx-auto mt-6 inline-flex max-w-md flex-col gap-1 rounded-2xl bg-copper px-6 py-4 text-center">
-                <p className="text-xs font-bold uppercase tracking-wide text-cream/80">
-                  Get your free guide
-                </p>
-                <p className="text-xl font-bold leading-snug text-cream sm:text-2xl">
-                  7 Signs Your Body Is Asking for a Reset After 35.
-                </p>
-              </div>
-              <p className="mt-4 text-base font-semibold leading-relaxed text-navy/70">
-                The 3pm crash. The mind that won&apos;t quiet down at midnight.
-                The stomach that&apos;s never quite settled. Tell us which ones
-                are yours — select as many as apply — so what Sage sends is
-                actually matched to what your body&apos;s dealing with.
-              </p>
-
-              <div className="mx-auto mt-8 flex max-w-md flex-col gap-6">
-                {CHALLENGE_CATEGORIES.map((category) => (
-                  <div key={category}>
-                    <p className="mb-3 text-left text-xs font-semibold uppercase tracking-wide text-navy/40">
-                      {PAIN_POINT_CATEGORY_LABELS[category]}
-                    </p>
-                    <div className="flex flex-col gap-3">
-                      {getPainPointsByCategory(category).map((option) => {
-                        const selected = challenges.includes(option.label);
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            aria-pressed={selected}
-                            onClick={() => toggleChallenge(option.label)}
-                            className={`flex items-center gap-3 rounded-xl border px-5 py-4 text-left transition-colors ${
-                              selected
-                                ? "border-copper bg-copper/10 text-navy"
-                                : "border-navy/15 bg-white/70 text-navy hover:border-copper hover:bg-copper/5"
-                            }`}
-                          >
-                            <span
-                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                                selected
-                                  ? "border-copper bg-copper text-cream"
-                                  : "border-navy/30"
-                              }`}
-                            >
-                              {selected && (
-                                <svg
-                                  viewBox="0 0 12 12"
-                                  className="h-3 w-3"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M2 6.2 4.8 9 10 3"
-                                    stroke="currentColor"
-                                    strokeWidth="1.6"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              )}
-                            </span>
-                            {option.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setStep("email")}
-                disabled={challenges.length === 0}
-                className="mt-8 w-full max-w-md rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Continue
-                {challenges.length > 0
-                  ? ` (${challenges.length} selected)`
-                  : ""}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setStep("email")}
-                className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
-              >
-                Skip — just join the list
-              </button>
-            </>
-          )}
-
-          {step === "email" && (
             <div className="mt-4 grid gap-10 md:grid-cols-2 md:items-center md:text-left">
               <div>
                 <h1 className="text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-                  Where should we send your guide?
+                  Stop guessing in the supplement aisle. Sage is here &mdash;
+                  matching your challenges to a real protocol.
                 </h1>
-                {challenges.length > 0 && (
-                  <div className="mt-4 text-navy/70">
-                    <p>
-                      {challenges.length === 1
-                        ? "Got it — thanks for sharing that."
-                        : "Got it — that's a lot to be carrying at once. Thanks for sharing all of it."}{" "}
-                      We&apos;ll keep this in mind for what we send you:
-                    </p>
-                    <ul className="mx-auto mt-3 flex max-w-sm flex-col gap-1.5 text-left">
-                      {challenges.map((c) => (
-                        <li key={c} className="flex items-start gap-2 text-sm">
-                          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-copper" />
-                          <span className="font-semibold text-copper">{c}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <div className="mx-auto mt-6 inline-flex max-w-md flex-col gap-1 rounded-2xl bg-copper px-6 py-4 text-center">
+                  <p className="text-xs font-bold uppercase tracking-wide text-cream/80">
+                    Get your free guide
+                  </p>
+                  <p className="text-xl font-bold leading-snug text-cream sm:text-2xl">
+                    7 Signs Your Body Is Asking for a Reset After 35.
+                  </p>
+                </div>
+                <p className="mt-4 text-base font-semibold leading-relaxed text-navy/70">
+                  The 3pm crash. The mind that won&apos;t quiet down at
+                  midnight. The stomach that&apos;s never quite settled. Tell us
+                  which ones are yours — select as many as apply — so what Sage
+                  sends is actually matched to what your body&apos;s dealing
+                  with.
+                </p>
 
-                <form
-                  onSubmit={submit}
-                  className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
-                >
-                  <label htmlFor="email" className="sr-only">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="jane@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoFocus
-                    className="w-full flex-1 rounded-full border border-navy/20 bg-white px-5 py-3 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
-                  >
-                    {loading ? "Joining…" : "Join Free"}
-                  </button>
-                </form>
-                {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+                <div className="mx-auto mt-8 flex max-w-md flex-col gap-6">
+                  {CHALLENGE_CATEGORIES.map((category) => (
+                    <div key={category}>
+                      <p className="mb-3 text-left text-xs font-semibold uppercase tracking-wide text-navy/40">
+                        {PAIN_POINT_CATEGORY_LABELS[category]}
+                      </p>
+                      <div className="flex flex-col gap-3">
+                        {getPainPointsByCategory(category).map((option) => {
+                          const selected = challenges.includes(option.label);
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() => toggleChallenge(option.label)}
+                              className={`flex items-center gap-3 rounded-xl border px-5 py-4 text-left transition-colors ${
+                                selected
+                                  ? "border-copper bg-copper/10 text-navy"
+                                  : "border-navy/15 bg-white/70 text-navy hover:border-copper hover:bg-copper/5"
+                              }`}
+                            >
+                              <span
+                                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                                  selected
+                                    ? "border-copper bg-copper text-cream"
+                                    : "border-navy/30"
+                                }`}
+                              >
+                                {selected && (
+                                  <svg
+                                    viewBox="0 0 12 12"
+                                    className="h-3 w-3"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M2 6.2 4.8 9 10 3"
+                                      stroke="currentColor"
+                                      strokeWidth="1.6"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                )}
+                              </span>
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
                 <button
                   type="button"
-                  onClick={() => setStep("question")}
-                  className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
+                  onClick={() => setStep("email")}
+                  disabled={challenges.length === 0}
+                  className="mt-8 w-full max-w-md rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  &larr; Back
+                  Continue
+                  {challenges.length > 0
+                    ? ` (${challenges.length} selected)`
+                    : ""}
                 </button>
 
-                <p className="mt-6 text-xs leading-relaxed text-navy/40">
-                  By joining, you agree to receive email from Supplement ::
-                  LIFE. Unsubscribe anytime. Read our{" "}
-                  <Link
-                    href="/privacy"
-                    className="underline underline-offset-2 hover:text-copper"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setStep("email")}
+                  className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
+                >
+                  Skip — just join the list
+                </button>
               </div>
 
               <FounderVideoCard />
             </div>
+          )}
+
+          {step === "email" && (
+            <>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
+                Where should we send your guide?
+              </h1>
+              {challenges.length > 0 && (
+                <div className="mt-4 text-navy/70">
+                  <p>
+                    {challenges.length === 1
+                      ? "Got it — thanks for sharing that."
+                      : "Got it — that's a lot to be carrying at once. Thanks for sharing all of it."}{" "}
+                    We&apos;ll keep this in mind for what we send you:
+                  </p>
+                  <ul className="mx-auto mt-3 flex max-w-sm flex-col gap-1.5 text-left">
+                    {challenges.map((c) => (
+                      <li key={c} className="flex items-start gap-2 text-sm">
+                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-copper" />
+                        <span className="font-semibold text-copper">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <form
+                onSubmit={submit}
+                className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
+              >
+                <label htmlFor="email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="jane@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                  className="w-full flex-1 rounded-full border border-navy/20 bg-white px-5 py-3 text-navy placeholder:text-navy/30 focus:border-copper focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-cream shadow-[0_0_0_5px_var(--color-ivory)] transition-shadow hover:bg-copper/90 hover:shadow-[0_0_0_7px_var(--color-ivory)] disabled:opacity-60"
+                >
+                  {loading ? "Joining…" : "Join Free"}
+                </button>
+              </form>
+              {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+              <button
+                type="button"
+                onClick={() => setStep("question")}
+                className="mt-4 text-sm text-navy/40 underline underline-offset-2 hover:text-copper"
+              >
+                &larr; Back
+              </button>
+
+              <p className="mt-6 text-xs leading-relaxed text-navy/40">
+                By joining, you agree to receive email from Supplement :: LIFE.
+                Unsubscribe anytime. Read our{" "}
+                <Link
+                  href="/privacy"
+                  className="underline underline-offset-2 hover:text-copper"
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+            </>
           )}
 
           <p className="mt-10 text-sm text-navy/50">
