@@ -330,7 +330,9 @@ export default function JoinTheTribe() {
                 </button>
               </div>
 
-              <FounderVideoCard />
+              <div className="md:sticky md:top-6 md:self-start">
+                <FounderVideoCard />
+              </div>
             </div>
           )}
 
